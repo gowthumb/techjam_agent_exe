@@ -1,0 +1,3 @@
+[1H-seedstudy-pointwise-seed0] Valid is 27% smaller than test and spans 3 fewer days, so its seed-to-seed std should be at least as large as the official 0.0008 test std; if it is materially larger, the decision threshold used on valid must be widened accordingly
+[1H-seedstudy-pointwise-seed0] valid primary 0.6022 (+0.0006 vs baseline) -> neutral  [61s]
+[1H-seedstudy-pointwise-seed1] Valid is 27% smaller than test and spans 3 fewer days, so its seed-to-seed std should be at least as large as the official 0.0008 test std; if it is materially larger, the decision threshold used on valid must be widened accordingly

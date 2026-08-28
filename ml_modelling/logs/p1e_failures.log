@@ -1,0 +1,83 @@
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
+
+[1E-pointwise] FAILURE PROBE: lr=1.0 should blow up; record what the failure looks like so the agent can recognize it
+[1E-pointwise] valid primary 0.5472 (-0.0544 vs baseline) -> negative  [42s]
+
+exp_id                                                           phase    valid    test  d_valid  outcome  s
+------------------------------------------------------------------------------------------------------------
+1A-bpr-lr0.0002                                                  1A      0.6031  0.5979  +0.0015  neutral  60
+1A-bpr-lr0.001                                                   1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001                                                  1A      0.6025  0.5975  +0.0009  neutral  84
+1C-aux-is_follow-w0.3                                            1C      0.6025  0.5965  +0.0009  neutral  46
+1A-bpr-lr0.0005                                                  1A      0.6024  0.5973  +0.0008  neutral  32
+1C-aux-is_comment-w0.3                                           1C      0.6024  0.5964  +0.0008  neutral  53
+1A-control-pointwise                                             1A      0.6022  0.5945  +0.0006  neutral  33
+1C-control-singletask                                            1C      0.6022  0.5945  +0.0006  neutral  44
+1C-aux-is_like-w0.3                                              1C      0.6021  0.5959  +0.0005  neutral  46
+1B-pointwise-aff-author-causal                                   1B      0.6017  0.5943  +0.0001  neutral  34
+1B-pointwise-aff-user_author+user_music-causal                   1B      0.6016  0.5952  -0.0000  neutral  60
+1D-pointwise-k8                                                  1D      0.6014  0.5953  -0.0003  neutral  38
+1B-pointwise-aff-video-causal                                    1B      0.6012  0.5947  -0.0004  neutral  34
+1C-aux-is_click-w0.3                                             1C      0.6011  0.5935  -0.0005  neutral  40
+1B-pointwise-aff-user_tab-causal                                 1B      0.6010  0.5939  -0.0006  neutral  30
+1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal  1B      0.6009  0.5926  -0.0007  neutral  54
+1A-listwise-lr0.0001                                             1A      0.6002  0.5932  -0.0014  neutral  85
+1A-bpr-lr0.005                                                   1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.0002                                             1A      0.6000  0.5931  -0.0016 negative  59
+1A-listwise-lr0.001                                              1A      0.5999  0.5924  -0.0017 negative  16
+1F-lgbm-lambdarank-base-lv63                                     1F      0.5998  0.5939  -0.0018 negative  45
+1A-hybrid-lam1                                                   1A      0.5998  0.5929  -0.0018 negative  32
+1A-listwise-lr0.0005                                             1A      0.5995  0.5928  -0.0021 negative  35
+1A-hybrid-lam0.3                                                 1A      0.5993  0.5923  -0.0024 negative  32
+1B-pointwise-aff-user_tag-causal                                 1B      0.5992  0.5916  -0.0024 negative  38
+1F-lgbm-lambdarank-base+aff-lv63                                 1F      0.5986  0.5917  -0.0030 negative  20
+1F-lgbm-lambdarank-base+aff+user-lv63                            1F      0.5982  0.5921  -0.0034 negative  23
+1A-bpr-lr0.02                                                    1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005                                              1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02                                               1A      0.5867  0.5790  -0.0149 negative  14
+1E-pointwise                                                     1E      0.5472  0.5315  -0.0544 negative  42
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
+
+[1E-pointwise] FAILURE PROBE: lr=0.1 is 100x the baseline; expected to train but rank badly
+[1E-pointwise] valid primary 0.5639 (-0.0377 vs baseline) -> negative  [59s]
+
+exp_id                                                           phase    valid    test  d_valid  outcome  s
+------------------------------------------------------------------------------------------------------------
+1A-bpr-lr0.0002                                                  1A      0.6031  0.5979  +0.0015  neutral  60
+1A-bpr-lr0.001                                                   1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001                                                  1A      0.6025  0.5975  +0.0009  neutral  84
+1C-aux-is_forward-w0.3                                           1C      0.6025  0.5959  +0.0009  neutral  66
+1C-aux-is_follow-w0.3                                            1C      0.6025  0.5965  +0.0009  neutral  46
+1A-bpr-lr0.0005                                                  1A      0.6024  0.5973  +0.0008  neutral  32
+1C-aux-is_comment-w0.3                                           1C      0.6024  0.5964  +0.0008  neutral  53
+1A-control-pointwise                                             1A      0.6022  0.5945  +0.0006  neutral  33
+1C-control-singletask                                            1C      0.6022  0.5945  +0.0006  neutral  44
+1D-pointwise-k16                                                 1D      0.6022  0.5945  +0.0006  neutral  60
+1C-aux-is_like-w0.3                                              1C      0.6021  0.5959  +0.0005  neutral  46
+1B-pointwise-aff-author-causal                                   1B      0.6017  0.5943  +0.0001  neutral  34
+1B-pointwise-aff-user_author+user_music-causal                   1B      0.6016  0.5952  -0.0000  neutral  60
+1D-pointwise-k8                                                  1D      0.6014  0.5953  -0.0003  neutral  38
+1B-pointwise-aff-video-causal                                    1B      0.6012  0.5947  -0.0004  neutral  34
+1C-aux-is_click-w0.3                                             1C      0.6011  0.5935  -0.0005  neutral  40
+1B-pointwise-aff-user_tab-causal                                 1B      0.6010  0.5939  -0.0006  neutral  30
+1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal  1B      0.6009  0.5926  -0.0007  neutral  54
+1A-listwise-lr0.0001                                             1A      0.6002  0.5932  -0.0014  neutral  85
+1F-lgbm-binary-base+aff-lv63                                     1F      0.6001  0.5949  -0.0015  neutral  52
+1A-bpr-lr0.005                                                   1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.0002                                             1A      0.6000  0.5931  -0.0016 negative  59
+1A-listwise-lr0.001                                              1A      0.5999  0.5924  -0.0017 negative  16
+1F-lgbm-lambdarank-base-lv63                                     1F      0.5998  0.5939  -0.0018 negative  45
+1A-hybrid-lam1                                                   1A      0.5998  0.5929  -0.0018 negative  32
+1A-listwise-lr0.0005                                             1A      0.5995  0.5928  -0.0021 negative  35
+1A-hybrid-lam0.3                                                 1A      0.5993  0.5923  -0.0024 negative  32
+1B-pointwise-aff-user_tag-causal                                 1B      0.5992  0.5916  -0.0024 negative  38
+1F-lgbm-lambdarank-base+aff-lv63                                 1F      0.5986  0.5917  -0.0030 negative  20
+1F-lgbm-lambdarank-base+aff+user-lv63                            1F      0.5982  0.5921  -0.0034 negative  23
+1A-bpr-lr0.02                                                    1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005                                              1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02                                               1A      0.5867  0.5790  -0.0149 negative  14
+1E-pointwise                                                     1E      0.5639  0.5494  -0.0377 negative  59
+1E-pointwise                                                     1E      0.5472  0.5315  -0.0544 negative  42
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
+
+[1E-pointwise] FAILURE PROBE: k=256 with zero L2 should overfit; record the train-loss / valid-score divergence signature

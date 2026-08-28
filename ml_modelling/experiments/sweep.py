@@ -95,7 +95,7 @@ def main():
         cols = build_columns(logs, masks, needed)
         specs = [(f'aff_{n}', [cols[c] for c in AFFINITY_SPECS[n]]) for n in names]
         print(f"building affinity features {names} (mode={a.affinity_mode}) ...")
-        extra, _ = HI.build_affinity_fields(logs, masks, specs, mode=a.affinity_mode,
+        extra, _, _ = HI.build_affinity_fields(logs, masks, specs, mode=a.affinity_mode,
                                             prior=a.affinity_prior,
                                             n_buckets=a.affinity_buckets)
         fields += list(extra.keys())
@@ -107,13 +107,17 @@ def main():
                                   _floats(a.lam), _ints(a.pairs_per_pos),
                                   _ints(a.seed)))
     for lr, k, l2, lam, ppp, seed in grid:
+        # exp_id must be unique across the whole log, so any knob that is not at
+        # its default goes into the name even when this sweep holds it fixed.
         parts = [a.phase, a.loss]
-        if len(_floats(a.lr)) > 1 or a.loss != 'pointwise':
+        if len(_floats(a.lr)) > 1 or lr != 0.001:
             parts.append(f'lr{lr:g}')
-        if len(_ints(a.k)) > 1:
+        if len(_ints(a.k)) > 1 or k != 16:
             parts.append(f'k{k}')
-        if len(_floats(a.l2)) > 1:
+        if len(_floats(a.l2)) > 1 or l2 != 1e-6:
             parts.append(f'l2{l2:g}')
+        if a.epochs != 40:
+            parts.append(f'ep{a.epochs}')
         if len(_floats(a.lam)) > 1:
             parts.append(f'lam{lam:g}')
         if len(_ints(a.pairs_per_pos)) > 1:

@@ -88,7 +88,13 @@ class AffinityFeature:
         else:
             raise ValueError(f'unknown mode {self.mode}')
         rate = (pos + self.prior * self.gmean) / (cnt + self.prior)
-        self.edges = np.quantile(rate, np.linspace(0, 1, self.n_buckets + 1)[1:-1])
+        # Fit the edges on rows that actually HAVE history. Including cold rows
+        # collapses every quantile onto the prior when the key is sparse, which
+        # silently turns the feature into a constant.
+        warm = rate[cnt > 0]
+        self.warm_frac = float((cnt > 0).mean())
+        src = warm if len(warm) > self.n_buckets else rate
+        self.edges = np.quantile(src, np.linspace(0, 1, self.n_buckets + 1)[1:-1])
         return rate, cnt
 
     def transform(self, key_cols):
@@ -128,17 +134,22 @@ def build_affinity_fields(logs, masks, specs, mode='causal', prior=20.0, n_bucke
     y_all = (logs['long_view'] != 0).astype(np.float64)
     tr = masks['train']
     t = logs['time_ms'] if 'time_ms' in logs else logs['date'].astype(np.int64)
-    out, fitted = {}, {}
+    out, fitted, raw = {}, {}, {}
     for name, key_cols in specs:
         af = AffinityFeature(name, prior=prior, mode=mode, n_buckets=n_buckets)
         rate_tr, cnt_tr = af.fit_transform_train([c[tr] for c in key_cols], t[tr], y_all[tr])
         col = np.zeros(len(y_all), dtype=np.int32)
+        r_all = np.zeros(len(y_all), dtype=np.float32)
+        c_all = np.zeros(len(y_all), dtype=np.float32)
         col[tr] = af.bucketize(rate_tr, cnt_tr)
+        r_all[tr] = rate_tr; c_all[tr] = cnt_tr
         for split, m in masks.items():
             if split == 'train':
                 continue
             rate, cnt = af.transform([c[m] for c in key_cols])
             col[m] = af.bucketize(rate, cnt)
+            r_all[m] = rate; c_all[m] = cnt
         out[name] = col
+        raw[name] = (r_all, c_all)
         fitted[name] = af
-    return out, fitted
+    return out, fitted, raw

@@ -93,8 +93,7 @@ class Experiment:
         if exc is not None:
             self.error = f'{exc_type.__name__}: {exc}'
         rec = self.to_record(time.time() - self._t0)
-        with open(LOG_PATH, 'a', encoding='utf-8') as fh:
-            fh.write(json.dumps(rec, ensure_ascii=False, default=_json_default) + '\n')
+        append_record(rec)
         v = self.metrics.get('valid', {})
         if v:
             d = rec['delta_vs_baseline']['valid_primary']
@@ -128,6 +127,38 @@ class Experiment:
             'tags': self.tags,
             'env': {'python': platform.python_version(), 'host': socket.gethostname()},
         }
+
+
+def append_record(rec, path=LOG_PATH, timeout=30.0):
+    """Append one JSON line under an exclusive lock.
+
+    Sweeps run in parallel to fit the compute budget, so several processes append
+    to this file at once. A multi-KB line is not atomically appended on Windows,
+    so take a lock rather than hope.
+    """
+    line = json.dumps(rec, ensure_ascii=False, default=_json_default) + '\n'
+    lock = path + '.lock'
+    deadline = time.time() + timeout
+    fd = None
+    while True:
+        try:
+            fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            break
+        except FileExistsError:
+            if time.time() > deadline:
+                # Never lose a result to a stale lock: give up on it and append.
+                break
+            time.sleep(0.05)
+    try:
+        with open(path, 'a', encoding='utf-8') as fh:
+            fh.write(line)
+    finally:
+        if fd is not None:
+            try:
+                os.close(fd)
+                os.unlink(lock)
+            except OSError:
+                pass
 
 
 def _json_default(o):

@@ -100,7 +100,7 @@ def seg_softmax(z, seg, nseg):
 
 
 # ---------------------------------------------------------------- loss steps
-def _step_pointwise(m, X, y, rows, bs, rng):
+def _step_pointwise(m, X, y, rows, bs, rng, w=None):
     idx = rng.permutation(len(rows))
     losses = []
     for i in range(0, len(idx), bs):
@@ -108,7 +108,10 @@ def _step_pointwise(m, X, y, rows, bs, rng):
         Xb, yb = X[r], y[r]
         z, E, S = m.logits(Xb)
         p = sigmoid(z)
-        m.apply_grad(Xb, (p - yb) / len(yb), E, S)
+        g = (p - yb)
+        if w is not None:
+            g = g * w[r]
+        m.apply_grad(Xb, g / len(yb), E, S)
         losses.append(float(-np.mean(yb * np.log(p + 1e-9) + (1 - yb) * np.log(1 - p + 1e-9))))
     return float(np.mean(losses))
 
@@ -165,7 +168,7 @@ def _step_hybrid(m, X, y, rows, groups, bs, users_per_batch, lam, rng):
 # ---------------------------------------------------------------- training
 def train(enc, dim, loss='pointwise', k=16, lr=0.001, l2=1e-6, epochs=40, bs=8192,
           patience=4, seed=0, pairs_per_pos=1, users_per_batch=256, lam=1.0,
-          skip_degenerate=True, evaluator=None, verbose=True):
+          skip_degenerate=True, evaluator=None, verbose=True, row_weight=None):
     """Train and early-stop on valid primary. Returns (model, info)."""
     Xtr, ytr, utr = enc['train']
     Xva, yva, uva = enc['valid']
@@ -182,7 +185,7 @@ def train(enc, dim, loss='pointwise', k=16, lr=0.001, l2=1e-6, epochs=40, bs=819
     for ep in range(1, epochs + 1):
         t0 = time.time()
         if loss == 'pointwise':
-            L = _step_pointwise(m, Xtr, ytr, rows, bs, rng)
+            L = _step_pointwise(m, Xtr, ytr, rows, bs, rng, w=row_weight)
         elif loss == 'bpr':
             L = _step_bpr(m, Xtr, ytr, groups, pairs_per_pos, bs, rng)
         elif loss == 'listwise':
