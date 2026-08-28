@@ -10,8 +10,13 @@
 # what the agent does, it does not belong.
 
 meta:
-  schema_version: 1
+  schema_version: 2
   dataset: kuairand_pure
+  scope: >-
+    VALUES IN THIS FILE ARE VALID FOR KUAIRAND-PURE ONLY. Measured against
+    KuaiRand-1K, the headline recommendation loses by -0.0152. The METHOD
+    (decision_protocol, control_rule, diagnostics) travels; the numbers do not.
+    See scale_transfer before using this on any other benchmark.
   task: within-user ranking of logged impressions
   label: long_view
   metric: mean(GAUC, nDCG@5)
@@ -528,8 +533,13 @@ dataset_facts:
     test_users_seen_in_train: 0.967
     test_videos_seen_in_train: 0.998
     implication: >-
-      This is NOT a cold-start problem. Cold-start machinery is wasted effort;
-      the difficulty is behavioural drift on known ids.
+      On PURE this is NOT a cold-start problem. Cold-start machinery is wasted
+      effort here; the difficulty is behavioural drift on known ids.
+    scope_warning: >-
+      This is the single most benchmark-specific fact in this file, and it does not
+      generalise: on KuaiRand-1K only 15.1% of test videos appear in train, which
+      inverts the conclusion and with it the loss recommendation. See
+      scale_transfer. Always re-measure this ratio before reusing anything here.
   train_volume_skew: >-
     59% of train rows fall in three days (2022-04-10..12); the eval period runs at
     ~15K rows/day. Training is dominated by an earlier, higher-engagement regime.
@@ -541,17 +551,92 @@ dataset_facts:
 # --------------------------------------------------------------- scale transfer
 scale_transfer:
   derived_from: kuairand_pure
-  status: "pending — Phase 5 (KuaiRand-1k / 27k) not started"
-  expected_invariant:
-    - diagnostic_playbook          # Adam bounding the step is a property of the optimizer
-    - decision_protocol.replication_rule
-    - "user-only features contribute 0 (a property of within-user ranking, not of scale)"
-  needs_revalidation:
-    - k                            # more data may finally support capacity
-    - learning_rate
-    - iteration_budget_pacing
-    - "the over-parameterisation finding itself — it is the most scale-dependent claim here"
-  note: >-
-    The headline finding (this baseline is over-parameterised) is exactly the kind
-    of result that should invert with 8x-230x more data. Re-run the k sweep first
-    on any larger benchmark before reusing anything else in this file.
+  status: "validated against KuaiRand-1K; 27K not attempted (see below)"
+
+  headline: >-
+    DO NOT APPLY THIS KB TO KUAIRAND-1K. The recommended config LOSES there by
+    -0.0152 valid over 3 seeds — roughly 7 standard errors, an order of magnitude
+    outside any noise band. 1K is not a bigger Pure; it is a different sampling
+    regime, and the difference is in the data's shape, not its volume.
+
+  why_it_fails:
+    fact: >-
+      Pure samples 27,077 users over a 7,551-video catalog (190 rows per video,
+      99.9% of test videos seen in train). 1K takes 1,000 users' ENTIRE histories
+      over the full 4,369,953-video catalog (2.7 rows per video, only 15.1% of test
+      videos seen in train).
+    consequence: >-
+      Pure is a warm-ID ranking problem with temporal drift. 1K is an item
+      cold-start problem with no drift (label rate 0.2635 -> 0.2588, essentially
+      flat, against Pure's 0.3366 -> 0.3135). BPR's advantage on Pure came from
+      spending capacity on within-user ordering rather than the global rate; when
+      85% of test items have no learned embedding, there is little ordering signal
+      to spend it on and pointwise calibration carries more of the score.
+
+  what_inverted:                   # measured, not predicted
+    - claim: "BPR beats pointwise"
+      pure: "+0.0021 valid (5 seeds)"
+      one_k: "-0.0152 valid (3 seeds), and negative at EVERY lr in [0.0002, 0.02]"
+      verdict: inverted
+      note: >-
+        Swept lr specifically to separate "the loss does not transfer" from "its
+        step size does not". All four learning rates lose, so it is the loss.
+    - claim: "k is a cost knob, not a scoring knob (flat 1..16)"
+      pure: "flat 0.6018-0.6028 across k=1..16"
+      one_k: "peaked: k=4 0.6389, k=16 0.6438, k=64 0.6390"
+      verdict: inverted
+      note: "capacity genuinely matters on 1K; k=16 beats k=4 by 0.005"
+    - claim: "single-run noise band 0.0016"
+      pure: "valid sd 0.0005"
+      one_k: "valid sd 0.0022 (baseline), 4x larger"
+      verdict: inverted
+      note: "the band must be re-measured per benchmark; Pure's is far too tight for 1K"
+    - claim: "typical best epoch ~7"
+      pure: "epoch 7"
+      one_k: "epoch 2 — overfits far faster"
+      verdict: inverted
+
+  what_held:
+    - "user-only features contribute 0 — a consequence of within-user ranking, not of scale"
+    - "the diagnostics playbook — Adam bounding the step is a property of the optimizer"
+    - "decision_protocol.replication_rule — needed MORE at 1K, where seed noise is 4x larger"
+
+  directive: >-
+    On any benchmark other than KuaiRand-Pure, treat this file as a method, not as
+    a set of values. Run the facts pass FIRST (experiments/p5_scale_transfer.py
+    --stage facts): rows per video and the share of eval items unseen in train are
+    the two numbers that decide whether anything here applies at all. If items are
+    largely cold, start from pointwise at k=16 and re-derive; do not open on the
+    recommended config.
+
+  engineering_notes:
+    - >-
+      The dense Adam update is O(vocab x k) PER BATCH, which is free at Pure's 40K
+      vocabulary and infeasible at 1K's 2.9M. Use fm.train(sparse=True). It is lazy
+      sparse Adam and therefore an approximation, verified to land inside the noise
+      band on Pure (pointwise +0.0007, bpr -0.0000) before being trusted at scale.
+    - >-
+      Use benchmarks.load_logs(minimal=True) and features.encode_int_fields. The
+      full 19-column string-based path peaks at 5.6GB on 1K and will OOM on a 24GB
+      machine; the minimal chunked integer path peaks at 0.4GB.
+
+  kuairand_27k:
+    attempted: false
+    reason: >-
+      Not a waiting problem, a design problem. 322M rows x 6 minimal columns is
+      ~7GB of parsed arrays on a 23.7GB machine, and a single 40-epoch run is ~7.7
+      hours at the measured per-row cost — beyond one 6h benchmark budget for ONE
+      config, before any search. It needs out-of-core storage (memmap) plus
+      subsample-search-then-final-fit, which is a build rather than a longer run.
+    if_attempted: >-
+      Run the facts pass first. 27K is sampled like 1K (all interactions for a user
+      sample), so expect the 1K regime — item cold-start — not the Pure one, and
+      expect the pointwise baseline to be the right starting point.
+
+  evidence:
+    exp_ids: [5-1k-baseline-seed0, 5-1k-baseline-seed1, 5-1k-baseline-seed2,
+              5-1k-kbpick-seed0, 5-1k-kbpick-seed1, 5-1k-kbpick-seed2,
+              "5-1k-bpr-lr0.001-seed0", "5-1k-bpr-lr0.005-seed0",
+              "5-1k-bpr-lr0.02-seed0", 5-1k-pointwise-k4-seed0,
+              5-1k-pointwise-k16-seed0, 5-1k-pointwise-k64-seed0]
+    facts_files: [phase5_facts_pure.json, phase5_facts_1k.json]

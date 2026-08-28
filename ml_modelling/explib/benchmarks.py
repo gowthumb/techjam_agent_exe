@@ -174,3 +174,22 @@ def describe(bench, logs=None, minimal=True):
         out['splits'][sp]['users_seen_in_train'] = round(len(u & tr_u) / max(len(u), 1), 4)
         out['splits'][sp]['videos_seen_in_train'] = round(len(v & tr_v) / max(len(v), 1), 4)
     return out
+
+
+def load_video_authors(bench):
+    """video_id -> author_id as plain int arrays.
+
+    load_video_features parses all six categorical columns into an object array,
+    which is ~26M Python strings on 1K. Phase 5 only needs the author, and needs it
+    as an int, so read just those two columns.
+    """
+    _, _, _, vid = resolve_files(bench)
+    ids, auth = [], []
+    with open(vid, newline='') as fh:
+        rdr = csv.reader(fh)
+        ix = {n: i for i, n in enumerate(next(rdr))}
+        vi, ai = ix['video_id'], ix['author_id']
+        for row in rdr:
+            ids.append(int(float(row[vi])))
+            auth.append(int(float(row[ai])) if row[ai] not in ('', 'NA') else -1)
+    return np.asarray(ids, dtype=np.int64), np.asarray(auth, dtype=np.int64)

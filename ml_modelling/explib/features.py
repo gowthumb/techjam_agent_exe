@@ -120,3 +120,36 @@ def encode_splits(logs, masks, fields=None, dur_buckets=10, extra_cols=None):
                      (logs[D.LABEL][m] != 0).astype(np.float32),
                      logs['user_id'][m])
     return out, e.total_dim, e
+
+
+# ---------------------------------------------------------------- scale path
+def encode_int_fields(cols, train_mask, order=None):
+    """Vectorized encoding for integer-valued fields, for the 1K/27K scale.
+
+    The Encoder above round-trips every value through Python strings, which is
+    fine at Pure's 1.4M rows and 40K vocabulary but builds tens of millions of
+    string objects at 1K scale. This path uses np.unique/np.searchsorted directly
+    on the integer columns instead.
+
+    Conventions match Encoder exactly: vocabularies fit on TRAIN ONLY, one trailing
+    UNK slot per field, ids offset into one shared flat embedding table.
+
+    cols: {field_name: int array over ALL rows}
+    -> (X int32 (N, n_fields), total_dim, per-field unseen-rate diagnostics)
+    """
+    names = list(order or cols)
+    mats, dims, unseen = [], [], {}
+    for name in names:
+        col = np.asarray(cols[name])
+        vocab = np.unique(col[train_mask])
+        idx = np.searchsorted(vocab, col)
+        idx[idx >= len(vocab)] = 0                 # clamp before the equality test
+        known = vocab[idx] == col
+        code = np.where(known, idx, len(vocab)).astype(np.int32)   # len(vocab) = UNK
+        mats.append(code)
+        dims.append(len(vocab) + 1)
+        unseen[name] = {'vocab': int(len(vocab)),
+                        'unseen_rate_all': round(float((~known).mean()), 4)}
+    offsets = np.cumsum([0] + dims[:-1]).astype(np.int32)
+    X = np.stack([m + o for m, o in zip(mats, offsets)], axis=1)
+    return X, int(sum(dims)), unseen

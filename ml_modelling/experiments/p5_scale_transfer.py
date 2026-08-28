@@ -35,32 +35,61 @@ KB_CFG = dict(loss='bpr', k=6, lr=0.0002, l2=1e-6, epochs=60, patience=6)
 
 
 def prepare(bench, subsample=None):
-    logs = B.load_logs(bench)
+    """Encode the five baseline fields via the integer fast path.
+
+    Same five fields and same conventions as Pure, so the comparison is like for
+    like; only the encoder implementation differs (see features.encode_int_fields).
+    """
+    logs = B.load_logs(bench, minimal=True)
     masks = D.split_slices(logs)
-    enc, dim, _ = F.encode_splits(logs, masks, F.BASELINE_FIELDS)
+    tr = masks['train']
+
+    vids, auths = B.load_video_authors(bench)
+    order = np.argsort(vids)
+    pos = np.searchsorted(vids[order], logs['video_id'])
+    pos = np.clip(pos, 0, len(vids) - 1)
+    hit = vids[order][pos] == logs['video_id']
+    author = np.where(hit, auths[order][pos], -1)
+
+    edges = np.quantile(logs['duration_ms'][tr], np.linspace(0, 1, 11)[1:-1])
+    dur_bucket = np.searchsorted(edges, logs['duration_ms']).astype(np.int64)
+
+    cols = {'user_id': logs['user_id'], 'video_id': logs['video_id'],
+            'author_id': author, 'tab': logs['tab'].astype(np.int64),
+            'dur_bucket': dur_bucket}
+    X, dim, unseen = F.encode_int_fields(cols, tr, order=list(F.BASELINE_FIELDS))
+    print('  per-field vocab / share of rows unseen in train:')
+    for k, v in unseen.items():
+        print(f"    {k:12s} vocab={v['vocab']:>9,}  unseen={v['unseen_rate_all']:.1%}")
+
+    y = (logs[D.LABEL] != 0).astype(np.float32)
+    enc = {sp: (X[m], y[m], logs['user_id'][m]) for sp, m in masks.items()}
+
     if subsample:
-        X, y, u = enc['train']
-        n = min(subsample, len(y))
-        rng = np.random.default_rng(0)
-        idx = np.sort(rng.choice(len(y), n, replace=False))
-        enc = dict(enc)
-        enc['train'] = (X[idx], y[idx], u[idx])
-        print(f'  subsampled train to {n:,} of {len(y):,} rows')
+        Xt, yt, ut = enc['train']
+        n = min(subsample, len(yt))
+        idx = np.sort(np.random.default_rng(0).choice(len(yt), n, replace=False))
+        enc['train'] = (Xt[idx], yt[idx], ut[idx])
+        print(f'  subsampled train to {n:,} of {len(yt):,} rows')
     return logs, masks, enc, dim
 
 
 def run_one(exp_id, bench, cfg, enc, dim, seed, hypothesis, axis, subsample=None):
     full = dict(model='fm', benchmark=bench, fields=F.BASELINE_FIELDS,
-                bs=8192, seed=seed, subsample=subsample, **cfg)
+                bs=8192, seed=seed, subsample=subsample,
+                sparse_updates=(bench != 'pure'), **cfg)
     # The Pure baseline is not a valid reference on another benchmark, so record
     # no delta rather than a misleading one; comparisons are made within-benchmark.
     ref = None if bench == 'pure' else 'none'
     with H.Experiment(exp_id, phase='5', axis=axis, hypothesis=hypothesis,
                       config=full, tags=['scale', bench, cfg['loss']],
                       baseline_ref=ref) as ex:
+        # dim is ~4.4M on 1K, so the dense Adam update is infeasible; sparse mode
+        # was verified to land inside the noise band on Pure before being used here.
         m, info = fm.train(enc, dim, loss=cfg['loss'], k=cfg['k'], lr=cfg['lr'],
                            l2=cfg['l2'], epochs=cfg['epochs'], patience=cfg['patience'],
-                           seed=seed, evaluator=H.score, verbose=False)
+                           seed=seed, evaluator=H.score, verbose=True,
+                           sparse=(bench != 'pure'))
         ex.record_train(**{k: v for k, v in info.items() if k != 'history'})
         ex.record_train(history=info['history'])
         for sp in ('valid', 'test'):

@@ -1,2 +1,5 @@
 seeded cache with 65 runs from experiments.jsonl
 
+[blind restart 0] best 0.6043 | beat baseline @ iter 3 | converged @ 6 | 12/15 below baseline | 0 broken | 1360s search cost (1240s real)
+[kb    restart 0] best 0.6042 | beat baseline @ iter 1 | converged @ 4 | 0/15 below baseline | 0 broken | 946s search cost (714s real)
+[blind restart 1] best 0.6032 | beat baseline @ iter 3 | converged @ 6 | 13/15 below baseline | 0 broken | 2864s search cost (2765s real)

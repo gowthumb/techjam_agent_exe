@@ -326,7 +326,123 @@ condition than any absolute threshold.
 
 ---
 
-## 11. Honest summary of the headroom found
+## 11. Phase 5 — the KB does not transfer to KuaiRand-1K, and that is the finding
+
+The plan frames Phase 5 as a scale question: 1K is ~8x Pure, so re-validate `k`,
+regularization and pacing. The facts pass says that framing is wrong before a
+single model is trained:
+
+| | Pure | 1K |
+|---|---|---|
+| rows | 1,436,609 | 11,713,045 (8.2x) |
+| distinct users | 27,077 | **1,000** (0.04x) |
+| distinct videos | 7,551 | **4,369,953** (579x) |
+| rows per video | 190.3 | **2.7** |
+| test videos seen in train | **99.9%** | **15.1%** |
+| label rate train -> test | 0.3366 -> 0.3135 | 0.2635 -> 0.2588 (flat) |
+| split shares | 79 / 9 / 12% | 43 / 22 / 35% |
+
+Pure samples many users over a small catalog. 1K takes 1,000 users' *entire*
+histories over the full catalog. So Pure is a **warm-ID problem with temporal
+drift**, and 1K is an **item cold-start problem without drift**. That is a change
+of regime, not of volume, and it is visible for the price of one parsing pass.
+
+The head-to-head, three seeds each:
+
+| config | valid | test |
+|---|---|---|
+| baseline pointwise k=16 lr=0.001 | **0.6439 ± 0.0022** | **0.6380 ± 0.0021** |
+| KB pick: BPR k=6 lr=0.0002 | 0.6288 ± 0.0009 | 0.6230 ± 0.0079 |
+
+**−0.0152 valid, −0.0151 test** — about seven standard errors. The KB's single
+confirmed recommendation is actively harmful here.
+
+I spent four extra runs separating "the loss does not transfer" from "its step size
+does not", because the KB explicitly lists `lr` under `needs_revalidation` and that
+distinction changes what gets written. BPR loses at **every** learning rate tried:
+0.0002 → 0.6279, 0.001 → 0.6274, 0.02 → 0.6243, 0.005 → 0.6220, against 0.6438.
+It is the loss.
+
+The mechanism is consistent with the structure. BPR's Pure advantage was declining
+to spend capacity on the global positive rate, since within-user ranking never uses
+it. When 85% of test items have no trained embedding at all, there is little
+within-user ordering signal left to exploit, and the pointwise model's calibration
+carries more of the score.
+
+Three further Pure claims inverted:
+
+- **capacity.** Pure: flat 0.6018–0.6028 across k=1..16. 1K: peaked — k=4 0.6389,
+  k=16 **0.6438**, k=64 0.6390. Capacity genuinely matters at 1K, so "k is a cost
+  knob" is a Pure-only statement.
+- **the noise band.** Pure valid sd 0.0005; 1K valid sd 0.0022, four times larger.
+  Pure's 0.0016 band would be far too tight to make decisions with on 1K.
+- **pacing.** Best epoch moves from 7 to 2 — 1K overfits much faster.
+
+What did hold: the diagnostics (a property of Adam, not of the data), the
+consequence that user-only features contribute zero (a property of within-user
+ranking), and the replication rule — which mattered *more* at 1K, where seed noise
+is four times larger.
+
+So `scale_transfer` now says something falsifiable and useful: treat this file as a
+method rather than a set of values, run the facts pass first, and let *rows per
+video* and *share of eval items unseen in train* decide whether any of the numbers
+apply at all.
+
+Two engineering findings came out of the same work, both discovered by running
+rather than reasoning. The dense Adam update is O(vocab × k) **per batch** — free at
+Pure's 40K vocabulary, infeasible at 1K's 2.9M — so `fm.train(sparse=True)` exists,
+verified inside the noise band on Pure before being trusted at scale. And the
+full-column string-based loader peaks at 5.6GB on 1K against 3.1GB free; the
+minimal chunked integer path peaks at 0.4GB.
+
+**KuaiRand-27K was not attempted**, and the reason is a design gap rather than a
+schedule one: ~7GB of parsed arrays on a 23.7GB machine, and ~7.7 hours for a single
+40-epoch run at the measured per-row cost — more than one 6h benchmark budget for
+*one config*, before any search. It needs out-of-core storage plus
+subsample-search-then-final-fit. Since 27K is sampled like 1K, the 1K regime and not
+the Pure one is what it should expect.
+
+---
+
+## 12. Phase 4 — the KB's value is efficiency, not ceiling
+
+The plan says not to assume the KB helps. It does help, but not in the way the
+phrase "does the KB improve things" suggests, and the distinction is worth being
+precise about.
+
+The ablation runs the same loop twice on the same iteration budget: one arm
+proposing blind, one reading `knowledge_base.yaml` (dead-end filter, validated
+ranges, replication rule, recommended opening config). The blind arm's space is
+taken verbatim from `KNOWLEDGE_BASE_PLAN.md`'s own Phase 1a/1d proposals — k in
+8..128, the four losses, the LR and L2 sweeps, affinity on/off — rather than
+invented here, so it is not a straw man built to lose.
+
+The circularity has to be stated plainly: the KB was derived from this dataset, so
+it cannot honestly claim to *discover* faster than blind search. What it can claim
+is transfer cost — how much a search pays to reach what the KB hands over on
+iteration 1.
+
+| metric (restart 0) | blind | with KB |
+|---|---|---|
+| best valid reached | **0.6043** | 0.6042 |
+| iterations to beat baseline | 3 | **1** |
+| iterations to converge | 6 | **4** |
+| trials at or below baseline | **12 / 15** | **0 / 15** |
+| search wall-clock | 1360s | 946s |
+
+The blind arm reached a *marginally higher* ceiling. That is the honest headline:
+**the KB does not find better models.** Given 15 iterations, random search over a
+sensible space finds a good config too. What the KB changes is how much of the
+budget is wasted getting there — 12 below-baseline trials become 0 — and it
+converges two iterations earlier for about 30% less wall-clock.
+
+For a 50-iteration / 6h budget that is the right kind of claim: the KB buys back
+iterations for the axes that are still unexplored, rather than raising the score by
+itself.
+
+---
+
+## 13. Honest summary of the headroom found
 
 Against the official baseline (valid 0.6016 / test 0.5946), the best confirmed
 configuration is BPR at k≈4–16, lr = 0.0002: **valid 0.6038, test 0.5980**.

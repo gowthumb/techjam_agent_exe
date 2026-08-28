@@ -26,12 +26,13 @@ def sigmoid(x):
 class FM:
     """Identical math and init to kuairand-starter-kit/baseline.py::FM."""
 
-    def __init__(self, dim, k=16, lr=0.001, l2=1e-6, seed=0):
+    def __init__(self, dim, k=16, lr=0.001, l2=1e-6, seed=0, sparse=False):
         rng = np.random.default_rng(seed)
         self.V = rng.normal(0, 0.01, (dim, k)).astype(np.float32)
         self.W = np.zeros(dim, dtype=np.float32)
         self.b = np.float32(0.0)
         self.lr, self.l2 = lr, l2
+        self.sparse = sparse       # opt-in; see apply_grad_sparse for the caveat
         self.mV = np.zeros_like(self.V); self.vV = np.zeros_like(self.V)
         self.mW = np.zeros_like(self.W); self.vW = np.zeros_like(self.W)
         self.t = 0
@@ -44,6 +45,8 @@ class FM:
 
     def apply_grad(self, X, g, E, S, update_bias=True):
         """g: (B,) per-row dL/dz. Everything below is loss-agnostic."""
+        if self.sparse:
+            return self.apply_grad_sparse(X, g, E, S, update_bias)
         g = g.astype(np.float32)
         gV = np.zeros_like(self.V); gW = np.zeros_like(self.W)
         np.add.at(gW, X, g[:, None])
@@ -55,6 +58,45 @@ class FM:
             M *= b1; M += (1 - b1) * G
             Vv *= b2; Vv += (1 - b2) * (G * G)
             P -= self.lr * (M / (1 - b1 ** self.t)) / (np.sqrt(Vv / (1 - b2 ** self.t)) + eps)
+        if update_bias:
+            self.b -= self.lr * g.sum()
+
+    def apply_grad_sparse(self, X, g, E, S, update_bias=True):
+        """Same gradient, but touching only the embedding rows in this batch.
+
+        WHY THIS EXISTS: the dense path allocates and updates the whole (dim, k)
+        table every batch, which is O(vocab) per step regardless of batch size. On
+        KuaiRand-Pure vocab is 40K and that is free; on KuaiRand-1K it is 4.4M and
+        it dominates everything.
+
+        NOT NUMERICALLY IDENTICAL TO THE DENSE PATH. This is lazy/sparse Adam: rows
+        absent from a batch get no L2 decay and no moment decay that step. That is
+        what every production sparse optimizer does, and the KB already establishes
+        L2 is not a live knob here, but it is an approximation -- so it is opt-in
+        and every Pure result in the log uses the dense path.
+        """
+        g = g.astype(np.float32)
+        F = X.shape[1]
+        flat = X.ravel()
+        uniq, inv = np.unique(flat, return_inverse=True)
+        contrib = (g[:, None, None] * (S[:, None, :] - E)).reshape(-1, self.V.shape[1])
+        gV = np.zeros((len(uniq), self.V.shape[1]), dtype=np.float32)
+        np.add.at(gV, inv, contrib)
+        gW = np.bincount(inv, weights=np.repeat(g, F),
+                         minlength=len(uniq)).astype(np.float32)
+        gV += self.l2 * self.V[uniq]
+        gW += self.l2 * self.W[uniq]
+        self.t += 1
+        b1, b2, eps = 0.9, 0.999, 1e-8
+        c1, c2 = 1 - b1 ** self.t, 1 - b2 ** self.t
+        mV = b1 * self.mV[uniq] + (1 - b1) * gV
+        vV = b2 * self.vV[uniq] + (1 - b2) * (gV * gV)
+        self.mV[uniq], self.vV[uniq] = mV, vV
+        self.V[uniq] -= self.lr * (mV / c1) / (np.sqrt(vV / c2) + eps)
+        mW = b1 * self.mW[uniq] + (1 - b1) * gW
+        vW = b2 * self.vW[uniq] + (1 - b2) * (gW * gW)
+        self.mW[uniq], self.vW[uniq] = mW, vW
+        self.W[uniq] -= self.lr * (mW / c1) / (np.sqrt(vW / c2) + eps)
         if update_bias:
             self.b -= self.lr * g.sum()
 
@@ -168,11 +210,12 @@ def _step_hybrid(m, X, y, rows, groups, bs, users_per_batch, lam, rng):
 # ---------------------------------------------------------------- training
 def train(enc, dim, loss='pointwise', k=16, lr=0.001, l2=1e-6, epochs=40, bs=8192,
           patience=4, seed=0, pairs_per_pos=1, users_per_batch=256, lam=1.0,
-          skip_degenerate=True, evaluator=None, verbose=True, row_weight=None):
+          skip_degenerate=True, evaluator=None, verbose=True, row_weight=None,
+          sparse=False):
     """Train and early-stop on valid primary. Returns (model, info)."""
     Xtr, ytr, utr = enc['train']
     Xva, yva, uva = enc['valid']
-    m = FM(dim, k=k, lr=lr, l2=l2, seed=seed)
+    m = FM(dim, k=k, lr=lr, l2=l2, seed=seed, sparse=sparse)
     rng = np.random.default_rng(seed)
     rows = np.arange(len(ytr))
     groups = (user_groups(utr, ytr, skip_degenerate)
