@@ -1,0 +1,3 @@
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
+
+[1J-bpr-lr0.0002-k4-ep60-seed0] BPR at k=8 was the first result to clear the noise band (+0.0024). A pairwise loss constrains only within-user order, so it needs less capacity than logloss which must also fit the global rate; replicate over 3 seeds to check the effect survives seed noise

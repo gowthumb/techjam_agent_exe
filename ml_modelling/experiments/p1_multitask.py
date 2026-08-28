@@ -31,15 +31,31 @@ AUX = {
     # watch-time derived: watched more than half the clip
     'play_half':        lambda lg: (lg['play_time_ms'] >= 0.5 * np.maximum(lg['duration_ms'], 1)
                                     ).astype(np.float32),
+    # DECISIVE CONTROLS: pure noise at the same positive rates as the real signals.
+    # If a random label helps as much as is_follow, the auxiliary head is acting as
+    # a regularizer and no information is transferring from the signal at all.
+    'random_sparse':    lambda lg: (np.random.default_rng(7).random(len(lg['long_view']))
+                                    < 0.001).astype(np.float32),
+    'random_dense':     lambda lg: (np.random.default_rng(8).random(len(lg['long_view']))
+                                    < 0.463).astype(np.float32),
 }
 
 SINGLES = ['is_click', 'is_like', 'is_follow', 'is_comment', 'is_forward',
-           'is_hate', 'is_profile_enter', 'play_complete', 'play_half']
+           'is_hate', 'is_profile_enter', 'play_complete', 'play_half',
+           'random_sparse', 'random_dense']
 
 HYP_SINGLE = ('Auxiliary signal shares structure with long_view, so supervising it on the '
               'shared embedding table should regularize V and improve long_view ranking')
 HYP_CTRL = ('CONTROL: T=1 with A frozen at ones is algebraically the kit FM, so this must '
             'land on the baseline; if it does not, the multi-task code path is not comparable')
+HYP_RANDOM = ('DECISIVE CONTROL: an auxiliary head trained on pure noise at a matched '
+              'positive rate. The observed gains rise monotonically as the auxiliary gets '
+              'sparser, which is what a regularizer looks like, not what transfer looks '
+              'like. If random_sparse matches is_follow, no information is transferring')
+HYP_CTRL_A = ('CONTROL FOR A CONFOUND: every auxiliary run also switches on the learnable '
+              'per-task interaction weights A, which the frozen-A control does not have. '
+              'Single-task WITH learnable A isolates how much of the auxiliary gain is '
+              'really just those k extra parameters')
 
 
 def main():
@@ -75,12 +91,15 @@ def main():
         plans.append((f'1C-combo-{"+".join(names)}-w{a.weight:g}', names, HYP_SINGLE))
     else:
         plans.append(('1C-control-singletask', [], HYP_CTRL))
+        plans.append(('1C-control-singletask-learnA', [], HYP_CTRL_A))
         for n in SINGLES:
-            plans.append((f'1C-aux-{n}-w{a.weight:g}', [n], HYP_SINGLE))
+            hyp = (HYP_RANDOM if n.startswith('random_') else HYP_SINGLE)
+            plans.append((f'1C-aux-{n}-w{a.weight:g}', [n], hyp))
 
     for exp_id, names, hyp in plans:
         if a.only and not any(s in exp_id for s in a.only.split(',')):
             continue
+        learn_A = bool(names) or exp_id.endswith('learnA')
         cols = [(logs['long_view'] != 0).astype(np.float32)] + [AUX[n](logs) for n in names]
         Y = np.stack(cols, axis=1)
         Ytr = Y[tr]
@@ -89,14 +108,14 @@ def main():
                    patience=4, seed=a.seed, fields=F.BASELINE_FIELDS,
                    aux_tasks=names, task_weights=weights,
                    aux_positive_rate={n: round(rates[n], 5) for n in names},
-                   learn_A=bool(names))
+                   learn_A=learn_A)
         with H.Experiment(exp_id, phase='1C', axis='multi_task',
                           hypothesis=hyp, config=cfg,
                           tags=['multitask'] + names) as ex:
             m, info = mtfm.train(Xtr, Ytr, Xva, yva, uva, dim, weights,
                                  k=16, lr=a.lr, epochs=a.epochs, seed=a.seed,
                                  evaluator=H.score, verbose=not a.quiet,
-                                 learn_A=bool(names))
+                                 learn_A=learn_A)
             ex.record_train(**{k: v for k, v in info.items() if k != 'history'})
             ex.record_train(history=info['history'])
             ex.record_metrics('valid', H.score(uva, yva, m.predict(Xva)))

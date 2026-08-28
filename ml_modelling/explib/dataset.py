@@ -30,6 +30,9 @@ RANDOM_LOG = 'log_random_4_22_to_5_08_pure.csv'
 # All 19 log columns except user_id/video_id (kept separately as int64).
 INT_COLS = ['date', 'hourmin', 'is_click', 'is_like', 'is_follow', 'is_comment',
             'is_forward', 'is_hate', 'long_view', 'is_profile_enter', 'is_rand', 'tab']
+# Unix ms timestamps overflow int32, so they get their own int64 column. This is
+# the ordering key for every causal feature -- date alone only resolves to a day.
+BIG_INT_COLS = ['time_ms']
 FLOAT_COLS = ['play_time_ms', 'duration_ms', 'profile_stay_time', 'comment_stay_time']
 
 # The 11 feedback signals other than long_view that are logged but not scored.
@@ -52,6 +55,7 @@ def _parse_logs(files):
     """Parse log CSVs into a dict of numpy arrays, preserving file+row order."""
     uid, vid = [], []
     ints = {c: [] for c in INT_COLS}
+    bigs = {c: [] for c in BIG_INT_COLS}
     flts = {c: [] for c in FLOAT_COLS}
     for f in files:
         with open(os.path.join(DATA_DIR, f), newline='') as fh:
@@ -60,12 +64,16 @@ def _parse_logs(files):
                 vid.append(int(r['video_id']))
                 for c in INT_COLS:
                     ints[c].append(int(float(r[c])))
+                for c in BIG_INT_COLS:
+                    bigs[c].append(int(float(r[c])))
                 for c in FLOAT_COLS:
                     flts[c].append(float(r[c]))
     out = {'user_id': np.asarray(uid, dtype=np.int64),
            'video_id': np.asarray(vid, dtype=np.int64)}
     for c in INT_COLS:
         out[c] = np.asarray(ints[c], dtype=np.int32)
+    for c in BIG_INT_COLS:
+        out[c] = np.asarray(bigs[c], dtype=np.int64)
     for c in FLOAT_COLS:
         out[c] = np.asarray(flts[c], dtype=np.float32)
     return out
@@ -77,7 +85,7 @@ def load_logs(random_log=False, refresh=False):
     Returns a dict of equal-length numpy arrays, one per column.
     """
     files = (RANDOM_LOG,) if random_log else LOG_FILES
-    path = os.path.join(CACHE_DIR, f'logs_{_cache_key(*files)}.npz')
+    path = os.path.join(CACHE_DIR, f'logs_{_cache_key(*files, "v2-time_ms")}.npz')
     if os.path.exists(path) and not refresh:
         with np.load(path) as z:
             return {k: z[k] for k in z.files}

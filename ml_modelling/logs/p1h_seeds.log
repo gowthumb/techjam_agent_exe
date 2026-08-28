@@ -1,3 +1,31 @@
 [1H-seedstudy-pointwise-seed0] Valid is 27% smaller than test and spans 3 fewer days, so its seed-to-seed std should be at least as large as the official 0.0008 test std; if it is materially larger, the decision threshold used on valid must be widened accordingly
 [1H-seedstudy-pointwise-seed0] valid primary 0.6022 (+0.0006 vs baseline) -> neutral  [61s]
 [1H-seedstudy-pointwise-seed1] Valid is 27% smaller than test and spans 3 fewer days, so its seed-to-seed std should be at least as large as the official 0.0008 test std; if it is materially larger, the decision threshold used on valid must be widened accordingly
+[1H-seedstudy-pointwise-seed1] valid primary 0.6024 (+0.0008 vs baseline) -> neutral  [60s]
+[1H-seedstudy-pointwise-seed2] Valid is 27% smaller than test and spans 3 fewer days, so its seed-to-seed std should be at least as large as the official 0.0008 test std; if it is materially larger, the decision threshold used on valid must be widened accordingly
+[1H-seedstudy-pointwise-seed2] valid primary 0.6017 (+0.0001 vs baseline) -> neutral  [54s]
+[1H-seedstudy-pointwise-seed3] Valid is 27% smaller than test and spans 3 fewer days, so its seed-to-seed std should be at least as large as the official 0.0008 test std; if it is materially larger, the decision threshold used on valid must be widened accordingly
+[1H-seedstudy-pointwise-seed3] valid primary 0.6015 (-0.0001 vs baseline) -> neutral  [44s]
+[1H-seedstudy-pointwise-seed4] Valid is 27% smaller than test and spans 3 fewer days, so its seed-to-seed std should be at least as large as the official 0.0008 test std; if it is materially larger, the decision threshold used on valid must be widened accordingly
+[1H-seedstudy-pointwise-seed4] valid primary 0.6010 (-0.0006 vs baseline) -> neutral  [42s]
+[1H-seedstudy-bpr-seed0] Valid is 27% smaller than test and spans 3 fewer days, so its seed-to-seed std should be at least as large as the official 0.0008 test std; if it is materially larger, the decision threshold used on valid must be widened accordingly
+[1H-seedstudy-bpr-seed0] valid primary 0.6031 (+0.0015 vs baseline) -> neutral  [78s]
+[1H-seedstudy-bpr-seed1] Valid is 27% smaller than test and spans 3 fewer days, so its seed-to-seed std should be at least as large as the official 0.0008 test std; if it is materially larger, the decision threshold used on valid must be widened accordingly
+[1H-seedstudy-bpr-seed1] valid primary 0.6033 (+0.0017 vs baseline) -> positive  [104s]
+[1H-seedstudy-bpr-seed2] Valid is 27% smaller than test and spans 3 fewer days, so its seed-to-seed std should be at least as large as the official 0.0008 test std; if it is materially larger, the decision threshold used on valid must be widened accordingly
+[1H-seedstudy-bpr-seed2] valid primary 0.6044 (+0.0028 vs baseline) -> positive  [203s]
+[1H-seedstudy-bpr-seed3] Valid is 27% smaller than test and spans 3 fewer days, so its seed-to-seed std should be at least as large as the official 0.0008 test std; if it is materially larger, the decision threshold used on valid must be widened accordingly
+[1H-seedstudy-bpr-seed3] valid primary 0.6042 (+0.0026 vs baseline) -> positive  [134s]
+[1H-seedstudy-bpr-seed4] Valid is 27% smaller than test and spans 3 fewer days, so its seed-to-seed std should be at least as large as the official 0.0008 test std; if it is materially larger, the decision threshold used on valid must be widened accordingly
+[1H-seedstudy-bpr-seed4] valid primary 0.6042 (+0.0026 vs baseline) -> positive  [146s]
+
+=== seed variance ===
+config       split      mean      std      min      max  n
+pointwise    valid    0.6018   0.0005   0.6010   0.6024  5
+pointwise    test     0.5948   0.0008   0.5935   0.5957  5
+bpr          valid    0.6038   0.0006   0.6031   0.6044  5
+bpr          test     0.5980   0.0002   0.5979   0.5983  5
+
+bpr - pointwise on valid: +0.0021  (se 0.0004, separated at 2 se)
+
+bpr - pointwise on test: +0.0032  (se 0.0004, separated at 2 se)

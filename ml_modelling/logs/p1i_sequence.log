@@ -1,0 +1,99 @@
+1I-din-exposure-d16-lr0.003: 680,149 params, 16 threads, N=1,141,112
+[1I-din-exposure-d16-lr0.003] DIN attention over the user's recent behaviour adds information no flat feature encodes; 99.7% of eval rows carry a history so the signal is available where it is scored
+C:\Users\rombo\Desktop\Tiktok_hackathon\techjam_agent_exe\ml_modelling\experiments\p1_sequence.py:200: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:836.)
+  tot += float(loss) * len(b)
+  epoch  1 | loss 0.5348 | valid GAUC 0.6666 nDCG@5 0.5354 primary 0.6010 | 28s
+  epoch  2 | loss 0.5059 | valid GAUC 0.6679 nDCG@5 0.5358 primary 0.6019 | 36s
+  epoch  3 | loss 0.5006 | valid GAUC 0.6677 nDCG@5 0.5359 primary 0.6018 | 36s
+  epoch  4 | loss 0.4947 | valid GAUC 0.6683 nDCG@5 0.5362 primary 0.6022 | 36s
+  epoch  5 | loss 0.4887 | valid GAUC 0.6610 nDCG@5 0.5330 primary 0.5970 | 35s
+  epoch  6 | loss 0.4816 | valid GAUC 0.6554 nDCG@5 0.5305 primary 0.5930 | 42s
+  epoch  7 | loss 0.4725 | valid GAUC 0.6509 nDCG@5 0.5289 primary 0.5899 | 40s
+  early stop at epoch 7
+[1I-din-exposure-d16-lr0.003] valid primary 0.6022 (+0.0006 vs baseline) -> neutral  [256s]
+
+exp_id                       phase    valid    test  d_valid  outcome  s
+------------------------------------------------------------------------
+1A-bpr-lr0.0002              1A      0.6031  0.5979  +0.0015  neutral  60
+1A-bpr-lr0.001               1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001              1A      0.6025  0.5975  +0.0009  neutral  84
+1A-bpr-lr0.0005              1A      0.6024  0.5973  +0.0008  neutral  32
+1I-din-exposure-d16-lr0.003  1I      0.6022  0.5961  +0.0006  neutral  256
+1A-control-pointwise         1A      0.6022  0.5945  +0.0006  neutral  33
+1A-listwise-lr0.0001         1A      0.6002  0.5932  -0.0014  neutral  85
+1A-bpr-lr0.005               1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.0002         1A      0.6000  0.5931  -0.0016 negative  59
+1A-listwise-lr0.001          1A      0.5999  0.5924  -0.0017 negative  16
+1A-hybrid-lam1               1A      0.5998  0.5929  -0.0018 negative  32
+1A-listwise-lr0.0005         1A      0.5995  0.5928  -0.0021 negative  35
+1A-hybrid-lam0.3             1A      0.5993  0.5923  -0.0024 negative  32
+1A-bpr-lr0.02                1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005          1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02           1A      0.5867  0.5790  -0.0149 negative  14
+1I-din-noseq-d16-lr0.003: 677,077 params, 16 threads, N=1,141,112
+[1I-din-noseq-d16-lr0.003] ARCHITECTURE CONTROL: same network with the attention branch removed, to separate "sequences help" from "an MLP beats an FM"
+C:\Users\rombo\Desktop\Tiktok_hackathon\techjam_agent_exe\ml_modelling\experiments\p1_sequence.py:200: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:836.)
+  tot += float(loss) * len(b)
+  epoch  1 | loss 0.5370 | valid GAUC 0.6679 nDCG@5 0.5360 primary 0.6020 | 5s
+  epoch  2 | loss 0.5084 | valid GAUC 0.6700 nDCG@5 0.5368 primary 0.6034 | 4s
+  epoch  3 | loss 0.5039 | valid GAUC 0.6698 nDCG@5 0.5368 primary 0.6033 | 4s
+  epoch  4 | loss 0.4992 | valid GAUC 0.6687 nDCG@5 0.5357 primary 0.6022 | 4s
+  epoch  5 | loss 0.4933 | valid GAUC 0.6661 nDCG@5 0.5350 primary 0.6005 | 4s
+  early stop at epoch 5
+[1I-din-noseq-d16-lr0.003] valid primary 0.6034 (+0.0018 vs baseline) -> positive  [23s]
+
+exp_id                       phase    valid    test  d_valid  outcome  s
+------------------------------------------------------------------------
+1I-din-noseq-d16-lr0.003     1I      0.6034  0.5969  +0.0018 positive  23
+1A-bpr-lr0.0002              1A      0.6031  0.5979  +0.0015  neutral  60
+1A-bpr-lr0.001               1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001              1A      0.6025  0.5975  +0.0009  neutral  84
+1A-bpr-lr0.0005              1A      0.6024  0.5973  +0.0008  neutral  32
+1I-din-exposure-d16-lr0.003  1I      0.6022  0.5961  +0.0006  neutral  256
+1A-control-pointwise         1A      0.6022  0.5945  +0.0006  neutral  33
+1A-listwise-lr0.0001         1A      0.6002  0.5932  -0.0014  neutral  85
+1A-bpr-lr0.005               1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.0002         1A      0.6000  0.5931  -0.0016 negative  59
+1A-listwise-lr0.001          1A      0.5999  0.5924  -0.0017 negative  16
+1A-hybrid-lam1               1A      0.5998  0.5929  -0.0018 negative  32
+1A-listwise-lr0.0005         1A      0.5995  0.5928  -0.0021 negative  35
+1A-hybrid-lam0.3             1A      0.5993  0.5923  -0.0024 negative  32
+1A-bpr-lr0.02                1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005          1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02           1A      0.5867  0.5790  -0.0149 negative  14
+1I-din-positive-d16-lr0.003: 680,149 params, 16 threads, N=1,141,112
+[1I-din-positive-d16-lr0.003] DIN attention over the user's recent behaviour adds information no flat feature encodes; 99.7% of eval rows carry a history so the signal is available where it is scored
+C:\Users\rombo\Desktop\Tiktok_hackathon\techjam_agent_exe\ml_modelling\experiments\p1_sequence.py:200: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:836.)
+  tot += float(loss) * len(b)
+  epoch  1 | loss 0.5354 | valid GAUC 0.6677 nDCG@5 0.5358 primary 0.6017 | 41s
+  epoch  2 | loss 0.5067 | valid GAUC 0.6692 nDCG@5 0.5367 primary 0.6030 | 41s
+  epoch  3 | loss 0.5017 | valid GAUC 0.6705 nDCG@5 0.5371 primary 0.6038 | 34s
+  epoch  4 | loss 0.4962 | valid GAUC 0.6698 nDCG@5 0.5367 primary 0.6032 | 34s
+  epoch  5 | loss 0.4898 | valid GAUC 0.6658 nDCG@5 0.5351 primary 0.6005 | 32s
+  epoch  6 | loss 0.4824 | valid GAUC 0.6579 nDCG@5 0.5314 primary 0.5947 | 31s
+  early stop at epoch 6
+[1I-din-positive-d16-lr0.003] valid primary 0.6038 (+0.0022 vs baseline) -> positive  [216s]
+
+exp_id                       phase    valid    test  d_valid  outcome  s
+------------------------------------------------------------------------
+1I-din-positive-d16-lr0.003  1I      0.6038  0.5978  +0.0022 positive  216
+1I-din-noseq-d16-lr0.003     1I      0.6034  0.5969  +0.0018 positive  23
+1A-bpr-lr0.0002              1A      0.6031  0.5979  +0.0015  neutral  60
+1A-bpr-lr0.001               1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001              1A      0.6025  0.5975  +0.0009  neutral  84
+1A-bpr-lr0.0005              1A      0.6024  0.5973  +0.0008  neutral  32
+1I-din-exposure-d16-lr0.003  1I      0.6022  0.5961  +0.0006  neutral  256
+1A-control-pointwise         1A      0.6022  0.5945  +0.0006  neutral  33
+1A-listwise-lr0.0001         1A      0.6002  0.5932  -0.0014  neutral  85
+1A-bpr-lr0.005               1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.0002         1A      0.6000  0.5931  -0.0016 negative  59
+1A-listwise-lr0.001          1A      0.5999  0.5924  -0.0017 negative  16
+1A-hybrid-lam1               1A      0.5998  0.5929  -0.0018 negative  32
+1A-listwise-lr0.0005         1A      0.5995  0.5928  -0.0021 negative  35
+1A-hybrid-lam0.3             1A      0.5993  0.5923  -0.0024 negative  32
+1A-bpr-lr0.02                1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005          1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02           1A      0.5867  0.5790  -0.0149 negative  14

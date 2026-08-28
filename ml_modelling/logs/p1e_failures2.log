@@ -1,152 +1,14 @@
 fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
 
-[1E-pointwise] FAILURE PROBE: lr=1.0 should blow up; record what the failure looks like so the agent can recognize it
-[1E-pointwise] valid primary 0.5472 (-0.0544 vs baseline) -> negative  [42s]
+[1E-pointwise-lr1-ep8] FAILURE PROBE: lr=1.0 is 1000x the baseline; record the signature so the agent can recognise a blown-up run
+[1E-pointwise-lr1-ep8] valid primary 0.5472 (-0.0544 vs baseline) -> negative  [63s]
 
 exp_id                                                           phase    valid    test  d_valid  outcome  s
 ------------------------------------------------------------------------------------------------------------
+1D-bpr-lr0.0002-k8-ep60                                          1D      0.6040  0.5983  +0.0024 positive  94
+1H-seedstudy-bpr-seed1                                           1H      0.6033  0.5979  +0.0017 positive  104
 1A-bpr-lr0.0002                                                  1A      0.6031  0.5979  +0.0015  neutral  60
-1A-bpr-lr0.001                                                   1A      0.6029  0.5965  +0.0013  neutral  16
-1A-bpr-lr0.0001                                                  1A      0.6025  0.5975  +0.0009  neutral  84
-1C-aux-is_follow-w0.3                                            1C      0.6025  0.5965  +0.0009  neutral  46
-1A-bpr-lr0.0005                                                  1A      0.6024  0.5973  +0.0008  neutral  32
-1C-aux-is_comment-w0.3                                           1C      0.6024  0.5964  +0.0008  neutral  53
-1A-control-pointwise                                             1A      0.6022  0.5945  +0.0006  neutral  33
-1C-control-singletask                                            1C      0.6022  0.5945  +0.0006  neutral  44
-1C-aux-is_like-w0.3                                              1C      0.6021  0.5959  +0.0005  neutral  46
-1B-pointwise-aff-author-causal                                   1B      0.6017  0.5943  +0.0001  neutral  34
-1B-pointwise-aff-user_author+user_music-causal                   1B      0.6016  0.5952  -0.0000  neutral  60
-1D-pointwise-k8                                                  1D      0.6014  0.5953  -0.0003  neutral  38
-1B-pointwise-aff-video-causal                                    1B      0.6012  0.5947  -0.0004  neutral  34
-1C-aux-is_click-w0.3                                             1C      0.6011  0.5935  -0.0005  neutral  40
-1B-pointwise-aff-user_tab-causal                                 1B      0.6010  0.5939  -0.0006  neutral  30
-1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal  1B      0.6009  0.5926  -0.0007  neutral  54
-1A-listwise-lr0.0001                                             1A      0.6002  0.5932  -0.0014  neutral  85
-1A-bpr-lr0.005                                                   1A      0.6000  0.5945  -0.0016 negative  12
-1A-listwise-lr0.0002                                             1A      0.6000  0.5931  -0.0016 negative  59
-1A-listwise-lr0.001                                              1A      0.5999  0.5924  -0.0017 negative  16
-1F-lgbm-lambdarank-base-lv63                                     1F      0.5998  0.5939  -0.0018 negative  45
-1A-hybrid-lam1                                                   1A      0.5998  0.5929  -0.0018 negative  32
-1A-listwise-lr0.0005                                             1A      0.5995  0.5928  -0.0021 negative  35
-1A-hybrid-lam0.3                                                 1A      0.5993  0.5923  -0.0024 negative  32
-1B-pointwise-aff-user_tag-causal                                 1B      0.5992  0.5916  -0.0024 negative  38
-1F-lgbm-lambdarank-base+aff-lv63                                 1F      0.5986  0.5917  -0.0030 negative  20
-1F-lgbm-lambdarank-base+aff+user-lv63                            1F      0.5982  0.5921  -0.0034 negative  23
-1A-bpr-lr0.02                                                    1A      0.5973  0.5882  -0.0043 negative  10
-1A-listwise-lr0.005                                              1A      0.5957  0.5885  -0.0059 negative  16
-1A-listwise-lr0.02                                               1A      0.5867  0.5790  -0.0149 negative  14
-1E-pointwise                                                     1E      0.5472  0.5315  -0.0544 negative  42
-fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
-
-[1E-pointwise] FAILURE PROBE: lr=0.1 is 100x the baseline; expected to train but rank badly
-[1E-pointwise] valid primary 0.5639 (-0.0377 vs baseline) -> negative  [59s]
-
-exp_id                                                           phase    valid    test  d_valid  outcome  s
-------------------------------------------------------------------------------------------------------------
-1A-bpr-lr0.0002                                                  1A      0.6031  0.5979  +0.0015  neutral  60
-1A-bpr-lr0.001                                                   1A      0.6029  0.5965  +0.0013  neutral  16
-1A-bpr-lr0.0001                                                  1A      0.6025  0.5975  +0.0009  neutral  84
-1C-aux-is_forward-w0.3                                           1C      0.6025  0.5959  +0.0009  neutral  66
-1C-aux-is_follow-w0.3                                            1C      0.6025  0.5965  +0.0009  neutral  46
-1A-bpr-lr0.0005                                                  1A      0.6024  0.5973  +0.0008  neutral  32
-1C-aux-is_comment-w0.3                                           1C      0.6024  0.5964  +0.0008  neutral  53
-1A-control-pointwise                                             1A      0.6022  0.5945  +0.0006  neutral  33
-1C-control-singletask                                            1C      0.6022  0.5945  +0.0006  neutral  44
-1D-pointwise-k16                                                 1D      0.6022  0.5945  +0.0006  neutral  60
-1C-aux-is_like-w0.3                                              1C      0.6021  0.5959  +0.0005  neutral  46
-1B-pointwise-aff-author-causal                                   1B      0.6017  0.5943  +0.0001  neutral  34
-1B-pointwise-aff-user_author+user_music-causal                   1B      0.6016  0.5952  -0.0000  neutral  60
-1D-pointwise-k8                                                  1D      0.6014  0.5953  -0.0003  neutral  38
-1B-pointwise-aff-video-causal                                    1B      0.6012  0.5947  -0.0004  neutral  34
-1C-aux-is_click-w0.3                                             1C      0.6011  0.5935  -0.0005  neutral  40
-1B-pointwise-aff-user_tab-causal                                 1B      0.6010  0.5939  -0.0006  neutral  30
-1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal  1B      0.6009  0.5926  -0.0007  neutral  54
-1A-listwise-lr0.0001                                             1A      0.6002  0.5932  -0.0014  neutral  85
-1F-lgbm-binary-base+aff-lv63                                     1F      0.6001  0.5949  -0.0015  neutral  52
-1A-bpr-lr0.005                                                   1A      0.6000  0.5945  -0.0016 negative  12
-1A-listwise-lr0.0002                                             1A      0.6000  0.5931  -0.0016 negative  59
-1A-listwise-lr0.001                                              1A      0.5999  0.5924  -0.0017 negative  16
-1F-lgbm-lambdarank-base-lv63                                     1F      0.5998  0.5939  -0.0018 negative  45
-1A-hybrid-lam1                                                   1A      0.5998  0.5929  -0.0018 negative  32
-1A-listwise-lr0.0005                                             1A      0.5995  0.5928  -0.0021 negative  35
-1A-hybrid-lam0.3                                                 1A      0.5993  0.5923  -0.0024 negative  32
-1B-pointwise-aff-user_tag-causal                                 1B      0.5992  0.5916  -0.0024 negative  38
-1F-lgbm-lambdarank-base+aff-lv63                                 1F      0.5986  0.5917  -0.0030 negative  20
-1F-lgbm-lambdarank-base+aff+user-lv63                            1F      0.5982  0.5921  -0.0034 negative  23
-1A-bpr-lr0.02                                                    1A      0.5973  0.5882  -0.0043 negative  10
-1A-listwise-lr0.005                                              1A      0.5957  0.5885  -0.0059 negative  16
-1A-listwise-lr0.02                                               1A      0.5867  0.5790  -0.0149 negative  14
-1E-pointwise                                                     1E      0.5639  0.5494  -0.0377 negative  59
-1E-pointwise                                                     1E      0.5472  0.5315  -0.0544 negative  42
-fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
-
-[1E-pointwise] FAILURE PROBE: k=256 with zero L2 should overfit; record the train-loss / valid-score divergence signature
-[1E-pointwise] valid primary 0.5999 (-0.0017 vs baseline) -> negative  [330s]
-
-exp_id                                                           phase    valid    test  d_valid  outcome  s
-------------------------------------------------------------------------------------------------------------
-1A-bpr-lr0.0002                                                  1A      0.6031  0.5979  +0.0015  neutral  60
-1A-bpr-lr0.001                                                   1A      0.6029  0.5965  +0.0013  neutral  16
-1A-bpr-lr0.0001                                                  1A      0.6025  0.5975  +0.0009  neutral  84
-1G-recency-tau7                                                  1G      0.6025  0.5946  +0.0009  neutral  61
-1C-aux-is_forward-w0.3                                           1C      0.6025  0.5959  +0.0009  neutral  66
-1C-aux-is_hate-w0.3                                              1C      0.6025  0.5959  +0.0009  neutral  68
-1C-aux-is_follow-w0.3                                            1C      0.6025  0.5965  +0.0009  neutral  46
-1G-recency-tau14                                                 1G      0.6025  0.5952  +0.0009  neutral  59
-1A-bpr-lr0.0005                                                  1A      0.6024  0.5973  +0.0008  neutral  32
-1C-aux-is_comment-w0.3                                           1C      0.6024  0.5964  +0.0008  neutral  53
-1H-seedstudy-pointwise-seed1                                     1H      0.6024  0.5950  +0.0008  neutral  60
-1C-aux-is_profile_enter-w0.3                                     1C      0.6024  0.5960  +0.0008  neutral  63
-1A-control-pointwise                                             1A      0.6022  0.5945  +0.0006  neutral  33
-1C-control-singletask                                            1C      0.6022  0.5945  +0.0006  neutral  44
-1D-pointwise-k16                                                 1D      0.6022  0.5945  +0.0006  neutral  60
-1H-seedstudy-pointwise-seed0                                     1H      0.6022  0.5945  +0.0006  neutral  61
-1C-aux-is_like-w0.3                                              1C      0.6021  0.5959  +0.0005  neutral  46
-1C-aux-play_complete-w0.3                                        1C      0.6017  0.5956  +0.0001  neutral  57
-1H-seedstudy-pointwise-seed2                                     1H      0.6017  0.5957  +0.0001  neutral  54
-1B-pointwise-aff-author-causal                                   1B      0.6017  0.5943  +0.0001  neutral  34
-1B-pointwise-aff-user_author+user_music-causal                   1B      0.6016  0.5952  -0.0000  neutral  60
-1H-seedstudy-pointwise-seed3                                     1H      0.6015  0.5952  -0.0001  neutral  44
-1D-pointwise-k8                                                  1D      0.6014  0.5953  -0.0003  neutral  38
-1B-pointwise-aff-video-causal                                    1B      0.6012  0.5947  -0.0004  neutral  34
-1D-pointwise-k32                                                 1D      0.6011  0.5947  -0.0005  neutral  89
-1C-aux-is_click-w0.3                                             1C      0.6011  0.5935  -0.0005  neutral  40
-1B-pointwise-aff-user_tab-causal                                 1B      0.6010  0.5939  -0.0006  neutral  30
-1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal  1B      0.6009  0.5926  -0.0007  neutral  54
-1D-pointwise-k64                                                 1D      0.6008  0.5949  -0.0008  neutral  108
-1C-aux-play_half-w0.3                                            1C      0.6007  0.5947  -0.0008  neutral  57
-1G-recency-tau4                                                  1G      0.6005  0.5929  -0.0011  neutral  59
-1A-listwise-lr0.0001                                             1A      0.6002  0.5932  -0.0014  neutral  85
-1F-lgbm-binary-base+aff-lv63                                     1F      0.6001  0.5949  -0.0015  neutral  52
-1A-bpr-lr0.005                                                   1A      0.6000  0.5945  -0.0016 negative  12
-1A-listwise-lr0.0002                                             1A      0.6000  0.5931  -0.0016 negative  59
-1E-pointwise                                                     1E      0.5999  0.5924  -0.0017 negative  330
-1A-listwise-lr0.001                                              1A      0.5999  0.5924  -0.0017 negative  16
-1F-lgbm-lambdarank-base-lv63                                     1F      0.5998  0.5939  -0.0018 negative  45
-1A-hybrid-lam1                                                   1A      0.5998  0.5929  -0.0018 negative  32
-1A-listwise-lr0.0005                                             1A      0.5995  0.5928  -0.0021 negative  35
-1A-hybrid-lam0.3                                                 1A      0.5993  0.5923  -0.0024 negative  32
-1F-lgbm-lambdarank-base+aff+user+vstat-lv63                      1F      0.5992  0.5923  -0.0024 negative  49
-1B-pointwise-aff-user_tag-causal                                 1B      0.5992  0.5916  -0.0024 negative  38
-1F-lgbm-lambdarank-base+aff-lv63                                 1F      0.5986  0.5917  -0.0030 negative  20
-1F-lgbm-lambdarank-base+aff+user-lv63                            1F      0.5982  0.5921  -0.0034 negative  23
-1A-bpr-lr0.02                                                    1A      0.5973  0.5882  -0.0043 negative  10
-1A-listwise-lr0.005                                              1A      0.5957  0.5885  -0.0059 negative  16
-1G-recency-tau2                                                  1G      0.5930  0.5847  -0.0086 negative  53
-1G-window-7d                                                     1G      0.5925  0.5860  -0.0091 negative  22
-1A-listwise-lr0.02                                               1A      0.5867  0.5790  -0.0149 negative  14
-1G-window-5d                                                     1G      0.5852  0.5769  -0.0164 negative  21
-1G-window-3d                                                     1G      0.5742  0.5657  -0.0274 negative  22
-1E-pointwise                                                     1E      0.5639  0.5494  -0.0377 negative  59
-1E-pointwise                                                     1E      0.5472  0.5315  -0.0544 negative  42
-fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
-
-[1E-pointwise-l21-ep15] FAILURE PROBE: L2=1.0 should crush the embeddings toward zero; record the degenerate-model signature
-[1E-pointwise-l21-ep15] valid primary 0.5329 (-0.0687 vs baseline) -> negative  [59s]
-
-exp_id                                                           phase    valid    test  d_valid  outcome  s
-------------------------------------------------------------------------------------------------------------
-1A-bpr-lr0.0002                                                  1A      0.6031  0.5979  +0.0015  neutral  60
+1H-seedstudy-bpr-seed0                                           1H      0.6031  0.5979  +0.0015  neutral  78
 1A-bpr-lr0.001                                                   1A      0.6029  0.5965  +0.0013  neutral  16
 1A-bpr-lr0.0001                                                  1A      0.6025  0.5975  +0.0009  neutral  84
 1G-recency-tau7                                                  1G      0.6025  0.5946  +0.0009  neutral  61
@@ -183,7 +45,6 @@ exp_id                                                           phase    valid 
 1F-lgbm-binary-base+aff-lv63                                     1F      0.6001  0.5949  -0.0015  neutral  52
 1A-bpr-lr0.005                                                   1A      0.6000  0.5945  -0.0016 negative  12
 1A-listwise-lr0.0002                                             1A      0.6000  0.5931  -0.0016 negative  59
-1E-pointwise                                                     1E      0.5999  0.5924  -0.0017 negative  330
 1A-listwise-lr0.001                                              1A      0.5999  0.5924  -0.0017 negative  16
 1F-lgbm-lambdarank-base-lv63                                     1F      0.5998  0.5939  -0.0018 negative  45
 1A-hybrid-lam1                                                   1A      0.5998  0.5929  -0.0018 negative  32
@@ -201,18 +62,19 @@ exp_id                                                           phase    valid 
 1A-listwise-lr0.02                                               1A      0.5867  0.5790  -0.0149 negative  14
 1G-window-5d                                                     1G      0.5852  0.5769  -0.0164 negative  21
 1G-window-3d                                                     1G      0.5742  0.5657  -0.0274 negative  22
-1E-pointwise                                                     1E      0.5639  0.5494  -0.0377 negative  59
-1E-pointwise                                                     1E      0.5472  0.5315  -0.0544 negative  42
-1E-pointwise-l21-ep15                                            1E      0.5329  0.5197  -0.0687 negative  59
+1E-pointwise-lr1-ep8                                             1E      0.5472  0.5315  -0.0544 negative  63
 fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
 
-[1E-pointwise-k1-ep25] FAILURE PROBE: k=1 removes almost all interaction capacity; expected underfit floor
-[1E-pointwise-k1-ep25] valid primary 0.6033 (+0.0017 vs baseline) -> positive  [28s]
+[1E-pointwise-lr0.1-ep10] FAILURE PROBE: lr=0.1 is 100x the baseline; expected to train without NaN but rank badly
+[1E-pointwise-lr0.1-ep10] valid primary 0.5639 (-0.0377 vs baseline) -> negative  [81s]
 
 exp_id                                                           phase    valid    test  d_valid  outcome  s
 ------------------------------------------------------------------------------------------------------------
-1E-pointwise-k1-ep25                                             1E      0.6033  0.5978  +0.0017 positive  28
+1D-bpr-lr0.0002-k8-ep60                                          1D      0.6040  0.5983  +0.0024 positive  94
+1H-seedstudy-bpr-seed1                                           1H      0.6033  0.5979  +0.0017 positive  104
 1A-bpr-lr0.0002                                                  1A      0.6031  0.5979  +0.0015  neutral  60
+1H-seedstudy-bpr-seed0                                           1H      0.6031  0.5979  +0.0015  neutral  78
+1D-bpr-lr0.0002-k16-ep60                                         1D      0.6031  0.5979  +0.0015  neutral  120
 1A-bpr-lr0.001                                                   1A      0.6029  0.5965  +0.0013  neutral  16
 1A-bpr-lr0.0001                                                  1A      0.6025  0.5975  +0.0009  neutral  84
 1G-recency-tau7                                                  1G      0.6025  0.5946  +0.0009  neutral  61
@@ -249,7 +111,6 @@ exp_id                                                           phase    valid 
 1F-lgbm-binary-base+aff-lv63                                     1F      0.6001  0.5949  -0.0015  neutral  52
 1A-bpr-lr0.005                                                   1A      0.6000  0.5945  -0.0016 negative  12
 1A-listwise-lr0.0002                                             1A      0.6000  0.5931  -0.0016 negative  59
-1E-pointwise                                                     1E      0.5999  0.5924  -0.0017 negative  330
 1A-listwise-lr0.001                                              1A      0.5999  0.5924  -0.0017 negative  16
 1F-lgbm-lambdarank-base-lv63                                     1F      0.5998  0.5939  -0.0018 negative  45
 1A-hybrid-lam1                                                   1A      0.5998  0.5929  -0.0018 negative  32
@@ -267,6 +128,231 @@ exp_id                                                           phase    valid 
 1A-listwise-lr0.02                                               1A      0.5867  0.5790  -0.0149 negative  14
 1G-window-5d                                                     1G      0.5852  0.5769  -0.0164 negative  21
 1G-window-3d                                                     1G      0.5742  0.5657  -0.0274 negative  22
-1E-pointwise                                                     1E      0.5639  0.5494  -0.0377 negative  59
-1E-pointwise                                                     1E      0.5472  0.5315  -0.0544 negative  42
-1E-pointwise-l21-ep15                                            1E      0.5329  0.5197  -0.0687 negative  59
+1E-pointwise-lr0.1-ep10                                          1E      0.5639  0.5494  -0.0377 negative  81
+1E-pointwise-lr1-ep8                                             1E      0.5472  0.5315  -0.0544 negative  63
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
+
+[1E-pointwise-l21-ep12] FAILURE PROBE: L2=1.0 should crush the embeddings toward zero; record the degenerate-model signature
+[1E-pointwise-l21-ep12] valid primary 0.5317 (-0.0699 vs baseline) -> negative  [88s]
+
+exp_id                                                           phase    valid    test  d_valid  outcome  s
+------------------------------------------------------------------------------------------------------------
+1H-seedstudy-bpr-seed2                                           1H      0.6044  0.5980  +0.0028 positive  203
+1D-bpr-lr0.0002-k8-ep60                                          1D      0.6040  0.5983  +0.0024 positive  94
+1H-seedstudy-bpr-seed1                                           1H      0.6033  0.5979  +0.0017 positive  104
+1J-bpr-lr0.0002-k4-ep60-seed0                                    1J      0.6031  0.5973  +0.0015  neutral  151
+1A-bpr-lr0.0002                                                  1A      0.6031  0.5979  +0.0015  neutral  60
+1H-seedstudy-bpr-seed0                                           1H      0.6031  0.5979  +0.0015  neutral  78
+1D-bpr-lr0.0002-k16-ep60                                         1D      0.6031  0.5979  +0.0015  neutral  120
+1A-bpr-lr0.001                                                   1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001                                                  1A      0.6025  0.5975  +0.0009  neutral  84
+1G-recency-tau7                                                  1G      0.6025  0.5946  +0.0009  neutral  61
+1C-aux-is_forward-w0.3                                           1C      0.6025  0.5959  +0.0009  neutral  66
+1C-aux-is_hate-w0.3                                              1C      0.6025  0.5959  +0.0009  neutral  68
+1C-aux-is_follow-w0.3                                            1C      0.6025  0.5965  +0.0009  neutral  46
+1G-recency-tau14                                                 1G      0.6025  0.5952  +0.0009  neutral  59
+1A-bpr-lr0.0005                                                  1A      0.6024  0.5973  +0.0008  neutral  32
+1C-aux-is_comment-w0.3                                           1C      0.6024  0.5964  +0.0008  neutral  53
+1H-seedstudy-pointwise-seed1                                     1H      0.6024  0.5950  +0.0008  neutral  60
+1C-aux-is_profile_enter-w0.3                                     1C      0.6024  0.5960  +0.0008  neutral  63
+1I-din-exposure-d16-lr0.003                                      1I      0.6022  0.5961  +0.0006  neutral  256
+1A-control-pointwise                                             1A      0.6022  0.5945  +0.0006  neutral  33
+1C-control-singletask                                            1C      0.6022  0.5945  +0.0006  neutral  44
+1D-pointwise-k16                                                 1D      0.6022  0.5945  +0.0006  neutral  60
+1H-seedstudy-pointwise-seed0                                     1H      0.6022  0.5945  +0.0006  neutral  61
+1C-aux-is_like-w0.3                                              1C      0.6021  0.5959  +0.0005  neutral  46
+1C-aux-play_complete-w0.3                                        1C      0.6017  0.5956  +0.0001  neutral  57
+1H-seedstudy-pointwise-seed2                                     1H      0.6017  0.5957  +0.0001  neutral  54
+1B-pointwise-aff-author-causal                                   1B      0.6017  0.5943  +0.0001  neutral  34
+1B-pointwise-aff-user_author+user_music-causal                   1B      0.6016  0.5952  -0.0000  neutral  60
+1H-seedstudy-pointwise-seed3                                     1H      0.6015  0.5952  -0.0001  neutral  44
+1C-control-singletask-learnA                                     1C      0.6014  0.5948  -0.0002  neutral  70
+1D-pointwise-k8                                                  1D      0.6014  0.5953  -0.0003  neutral  38
+1D-pointwise-k128                                                1D      0.6013  0.5943  -0.0003  neutral  188
+1B-pointwise-aff-video-causal                                    1B      0.6012  0.5947  -0.0004  neutral  34
+1D-pointwise-k32                                                 1D      0.6011  0.5947  -0.0005  neutral  89
+1C-aux-is_click-w0.3                                             1C      0.6011  0.5935  -0.0005  neutral  40
+1H-seedstudy-pointwise-seed4                                     1H      0.6010  0.5935  -0.0006  neutral  42
+1B-pointwise-aff-user_tab-causal                                 1B      0.6010  0.5939  -0.0006  neutral  30
+1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal  1B      0.6009  0.5926  -0.0007  neutral  54
+1D-pointwise-k64                                                 1D      0.6008  0.5949  -0.0008  neutral  108
+1C-aux-play_half-w0.3                                            1C      0.6007  0.5947  -0.0008  neutral  57
+1G-recency-tau4                                                  1G      0.6005  0.5929  -0.0011  neutral  59
+1A-listwise-lr0.0001                                             1A      0.6002  0.5932  -0.0014  neutral  85
+1F-lgbm-binary-base+aff-lv63                                     1F      0.6001  0.5949  -0.0015  neutral  52
+1A-bpr-lr0.005                                                   1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.0002                                             1A      0.6000  0.5931  -0.0016 negative  59
+1A-listwise-lr0.001                                              1A      0.5999  0.5924  -0.0017 negative  16
+1F-lgbm-lambdarank-base-lv63                                     1F      0.5998  0.5939  -0.0018 negative  45
+1A-hybrid-lam1                                                   1A      0.5998  0.5929  -0.0018 negative  32
+1A-listwise-lr0.0005                                             1A      0.5995  0.5928  -0.0021 negative  35
+1A-hybrid-lam0.3                                                 1A      0.5993  0.5923  -0.0024 negative  32
+1F-lgbm-lambdarank-base+aff+user+vstat-lv63                      1F      0.5992  0.5923  -0.0024 negative  49
+1B-pointwise-aff-user_tag-causal                                 1B      0.5992  0.5916  -0.0024 negative  38
+1G-window-10d                                                    1G      0.5991  0.5925  -0.0025 negative  36
+1F-lgbm-lambdarank-base+aff-lv63                                 1F      0.5986  0.5917  -0.0030 negative  20
+1F-lgbm-lambdarank-base+aff+user-lv63                            1F      0.5982  0.5921  -0.0034 negative  23
+1A-bpr-lr0.02                                                    1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005                                              1A      0.5957  0.5885  -0.0059 negative  16
+1G-recency-tau2                                                  1G      0.5930  0.5847  -0.0086 negative  53
+1G-window-7d                                                     1G      0.5925  0.5860  -0.0091 negative  22
+1A-listwise-lr0.02                                               1A      0.5867  0.5790  -0.0149 negative  14
+1G-window-5d                                                     1G      0.5852  0.5769  -0.0164 negative  21
+1G-window-3d                                                     1G      0.5742  0.5657  -0.0274 negative  22
+1E-pointwise-lr0.1-ep10                                          1E      0.5639  0.5494  -0.0377 negative  81
+1E-pointwise-lr1-ep8                                             1E      0.5472  0.5315  -0.0544 negative  63
+1E-pointwise-l21-ep12                                            1E      0.5317  0.5206  -0.0699 negative  88
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
+
+[1E-pointwise-k1-ep25] FAILURE PROBE: k=1 removes nearly all interaction capacity; expected underfit floor near the popularity rung
+[1E-pointwise-k1-ep25] valid primary 0.6033 (+0.0017 vs baseline) -> positive  [42s]
+
+exp_id                                                           phase    valid    test  d_valid  outcome  s
+------------------------------------------------------------------------------------------------------------
+1H-seedstudy-bpr-seed2                                           1H      0.6044  0.5980  +0.0028 positive  203
+1D-bpr-lr0.0002-k8-ep60                                          1D      0.6040  0.5983  +0.0024 positive  94
+1J-bpr-lr0.0002-k4-ep60-seed1                                    1J      0.6038  0.5982  +0.0022 positive  119
+1D-bpr-lr0.0002-k32-ep60                                         1D      0.6037  0.5980  +0.0021 positive  206
+1I-din-noseq-d16-lr0.003                                         1I      0.6034  0.5969  +0.0018 positive  23
+1E-pointwise-k1-ep25                                             1E      0.6033  0.5978  +0.0017 positive  42
+1H-seedstudy-bpr-seed1                                           1H      0.6033  0.5979  +0.0017 positive  104
+1J-bpr-lr0.0002-k4-ep60-seed0                                    1J      0.6031  0.5973  +0.0015  neutral  151
+1A-bpr-lr0.0002                                                  1A      0.6031  0.5979  +0.0015  neutral  60
+1H-seedstudy-bpr-seed0                                           1H      0.6031  0.5979  +0.0015  neutral  78
+1D-bpr-lr0.0002-k16-ep60                                         1D      0.6031  0.5979  +0.0015  neutral  120
+1A-bpr-lr0.001                                                   1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001                                                  1A      0.6025  0.5975  +0.0009  neutral  84
+1G-recency-tau7                                                  1G      0.6025  0.5946  +0.0009  neutral  61
+1C-aux-is_forward-w0.3                                           1C      0.6025  0.5959  +0.0009  neutral  66
+1C-aux-is_hate-w0.3                                              1C      0.6025  0.5959  +0.0009  neutral  68
+1C-aux-is_follow-w0.3                                            1C      0.6025  0.5965  +0.0009  neutral  46
+1G-recency-tau14                                                 1G      0.6025  0.5952  +0.0009  neutral  59
+1A-bpr-lr0.0005                                                  1A      0.6024  0.5973  +0.0008  neutral  32
+1C-aux-is_comment-w0.3                                           1C      0.6024  0.5964  +0.0008  neutral  53
+1H-seedstudy-pointwise-seed1                                     1H      0.6024  0.5950  +0.0008  neutral  60
+1C-aux-is_profile_enter-w0.3                                     1C      0.6024  0.5960  +0.0008  neutral  63
+1I-din-exposure-d16-lr0.003                                      1I      0.6022  0.5961  +0.0006  neutral  256
+1A-control-pointwise                                             1A      0.6022  0.5945  +0.0006  neutral  33
+1C-control-singletask                                            1C      0.6022  0.5945  +0.0006  neutral  44
+1D-pointwise-k16                                                 1D      0.6022  0.5945  +0.0006  neutral  60
+1H-seedstudy-pointwise-seed0                                     1H      0.6022  0.5945  +0.0006  neutral  61
+1C-aux-is_like-w0.3                                              1C      0.6021  0.5959  +0.0005  neutral  46
+1C-aux-play_complete-w0.3                                        1C      0.6017  0.5956  +0.0001  neutral  57
+1H-seedstudy-pointwise-seed2                                     1H      0.6017  0.5957  +0.0001  neutral  54
+1B-pointwise-aff-author-causal                                   1B      0.6017  0.5943  +0.0001  neutral  34
+1B-pointwise-aff-user_author+user_music-causal                   1B      0.6016  0.5952  -0.0000  neutral  60
+1H-seedstudy-pointwise-seed3                                     1H      0.6015  0.5952  -0.0001  neutral  44
+1C-control-singletask-learnA                                     1C      0.6014  0.5948  -0.0002  neutral  70
+1D-pointwise-k8                                                  1D      0.6014  0.5953  -0.0003  neutral  38
+1D-pointwise-k128                                                1D      0.6013  0.5943  -0.0003  neutral  188
+1B-pointwise-aff-video-causal                                    1B      0.6012  0.5947  -0.0004  neutral  34
+1D-pointwise-k32                                                 1D      0.6011  0.5947  -0.0005  neutral  89
+1C-aux-is_click-w0.3                                             1C      0.6011  0.5935  -0.0005  neutral  40
+1H-seedstudy-pointwise-seed4                                     1H      0.6010  0.5935  -0.0006  neutral  42
+1B-pointwise-aff-user_tab-causal                                 1B      0.6010  0.5939  -0.0006  neutral  30
+1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal  1B      0.6009  0.5926  -0.0007  neutral  54
+1D-pointwise-k64                                                 1D      0.6008  0.5949  -0.0008  neutral  108
+1C-aux-play_half-w0.3                                            1C      0.6007  0.5947  -0.0008  neutral  57
+1G-recency-tau4                                                  1G      0.6005  0.5929  -0.0011  neutral  59
+1A-listwise-lr0.0001                                             1A      0.6002  0.5932  -0.0014  neutral  85
+1F-lgbm-binary-base+aff-lv63                                     1F      0.6001  0.5949  -0.0015  neutral  52
+1A-bpr-lr0.005                                                   1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.0002                                             1A      0.6000  0.5931  -0.0016 negative  59
+1A-listwise-lr0.001                                              1A      0.5999  0.5924  -0.0017 negative  16
+1F-lgbm-lambdarank-base-lv63                                     1F      0.5998  0.5939  -0.0018 negative  45
+1A-hybrid-lam1                                                   1A      0.5998  0.5929  -0.0018 negative  32
+1A-listwise-lr0.0005                                             1A      0.5995  0.5928  -0.0021 negative  35
+1A-hybrid-lam0.3                                                 1A      0.5993  0.5923  -0.0024 negative  32
+1F-lgbm-lambdarank-base+aff+user+vstat-lv63                      1F      0.5992  0.5923  -0.0024 negative  49
+1B-pointwise-aff-user_tag-causal                                 1B      0.5992  0.5916  -0.0024 negative  38
+1G-window-10d                                                    1G      0.5991  0.5925  -0.0025 negative  36
+1F-lgbm-lambdarank-base+aff-lv63                                 1F      0.5986  0.5917  -0.0030 negative  20
+1F-lgbm-lambdarank-base+aff+user-lv63                            1F      0.5982  0.5921  -0.0034 negative  23
+1A-bpr-lr0.02                                                    1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005                                              1A      0.5957  0.5885  -0.0059 negative  16
+1G-recency-tau2                                                  1G      0.5930  0.5847  -0.0086 negative  53
+1G-window-7d                                                     1G      0.5925  0.5860  -0.0091 negative  22
+1A-listwise-lr0.02                                               1A      0.5867  0.5790  -0.0149 negative  14
+1G-window-5d                                                     1G      0.5852  0.5769  -0.0164 negative  21
+1G-window-3d                                                     1G      0.5742  0.5657  -0.0274 negative  22
+1E-pointwise-lr0.1-ep10                                          1E      0.5639  0.5494  -0.0377 negative  81
+1E-pointwise-lr1-ep8                                             1E      0.5472  0.5315  -0.0544 negative  63
+1E-pointwise-l21-ep12                                            1E      0.5317  0.5206  -0.0699 negative  88
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
+
+[1E-listwise-lr0.05-ep8] FAILURE PROBE: the worst config found in 1A, run longer, to record how far a mis-scaled ranking loss can fall
+[1E-listwise-lr0.05-ep8] valid primary 0.5631 (-0.0386 vs baseline) -> negative  [34s]
+
+exp_id                                                           phase    valid    test  d_valid  outcome  s
+------------------------------------------------------------------------------------------------------------
+1H-seedstudy-bpr-seed2                                           1H      0.6044  0.5980  +0.0028 positive  203
+1H-seedstudy-bpr-seed3                                           1H      0.6042  0.5983  +0.0026 positive  134
+1D-bpr-lr0.0002-k8-ep60                                          1D      0.6040  0.5983  +0.0024 positive  94
+1J-bpr-lr0.0002-k4-ep60-seed1                                    1J      0.6038  0.5982  +0.0022 positive  119
+1D-bpr-lr0.0002-k32-ep60                                         1D      0.6037  0.5980  +0.0021 positive  206
+1I-din-noseq-d16-lr0.003                                         1I      0.6034  0.5969  +0.0018 positive  23
+1E-pointwise-k1-ep25                                             1E      0.6033  0.5978  +0.0017 positive  42
+1H-seedstudy-bpr-seed1                                           1H      0.6033  0.5979  +0.0017 positive  104
+1J-bpr-lr0.0002-k4-ep60-seed0                                    1J      0.6031  0.5973  +0.0015  neutral  151
+1A-bpr-lr0.0002                                                  1A      0.6031  0.5979  +0.0015  neutral  60
+1H-seedstudy-bpr-seed0                                           1H      0.6031  0.5979  +0.0015  neutral  78
+1D-bpr-lr0.0002-k16-ep60                                         1D      0.6031  0.5979  +0.0015  neutral  120
+1A-bpr-lr0.001                                                   1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001                                                  1A      0.6025  0.5975  +0.0009  neutral  84
+1G-recency-tau7                                                  1G      0.6025  0.5946  +0.0009  neutral  61
+1C-aux-is_forward-w0.3                                           1C      0.6025  0.5959  +0.0009  neutral  66
+1C-aux-is_hate-w0.3                                              1C      0.6025  0.5959  +0.0009  neutral  68
+1C-aux-is_follow-w0.3                                            1C      0.6025  0.5965  +0.0009  neutral  46
+1G-recency-tau14                                                 1G      0.6025  0.5952  +0.0009  neutral  59
+1A-bpr-lr0.0005                                                  1A      0.6024  0.5973  +0.0008  neutral  32
+1C-aux-is_comment-w0.3                                           1C      0.6024  0.5964  +0.0008  neutral  53
+1H-seedstudy-pointwise-seed1                                     1H      0.6024  0.5950  +0.0008  neutral  60
+1C-aux-is_profile_enter-w0.3                                     1C      0.6024  0.5960  +0.0008  neutral  63
+1I-din-exposure-d16-lr0.003                                      1I      0.6022  0.5961  +0.0006  neutral  256
+1A-control-pointwise                                             1A      0.6022  0.5945  +0.0006  neutral  33
+1C-control-singletask                                            1C      0.6022  0.5945  +0.0006  neutral  44
+1D-pointwise-k16                                                 1D      0.6022  0.5945  +0.0006  neutral  60
+1H-seedstudy-pointwise-seed0                                     1H      0.6022  0.5945  +0.0006  neutral  61
+1C-aux-is_like-w0.3                                              1C      0.6021  0.5959  +0.0005  neutral  46
+1C-aux-play_complete-w0.3                                        1C      0.6017  0.5956  +0.0001  neutral  57
+1H-seedstudy-pointwise-seed2                                     1H      0.6017  0.5957  +0.0001  neutral  54
+1B-pointwise-aff-author-causal                                   1B      0.6017  0.5943  +0.0001  neutral  34
+1B-pointwise-aff-user_author+user_music-causal                   1B      0.6016  0.5952  -0.0000  neutral  60
+1H-seedstudy-pointwise-seed3                                     1H      0.6015  0.5952  -0.0001  neutral  44
+1C-control-singletask-learnA                                     1C      0.6014  0.5948  -0.0002  neutral  70
+1D-pointwise-k8                                                  1D      0.6014  0.5953  -0.0003  neutral  38
+1D-pointwise-k128                                                1D      0.6013  0.5943  -0.0003  neutral  188
+1B-pointwise-aff-video-causal                                    1B      0.6012  0.5947  -0.0004  neutral  34
+1D-pointwise-k32                                                 1D      0.6011  0.5947  -0.0005  neutral  89
+1C-aux-is_click-w0.3                                             1C      0.6011  0.5935  -0.0005  neutral  40
+1H-seedstudy-pointwise-seed4                                     1H      0.6010  0.5935  -0.0006  neutral  42
+1B-pointwise-aff-user_tab-causal                                 1B      0.6010  0.5939  -0.0006  neutral  30
+1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal  1B      0.6009  0.5926  -0.0007  neutral  54
+1D-pointwise-k64                                                 1D      0.6008  0.5949  -0.0008  neutral  108
+1C-aux-play_half-w0.3                                            1C      0.6007  0.5947  -0.0008  neutral  57
+1G-recency-tau4                                                  1G      0.6005  0.5929  -0.0011  neutral  59
+1A-listwise-lr0.0001                                             1A      0.6002  0.5932  -0.0014  neutral  85
+1F-lgbm-binary-base+aff-lv63                                     1F      0.6001  0.5949  -0.0015  neutral  52
+1A-bpr-lr0.005                                                   1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.0002                                             1A      0.6000  0.5931  -0.0016 negative  59
+1A-listwise-lr0.001                                              1A      0.5999  0.5924  -0.0017 negative  16
+1F-lgbm-lambdarank-base-lv63                                     1F      0.5998  0.5939  -0.0018 negative  45
+1A-hybrid-lam1                                                   1A      0.5998  0.5929  -0.0018 negative  32
+1A-listwise-lr0.0005                                             1A      0.5995  0.5928  -0.0021 negative  35
+1A-hybrid-lam0.3                                                 1A      0.5993  0.5923  -0.0024 negative  32
+1F-lgbm-lambdarank-base+aff+user+vstat-lv63                      1F      0.5992  0.5923  -0.0024 negative  49
+1B-pointwise-aff-user_tag-causal                                 1B      0.5992  0.5916  -0.0024 negative  38
+1G-window-10d                                                    1G      0.5991  0.5925  -0.0025 negative  36
+1F-lgbm-lambdarank-base+aff-lv63                                 1F      0.5986  0.5917  -0.0030 negative  20
+1F-lgbm-lambdarank-base+aff+user-lv63                            1F      0.5982  0.5921  -0.0034 negative  23
+1A-bpr-lr0.02                                                    1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005                                              1A      0.5957  0.5885  -0.0059 negative  16
+1G-recency-tau2                                                  1G      0.5930  0.5847  -0.0086 negative  53
+1G-window-7d                                                     1G      0.5925  0.5860  -0.0091 negative  22
+1A-listwise-lr0.02                                               1A      0.5867  0.5790  -0.0149 negative  14
+1G-window-5d                                                     1G      0.5852  0.5769  -0.0164 negative  21
+1G-window-3d                                                     1G      0.5742  0.5657  -0.0274 negative  22
+1E-pointwise-lr0.1-ep10                                          1E      0.5639  0.5494  -0.0377 negative  81
+1E-listwise-lr0.05-ep8                                           1E      0.5631  0.5527  -0.0386 negative  34
+1E-pointwise-lr1-ep8                                             1E      0.5472  0.5315  -0.0544 negative  63
+1E-pointwise-l21-ep12                                            1E      0.5317  0.5206  -0.0699 negative  88
