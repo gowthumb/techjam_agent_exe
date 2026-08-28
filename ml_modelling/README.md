@@ -17,6 +17,17 @@ else here is the empirical work that earns the right to write them.
 | `experiments.jsonl` | The experiment log — one JSON record per run. This is the raw material for the KB. |
 | `logs/` | Raw stdout per run, for anything the structured record does not capture. |
 | `cache/` | Parsed-log npz cache (gitignored, rebuilt on demand). |
+| `tools/analyze.py` | Per-axis view of the log + hygiene checks (duplicate ids, failed runs). |
+| `tools/kb_check.py` | Validates every KB claim against the log and the official scores. |
+
+## Deliverables
+
+| Path | What it is |
+|---|---|
+| `knowledge_base.yaml` | **The deliverable.** The machine-readable directive the agent reads. |
+| `knowledge_base_rationale.md` | Why each entry exists, traced to the experiment behind it. |
+| `INTEGRATION_CONTRACT.md` | Proposed KB-to-agent interface (Phase 3); needs sign-off. |
+| `experiments/make_submission.py` | Trains the recommended config and validates it with the official `submit.py`. |
 
 ## Ground rules
 

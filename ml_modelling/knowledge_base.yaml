@@ -1,0 +1,557 @@
+# Knowledge Base — KuaiRand-Pure / long_view within-user ranking
+#
+# A directive for the autonomous agent: what to try next, in what range, how to
+# tell if it is going wrong, and when to stop pushing an axis.
+#
+# Every empirical entry carries an `evidence` block naming the exp_ids in
+# ml_modelling/experiments.jsonl that produced it. `tools/kb_check.py` verifies
+# each cited run exists and that `calibration` matches the organizers' file.
+# Prose here is written to be acted on, not admired: if an entry does not change
+# what the agent does, it does not belong.
+
+meta:
+  schema_version: 1
+  dataset: kuairand_pure
+  task: within-user ranking of logged impressions
+  label: long_view
+  metric: mean(GAUC, nDCG@5)
+  derived_from: ml_modelling/experiments.jsonl
+  rationale_doc: ml_modelling/knowledge_base_rationale.md
+  scorer: kuairand-starter-kit/evaluate.py   # never reimplement this
+
+# ---------------------------------------------------------------- calibration
+# The fixed rungs. Judge every score against these, never against 1.0. nDCG@5 is
+# capped at 0.729 on test because 27.1% of users have no positive at all.
+calibration:
+  random:            {valid: 0.4834, test: 0.4753}
+  popularity:        {valid: 0.5807, test: 0.5715}
+  official_baseline: {valid: 0.6016, test: 0.5946}
+  oracle_ceiling:    {valid: 0.8484, test: 0.8645}
+  note: >-
+    The baseline already holds 30.7% of the reachable interval (random -> oracle).
+    Remaining headroom is 0.27 on test, not 0.41. Report progress as a fraction of
+    (oracle - random), which harness.headroom_pct computes.
+
+# ------------------------------------------------------------ decision protocol
+# The section the reflection step must not skip. Without it the agent will read
+# seed noise as progress.
+decision_protocol:
+  select_on: valid
+  test_is: >-
+    A stand-in for the hidden set. Record it, never select on it. Every number in
+    this KB was chosen on valid.
+  measured_noise:
+    method: 5 seeds, identical config, baseline FM
+    pointwise: {valid_sd: 0.0005, test_sd: 0.0008}
+    bpr:       {valid_sd: 0.0006, test_sd: 0.0002}
+    evidence:
+      exp_ids:
+        - 1H-seedstudy-pointwise-seed0
+        - 1H-seedstudy-pointwise-seed1
+        - 1H-seedstudy-pointwise-seed2
+        - 1H-seedstudy-pointwise-seed3
+        - 1H-seedstudy-pointwise-seed4
+      note: >-
+        Valid sd (0.0005) is slightly SMALLER than test sd (0.0008) despite valid
+        being the smaller split. The official 0.0008 figure is a safe band for both.
+  single_run_band: 0.0016
+  single_run_rule: >-
+    From ONE run, treat |delta| < 0.0016 as no result. harness.classify applies
+    this; do not eyeball it.
+  replication_rule: >-
+    THE MOST IMPORTANT RULE HERE. The single-run band is far too wide for a
+    replicated mean. With n seeds the standard error is sd/sqrt(n) ~ 0.0004 at
+    n=5, so a +0.002 effect that reads "neutral" on one run is decisive on five.
+    Any config within 0.0015 of the best MUST be re-run on 3+ seeds before it is
+    discarded. Doing this is what turned the loss-function axis from "no effect"
+    into a confirmed +0.0021.
+  replication_cost: >-
+    Cheap. A 3-seed replicate of the leading config costs ~3 minutes at k<=8,
+    which is a small fraction of one iteration's budget. Budget for it.
+  valid_blind_spot: >-
+    Several interventions are flat on valid but consistently better on test (BPR:
+    +0.0021 valid vs +0.0032 test; sparse auxiliary heads: +0.0010 vs +0.0009).
+    Valid is 7 days immediately after train; test is 10 days further out. When
+    valid is flat but test moves consistently in one direction across a whole
+    sweep, treat it as weak evidence FOR the intervention, not against it — but
+    still select on valid.
+  control_rule: >-
+    Before crediting an intervention, run the control that isolates it. Two
+    findings in this KB reversed under their control: multi-task (a random label
+    matched the real signal) and sequences (the no-sequence architecture beat the
+    full model). Budget one control run per new mechanism; it is cheaper than
+    building on a false positive.
+
+# ------------------------------------------------------- validated search space
+# Ranges actually explored, with the boundary values that caused problems.
+validated_search_space:
+  k:
+    validated_range: [1, 16]
+    default_start: 6
+    verdict: flat_choose_for_cost
+    danger_zone: >-
+      k >= 32 costs 1.5-3x the runtime for no gain (k=128 takes 188s vs 38s at
+      k=8, and scores no better). There is no overfitting cliff — the score is
+      simply flat and the compute is wasted.
+    rule: >-
+      k IS NOT A SCORING KNOB ON THIS DATASET — it is a cost knob. Measured over
+      3 seeds per point, the score is flat from k=1 to k=16 under both losses.
+      Pick the smallest k that is stable (k=6) to buy iteration speed, and do not
+      raise k in response to a plateau: every value above 16 was flat or worse at
+      1.5-3x the cost.
+    do_not_use_k1: >-
+      k=1 scores as well as anything on average but has 4x the seed variance
+      (valid sd 0.0021 vs 0.0005 at k=2). A single k=1 run scored 0.6033 and
+      looked like a breakthrough; three seeds put it at 0.6023 +/- 0.0021. It is a
+      trap for single-run evaluation specifically.
+    evidence:
+      exp_ids: [1D-pointwise-k8, 1D-pointwise-k16, 1D-pointwise-k32,
+                1D-pointwise-k64, 1D-pointwise-k128,
+                1K-pointwise-k1-seed0, 1K-pointwise-k1-seed1, 1K-pointwise-k1-seed2,
+                1K-pointwise-k2-seed0, 1K-pointwise-k4-seed0, 1K-pointwise-k6-seed0,
+                1J-bpr-lr0.0002-k4-ep60-seed0, 1J-bpr-lr0.0002-k6-ep60-seed0,
+                1J-bpr-lr0.0002-k8-ep60-seed0]
+      note: >-
+        3-seed means, valid. pointwise: k1 0.6023+/-0.0021, k2 0.6028+/-0.0005,
+        k4 0.6021+/-0.0002, k6 0.6020+/-0.0006, k16 0.6018+/-0.0005 (5 seeds).
+        bpr: k4 0.6035, k6 0.6037, k8 0.6037, k16 0.6038 (5 seeds). Flat under
+        both losses; the loss is what separates them, not the capacity.
+  learning_rate:
+    pointwise:
+      validated_range: [0.001, 0.001]
+      default: 0.001
+      danger_zone: ">= 0.1 collapses the model (see diagnostics)"
+    bpr:
+      validated_range: [0.0001, 0.001]
+      default: 0.0002
+      danger_zone: ">= 0.005 undoes the entire gain; >= 0.02 costs -0.0043"
+      rule: >-
+        Ranking losses need a SMALLER lr than logloss, not a larger one. They
+        normalize per pair/group rather than per row, so the effective step at a
+        given lr is bigger. If a ranking loss peaks at epoch 1-4 and then decays,
+        that is a step-size problem, not evidence against the loss.
+    listwise:
+      validated_range: []
+      note: "no lr in [0.0001, 0.02] beats pointwise; see dead_ends"
+    evidence:
+      exp_ids: [1A-bpr-lr0.0001, 1A-bpr-lr0.0002, 1A-bpr-lr0.0005,
+                1A-bpr-lr0.001, 1A-bpr-lr0.005, 1A-bpr-lr0.02]
+  l2:
+    validated_range: [0.0000001, 0.00001]
+    default: 0.000001
+    danger_zone: >-
+      Degradation starts at 1e-4 (-0.0014) and the model breaks at 1e-3 (-0.0179).
+      At 1.0 valid falls to 0.5317, below the popularity rung.
+    rule: >-
+      L2 is not a useful knob here. The score is flat across 1e-7..1e-5 because
+      capacity is not what limits this model — and neither is regularisation, for
+      the same reason. Leave it at the default and spend the iteration on the loss.
+    evidence:
+      exp_ids: ["1D-pointwise-k64-l21e-07", "1D-pointwise-k64-l21e-06",
+                "1D-pointwise-k64-l21e-05", "1D-pointwise-k64-l20.0001",
+                "1D-pointwise-k64-l20.001", 1E-pointwise-l21-ep12]
+      note: >-
+        Swept at k=64 specifically, to give L2 the best chance of rescuing an
+        over-large model. valid: 1e-7 0.6009, 1e-6 0.6008, 1e-5 0.6007,
+        1e-4 0.6002, 1e-3 0.5837. It never recovers the k=16 score.
+  epochs:
+    pointwise: {max: 40, patience: 4, typical_best_epoch: 7}
+    bpr: {max: 60, patience: 6, note: "converges more slowly at its lower lr"}
+  batch_size:
+    default: 8192
+    note: "not swept; the baseline's value was kept so loss comparisons stay clean"
+
+# --------------------------------------------------------------------- priors
+# Conditional rules. Each one is a pattern that repeated across experiments.
+priors:
+  - if: "a plateau is reached and the instinct is to add capacity"
+    then: "change the loss, not the capacity"
+    why: >-
+      Capacity is not the bottleneck in either direction. Raising k is flat-to-
+      negative at 1.5-3x the cost; lowering it is also flat. The only axis that
+      moved the score was the objective. Spend the iteration on BPR, not on k.
+    evidence:
+      exp_ids: [1D-pointwise-k64, 1D-pointwise-k128, 1K-pointwise-k2-seed0,
+                1J-bpr-lr0.0002-k6-ep60-seed0]
+
+  - if: "a config's advantage comes from a single run and the config is unusual (very small k, an exotic loss)"
+    then: "replicate on 3 seeds before acting on it — extreme configs have larger seed variance"
+    why: >-
+      k=1 has 4x the seed variance of k=2 and produced a 0.6033 single run that
+      looked like a breakthrough; three seeds put it at 0.6023 +/- 0.0021, i.e.
+      no better than the baseline. Variance is not constant across the search
+      space, so a fixed single-run band under-protects at its edges.
+    evidence:
+      exp_ids: [1E-pointwise-k1-ep25, 1K-pointwise-k1-seed0,
+                1K-pointwise-k1-seed1, 1K-pointwise-k1-seed2]
+
+  - if: "a ranking loss scores worse than pointwise"
+    then: "divide the lr by 5 and retry before concluding the loss is wrong"
+    why: >-
+      BPR at lr=0.02 scores -0.0043; the same loss at lr=0.0002 scores +0.0021.
+      The entire verdict flipped on step size alone.
+    evidence:
+      exp_ids: [1A-bpr-lr0.02, 1A-bpr-lr0.0002]
+
+  - if: "a new feature is proposed that is keyed on the user only"
+    then: "reject it without running it"
+    why: >-
+      Ranking is within-user, so anything constant inside a user cannot change the
+      order. It cannot help, by construction. Only user x item-attribute crosses
+      can move the metric.
+
+  - if: "a history / target-encoding feature is proposed"
+    then: "measure its warm coverage on EVAL rows first, and drop it below ~70%"
+    why: >-
+      (user, author) affinity looks sensible and is 97% cold-start on test, so it
+      is a constant in disguise. Coverage is a one-line check; training on it is
+      30-60s wasted.
+    evidence:
+      exp_ids: [1B-pointwise-aff-user_author+user_music-causal]
+
+  - if: "an intervention improves the score and adds a mechanism (sequence, aux head, new feature block)"
+    then: "run the ablated control before recording it as a win"
+    why: >-
+      Both mechanism-adding axes in this log reversed under control. See
+      decision_protocol.control_rule.
+    evidence:
+      exp_ids: [1I-din-noseq-d16-lr0.003, 1C-aux-random_sparse-w0.3]
+
+  - if: "training rows are reweighted or filtered by recency"
+    then: "keep the effective sample large; mild only, or not at all"
+    why: >-
+      Volume beats recency on this split. Every hard window hurt, monotonically
+      with severity (-0.0025 at 10 days, -0.0274 at 3), and only very mild
+      exponential weighting (half-life >= 7 days) was even neutral.
+    evidence:
+      exp_ids: [1G-window-3d, 1G-window-5d, 1G-window-7d, 1G-window-10d,
+                1G-recency-tau2, 1G-recency-tau7, 1G-recency-tau14]
+
+# --------------------------------------------------- feature engineering menu
+# Ranked by measured effect. The honest headline: no feature transform tried here
+# beat the baseline's five fields. Try these only after the loss and capacity
+# axes are exhausted.
+feature_engineering_menu:
+  menu:
+  - name: baseline_five_fields
+    fields: [user_id, video_id, author_id, tab, dur_bucket]
+    effect: "reference"
+    priority: keep
+    note: "user_id x video_id already carries most of the learnable signal"
+
+  - name: causal_affinity_author
+    effect: "+0.0001 valid — inside noise"
+    priority: low
+    cost: "~35s, plus a vectorized counter pass"
+    evidence: {exp_ids: [1B-pointwise-aff-author-causal]}
+
+  - name: causal_affinity_video
+    effect: "-0.0004 valid — item popularity is already inside the video_id embedding"
+    priority: skip
+    evidence: {exp_ids: [1B-pointwise-aff-video-causal]}
+
+  - name: causal_affinity_user_tag
+    effect: "-0.0024 valid — the worst of the affinity family"
+    priority: skip
+    evidence: {exp_ids: [1B-pointwise-aff-user_tag-causal]}
+
+  - name: causal_affinity_stack
+    effect: "-0.0007 valid — stacking five affinity features does not rescue them"
+    priority: skip
+    evidence: {exp_ids: ["1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal"]}
+
+  - name: video_statistic_side_table
+    effect: "-0.0024 valid inside a GBDT"
+    priority: skip
+    caveat: >-
+      These aggregates span the test period, so they partially encode test-period
+      outcomes. They did not help even so, which settles the question — but do not
+      resurrect them without re-reading this note.
+    evidence: {exp_ids: ["1F-lgbm-lambdarank-base+aff+user+vstat-lv63"]}
+
+  affinity_leakage_contract: >-
+    If affinity features are used at all: counters are built from TRAIN labels
+    only, eval rows read frozen train counters, and train rows use either causal
+    (strictly-earlier) or leave-one-out counts. explib/history.py implements this
+    and ships a probe that flips eval labels and asserts the features do not move.
+    A version that reads eval labels scores brilliantly offline and collapses on
+    the hidden set.
+
+# ------------------------------------------------------------ multi-task menu
+multi_task_signals:
+  verdict: not_a_productive_axis
+  headline: >-
+    The apparent gains are regularisation, not transfer. Effect size rises
+    monotonically as the auxiliary signal gets SPARSER, and a RANDOM NOISE label
+    at a matched 0.1% positive rate scores +0.0010 — statistically the same as
+    is_follow (+0.0011). The content of the auxiliary signal is doing no work.
+  measured_against: 1C-control-singletask-learnA   # the correct control
+  by_signal:                                       # d_valid / d_test, weight 0.3
+    is_follow:        {pos_rate: 0.00101, d_valid: +0.0011, d_test: +0.0017}
+    is_comment:       {pos_rate: 0.00257, d_valid: +0.0010, d_test: +0.0016}
+    is_hate:          {pos_rate: 0.00042, d_valid: +0.0011, d_test: +0.0011}
+    is_forward:       {pos_rate: 0.00100, d_valid: +0.0011, d_test: +0.0011}
+    random_sparse:    {pos_rate: 0.00100, d_valid: +0.0010, d_test: +0.0009, is_noise: true}
+    is_profile_enter: {pos_rate: 0.02539, d_valid: +0.0010, d_test: +0.0012}
+    is_like:          {pos_rate: 0.01868, d_valid: +0.0008, d_test: +0.0012}
+    play_complete:    {pos_rate: 0.17343, d_valid: +0.0004, d_test: +0.0008}
+    random_dense:     {pos_rate: 0.46276, d_valid: +0.0003, d_test: +0.0001, is_noise: true}
+    play_half:        {pos_rate: 0.29771, d_valid: -0.0006, d_test: -0.0000}
+    is_click:         {pos_rate: 0.46345, d_valid: -0.0003, d_test: -0.0013}
+  harmful: [is_click, play_half]
+  harmful_why: >-
+    The dense signals are the seesaw case: is_click fires on 46% of rows and
+    competes with long_view for the shared embedding rather than regularising it.
+  rule: >-
+    Do not spend iterations selecting among the 11 auxiliary signals. If a
+    regulariser is wanted, reducing k is cheaper, larger, and honest about what it
+    is doing.
+  evidence:
+    exp_ids: [1C-control-singletask, 1C-control-singletask-learnA,
+              1C-aux-is_follow-w0.3, 1C-aux-is_click-w0.3,
+              1C-aux-random_sparse-w0.3, 1C-aux-random_dense-w0.3]
+
+# --------------------------------------------------------- candidate models
+# validated: true means WE RAN IT on KuaiRand-Pure and the number is in the log.
+# Licenses were checked against source; re-verify at submission time.
+candidate_models:
+  - name: fm_pointwise
+    category: fm_family
+    library: starter_kit
+    license: n/a
+    validated: true
+    result: "valid 0.6018 +/- 0.0005 (5 seeds) — the reference"
+    cost: "~40s at k=16, single core, numpy only"
+    evidence: {exp_ids: [1A-control-pointwise]}
+
+  - name: fm_bpr
+    category: fm_family
+    library: starter_kit
+    license: n/a
+    validated: true
+    result: "valid 0.6038 +/- 0.0006, test 0.5980 +/- 0.0002 (5 seeds) — BEST CONFIRMED"
+    cost: "~70s at k=6 / lr 0.0002 / 60 epochs; ~100s at k=16 for the same score"
+    recommended: true
+    recommended_config: {loss: bpr, lr: 0.0002, k: 6, epochs: 60, patience: 6, l2: 0.000001}
+    evidence:
+      exp_ids: [1H-seedstudy-bpr-seed0, 1H-seedstudy-bpr-seed1,
+                1J-bpr-lr0.0002-k6-ep60-seed0, 1J-bpr-lr0.0002-k6-ep60-seed1,
+                1J-bpr-lr0.0002-k6-ep60-seed2]
+
+  - name: fm_listwise
+    category: fm_family
+    library: starter_kit
+    license: n/a
+    validated: true
+    result: "negative at every lr tried — see dead_ends"
+    evidence: {exp_ids: [1A-listwise-lr0.0001, 1A-listwise-lr0.02]}
+
+  - name: multitask_fm
+    category: multi_task
+    library: explib/mtfm.py
+    license: n/a
+    validated: true
+    result: "gains reproduce with random labels — see multi_task_signals"
+    evidence: {exp_ids: [1C-aux-random_sparse-w0.3]}
+
+  - name: din
+    category: sequence_aware
+    library: torch
+    license: bsd-3-clause
+    validated: true
+    result: >-
+      exposure sequence 0.6022 — WORSE than its own no-sequence control (0.6034)
+      at 11x the runtime. The train-label-only positive sequence reaches 0.6038,
+      the one sequence variant worth replicating.
+    cost: "~250s vs 23s for the no-sequence control"
+    evidence: {exp_ids: [1I-din-exposure-d16-lr0.003, 1I-din-noseq-d16-lr0.003,
+                         1I-din-positive-d16-lr0.003]}
+
+  - name: lightgbm
+    category: gbdt
+    library: lightgbm
+    license: mit
+    validated: true
+    result: "best 0.6001 (binary, base+aff) — never reached the baseline"
+    cost: "20-52s; converges in 15-101 boosting rounds"
+    note: >-
+      lambdarank underperformed plain binary here. With affinity features it
+      early-stops at round 15, latching onto the train/eval distribution shift in
+      target-encoded columns.
+    evidence: {exp_ids: ["1F-lgbm-binary-base+aff-lv63",
+                         "1F-lgbm-lambdarank-base-lv63",
+                         "1F-lgbm-lambdarank-base+aff-lv63"]}
+
+  - name: xgboost
+    category: gbdt
+    library: xgboost
+    license: apache-2.0
+    validated: false
+    note: "installed but not run; LightGBM's result makes this low priority"
+
+  - name: catboost
+    category: gbdt
+    library: catboost
+    license: apache-2.0
+    validated: false
+    note: "installed but not run"
+
+  - name: deepfm_dcn_xdeepfm_autoint
+    category: fm_family
+    library: deepctr-torch
+    license: apache-2.0
+    validated: false
+    note: >-
+      NOT recommended. These are capacity escalations, and capacity is measurably
+      not the bottleneck. Also unverified against torch 2.x / numpy 2.x here.
+
+# ------------------------------------------------------- architecture ladder
+# Written as a DE-escalation ladder, because that is what the evidence supports.
+architecture_ladder:
+  - stage: fm_pointwise_k16
+    is: "the official baseline; where the agent starts"
+    escalate_if: "always — move to stage 2 immediately, it is strictly better"
+
+  - stage: fm_bpr
+    config: {loss: bpr, lr: 0.0002, k: 6, epochs: 60, patience: 6}
+    is: >-
+      the recommended operating point: +0.0021 valid / +0.0032 test over 5 seeds.
+      k=6 rather than 16 because the score is identical and the run is ~30% faster
+    escalate_if: >-
+      plateaued (eps=0.002 / N=3) with > 15 iterations remaining — and then only
+      to stage 3, after replicating the current best on 3 seeds
+
+  - stage: tune_within_family
+    is: "lr in [0.0001, 0.001], 3 seeds per point; k can be left at 6"
+    escalate_if: "plateaued again with > 10 iterations remaining"
+    note: >-
+      The productive region is small and cheap to cover exhaustively. lr is the
+      only knob here that changes the score; k only changes the clock.
+
+  - stage: din_positive_sequence
+    is: >-
+      the only unexhausted mechanism, and the weakest-evidence one: 0.6038 on a
+      single seed, needs 3-seed replication before it is trusted
+    escalate_if: "> 20 iterations remain AND stages 2-3 are exhausted"
+    cost_warning: "~250s per run, ~10x the FM; budget accordingly"
+
+  - stage: do_not_go_here
+    is: [deepfm, xdeepfm, dcn, larger_k, more_features]
+    why: >-
+      Every capacity-increasing move in this log was flat or negative. Escalating
+      complexity is the default instinct and it is the wrong one on this dataset.
+
+# ---------------------------------------------------------------- diagnostics
+# Symptom -> cause -> fix, built from deliberate failure probes.
+diagnostics:
+  - symptom: "loss is finite but ~10x the healthy value (e.g. 6.9 vs 0.48), valid stuck near 0.54"
+    cause: "learning rate far too high"
+    fix: "divide lr by 10 and restart; do not wait for it to recover, it will not"
+    note: >-
+      IMPORTANT CORRECTION: this FM uses Adam, whose update is bounded, so a
+      too-high lr does NOT produce NaN. At lr=1.0 (1000x the default) the loss
+      stays finite at ~6.9 forever. Watching for NaN will miss this failure
+      entirely — watch the loss MAGNITUDE and the valid score against the
+      popularity rung instead.
+    evidence: {exp_ids: [1E-pointwise-lr1-ep8, 1E-pointwise-lr0.1-ep10]}
+
+  - symptom: "valid score falls below the popularity rung (0.5807)"
+    cause: "the model is worse than a non-trained statistic; config is broken, not merely poor"
+    fix: "stop the run, revert to the last known-good config, change one thing"
+    evidence: {exp_ids: [1E-pointwise-l21-ep12, 1E-pointwise-lr1-ep8]}
+
+  - symptom: "valid peaks at epoch 1-4 then decays monotonically"
+    cause: "step size too large for this loss, most often after switching to a ranking loss"
+    fix: "divide lr by 5, raise patience to 6, raise max epochs to 60"
+    evidence: {exp_ids: [1A-bpr-lr0.001, 1A-bpr-lr0.0002]}
+
+  - symptom: "embeddings collapse; valid ~0.53, below random+popularity midpoint"
+    cause: "L2 far too high (order 1.0)"
+    fix: "return l2 to 1e-6; it is not a productive knob on this dataset"
+    evidence: {exp_ids: [1E-pointwise-l21-ep12]}
+
+  - symptom: "a GBDT early-stops within ~15 boosting rounds"
+    cause: >-
+      target-encoded features whose train distribution differs from eval — the
+      trees split hard on them and generalize worse each round after
+    fix: "drop the affinity block, or rebuild it in leave-one-out mode"
+    evidence: {exp_ids: ["1F-lgbm-lambdarank-base+aff-lv63"]}
+
+  - symptom: "a new feature changes the score by almost exactly 0"
+    cause: "likely constant within user, or cold-start on nearly every eval row"
+    fix: "check eval warm coverage; below ~70% the feature is a constant in disguise"
+    evidence: {exp_ids: [1B-pointwise-aff-user_author+user_music-causal]}
+
+# ------------------------------------------------------------------ dead ends
+# Hard filter. Do not propose these; the iterations are already spent.
+dead_ends:
+  - what: "listwise softmax loss"
+    result: "negative at every lr from 0.0001 to 0.02 (-0.0014 to -0.0149)"
+    evidence: {exp_ids: [1A-listwise-lr0.0001, 1A-listwise-lr0.0005,
+                         1A-listwise-lr0.005, 1A-listwise-lr0.02]}
+
+  - what: "hybrid pointwise+listwise"
+    result: "-0.0018 at lam=1.0, -0.0024 at lam=0.3; inherits listwise's problem"
+    evidence: {exp_ids: [1A-hybrid-lam1, 1A-hybrid-lam0.3]}
+
+  - what: "increasing k above 16"
+    result: "flat to -0.0008, at 1.5-3x the runtime"
+    evidence: {exp_ids: [1D-pointwise-k32, 1D-pointwise-k64, 1D-pointwise-k128]}
+
+  - what: "adding static side features (organizers' own result, reproduced in spirit here)"
+    result: "organizers measured 0.5940 vs 0.5950 for all 13 CWM fields; our affinity variants agree"
+    evidence: {exp_ids: ["1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal"]}
+
+  - what: "hard recency windows on the training set"
+    result: "-0.0025 (10d) through -0.0274 (3d), monotone in severity"
+    evidence: {exp_ids: [1G-window-3d, 1G-window-10d]}
+
+  - what: "GBDTs (LightGBM), any feature block combination tried"
+    result: "best 0.6001, below the 0.6016 baseline"
+    evidence: {exp_ids: ["1F-lgbm-binary-base+aff-lv63"]}
+
+  - what: "selecting among auxiliary multi-task signals"
+    result: "gains reproduce with random labels; the signal content does nothing"
+    evidence: {exp_ids: [1C-aux-random_sparse-w0.3]}
+
+  - what: "exposure-based behaviour sequences in a DIN"
+    result: "0.6022, below its own no-sequence control at 0.6034, at 11x the cost"
+    evidence: {exp_ids: [1I-din-exposure-d16-lr0.003, 1I-din-noseq-d16-lr0.003]}
+
+# ------------------------------------------------------------- dataset facts
+# Measured properties worth knowing before proposing anything.
+dataset_facts:
+  rows: {train: 1141112, valid: 124909, test: 170588}
+  users: {train: 26210, valid: 22377, test: 23875}
+  label_base_rate: {train: 0.3366, valid: 0.3133, test: 0.3135}
+  id_overlap:
+    test_users_seen_in_train: 0.967
+    test_videos_seen_in_train: 0.998
+    implication: >-
+      This is NOT a cold-start problem. Cold-start machinery is wasted effort;
+      the difficulty is behavioural drift on known ids.
+  train_volume_skew: >-
+    59% of train rows fall in three days (2022-04-10..12); the eval period runs at
+    ~15K rows/day. Training is dominated by an earlier, higher-engagement regime.
+  test_user_composition:
+    all_negative: 0.271     # nDCG identically 0, unreachable by any model
+    all_positive: 0.092     # nDCG identically 1
+    discriminative: 0.637   # the only users GAUC scores
+
+# --------------------------------------------------------------- scale transfer
+scale_transfer:
+  derived_from: kuairand_pure
+  status: "pending — Phase 5 (KuaiRand-1k / 27k) not started"
+  expected_invariant:
+    - diagnostic_playbook          # Adam bounding the step is a property of the optimizer
+    - decision_protocol.replication_rule
+    - "user-only features contribute 0 (a property of within-user ranking, not of scale)"
+  needs_revalidation:
+    - k                            # more data may finally support capacity
+    - learning_rate
+    - iteration_budget_pacing
+    - "the over-parameterisation finding itself — it is the most scale-dependent claim here"
+  note: >-
+    The headline finding (this baseline is over-parameterised) is exactly the kind
+    of result that should invert with 8x-230x more data. Re-run the k sweep first
+    on any larger benchmark before reusing anything else in this file.

@@ -15,6 +15,15 @@ REPO = os.path.abspath(os.path.join(HERE, '..', '..'))
 KIT = os.path.join(REPO, 'kuairand-starter-kit')
 LOG_PATH = os.path.join(REPO, 'ml_modelling', 'experiments.jsonl')
 
+# The Windows console defaults to cp1252, which raises on the checkmark and the
+# Chinese text the starter kit prints. Fail soft on output encoding rather than
+# losing a finished run to a print statement.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding='utf-8', errors='replace')
+    except (AttributeError, ValueError):
+        pass
+
 if KIT not in sys.path:
     sys.path.insert(0, KIT)
 from evaluate import evaluate as _kit_evaluate   # noqa: E402  (the pinned scorer)
