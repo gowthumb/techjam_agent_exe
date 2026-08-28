@@ -73,7 +73,13 @@ class Experiment:
             ex.takeaway = '...'
     """
 
-    def __init__(self, exp_id, phase, axis, hypothesis, config, tags=None):
+    def __init__(self, exp_id, phase, axis, hypothesis, config, tags=None,
+                 baseline_ref=None):
+        # baseline_ref: {'valid':x,'test':y} to compare against, or the string
+        # 'none' when no comparable baseline exists (e.g. a different benchmark).
+        # Defaults to the official KuaiRand-Pure baseline.
+        self.baseline_ref = (CALIBRATION['official_baseline'] if baseline_ref is None
+                             else baseline_ref)
         self.exp_id = exp_id
         self.phase = phase
         self.axis = axis
@@ -106,17 +112,21 @@ class Experiment:
         v = self.metrics.get('valid', {})
         if v:
             d = rec['delta_vs_baseline']['valid_primary']
+            dtxt = f'{d:+.4f} vs baseline' if d is not None else 'no comparable baseline'
             print(f"[{self.exp_id}] valid primary {v.get('primary', float('nan')):.4f} "
-                  f"({d:+.4f} vs baseline) -> {rec['outcome']}  [{rec['seconds']:.0f}s]")
+                  f"({dtxt}) -> {rec['outcome']}  [{rec['seconds']:.0f}s]")
         return False   # never swallow exceptions
 
     def to_record(self, seconds):
         delta = {}
+        ref = self.baseline_ref
         for sp in ('valid', 'test'):
             p = self.metrics.get(sp, {}).get('primary')
-            delta[f'{sp}_primary'] = (round(p - CALIBRATION['official_baseline'][sp], 5)
-                                      if p is not None else None)
-        outcome = 'failed' if self.error else classify(delta['valid_primary'])
+            delta[f'{sp}_primary'] = (round(p - ref[sp], 5)
+                                      if p is not None and isinstance(ref, dict) else None)
+        outcome = ('failed' if self.error
+                   else classify(delta['valid_primary'])
+                   if delta['valid_primary'] is not None else 'unknown')
         return {
             'exp_id': self.exp_id,
             'ts': datetime.datetime.now().isoformat(timespec='seconds'),
@@ -128,7 +138,9 @@ class Experiment:
             'train': self.train_info,
             'delta_vs_baseline': delta,
             'headroom_pct_valid': (round(headroom_pct(self.metrics['valid']['primary'], 'valid'), 2)
-                                   if 'valid' in self.metrics else None),
+                                   if 'valid' in self.metrics
+                                   and ref is CALIBRATION['official_baseline'] else None),
+            'baseline_ref': (ref if isinstance(ref, dict) else 'none'),
             'outcome': outcome,
             'takeaway': self.takeaway,
             'error': self.error,
