@@ -422,19 +422,33 @@ it cannot honestly claim to *discover* faster than blind search. What it can cla
 is transfer cost — how much a search pays to reach what the KB hands over on
 iteration 1.
 
-| metric (restart 0) | blind | with KB |
+| metric (mean of 3 restarts) | blind | with KB |
 |---|---|---|
-| best valid reached | **0.6043** | 0.6042 |
-| iterations to beat baseline | 3 | **1** |
-| iterations to converge | 6 | **4** |
-| trials at or below baseline | **12 / 15** | **0 / 15** |
-| search wall-clock | 1360s | 946s |
+| best valid reached | 0.6039 | **0.6042** |
+| best valid, worst restart | 0.6032 | **0.6042** |
+| best test reached | 0.5975 | **0.5983** |
+| iterations to beat baseline | 3, 3, **14** | **1, 1, 1** |
+| iterations to converge | 6, 6, 4 | **4, 4, 4** |
+| trials at or below baseline | **12.67 / 15** | **0.33 / 15** |
+| search wall-clock | 1938s | **1083s** |
 
-The blind arm reached a *marginally higher* ceiling. That is the honest headline:
-**the KB does not find better models.** Given 15 iterations, random search over a
-sensible space finds a good config too. What the KB changes is how much of the
-budget is wasted getting there — 12 below-baseline trials become 0 — and it
-converges two iterations earlier for about 30% less wall-clock.
+Restart 0 alone suggested the blind arm reached a *higher* ceiling (0.6043 vs
+0.6042), and I wrote that down before the other restarts finished. Across all three
+that reading does not survive: blind averages 0.6039 with a worst case of 0.6032,
+while the KB arm lands on 0.6042 every time. The KB's advantage on the ceiling is
+small — about +0.0003, inside the noise band — but its advantage in *consistency*
+is not, and neither is anything else in the table.
+
+The two numbers that matter are the ones the plan asked for. Wasted trials go from
+**12.67 to 0.33 out of 15**. And iterations-to-beat-baseline goes from a highly
+variable 3, 3, 14 to a flat 1, 1, 1 — the blind arm's worst restart spent fourteen
+iterations before it first cleared the baseline at all, which is the failure mode
+the KB actually prevents. Search wall-clock falls 44%.
+
+So the honest claim is not "the KB finds better models". Given 15 iterations,
+random search over a sensible space usually finds a comparable config. The KB
+removes the variance and the waste: it never has a bad restart, and it does not
+spend two thirds of the budget below the line it started from.
 
 For a 50-iteration / 6h budget that is the right kind of claim: the KB buys back
 iterations for the axes that are still unexplored, rather than raising the score by

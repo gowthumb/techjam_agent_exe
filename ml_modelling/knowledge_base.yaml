@@ -548,6 +548,36 @@ dataset_facts:
     all_positive: 0.092     # nDCG identically 1
     discriminative: 0.637   # the only users GAUC scores
 
+# --------------------------------------------------------- what this KB buys
+# Measured, not assumed (Phase 4). Same loop, same 15-iteration budget, one arm
+# proposing blind from KNOWLEDGE_BASE_PLAN.md's own pre-registered space and one
+# reading this file. 3 restarts each.
+kb_ablation:
+  verdict: buys_efficiency_not_ceiling
+  results:                                   # mean of 3 restarts
+    best_valid:                {blind: 0.6039, with_kb: 0.6042}
+    best_valid_worst_restart:  {blind: 0.6032, with_kb: 0.6042}
+    iterations_to_beat_baseline: {blind: [3, 3, 14], with_kb: [1, 1, 1]}
+    iterations_to_converge:      {blind: [6, 6, 4], with_kb: [4, 4, 4]}
+    trials_at_or_below_baseline: {blind: 12.67, with_kb: 0.33, out_of: 15}
+    search_wall_clock_s:       {blind: 1938, with_kb: 1083}
+  honest_reading: >-
+    The KB does NOT find better models. Over 15 iterations, random search across a
+    sensible space reaches a comparable score (0.6039 vs 0.6042 — inside the noise
+    band). What it removes is waste and variance: 12.67 of 15 wasted trials become
+    0.33, iterations-to-beat-baseline goes from a variable 3/3/14 to a flat 1/1/1,
+    and search wall-clock falls 44%.
+  circularity_caveat: >-
+    This KB was derived from this dataset, so it cannot claim to DISCOVER faster
+    than blind search. The claim is transfer cost only: what a search pays to reach
+    what the KB hands over on iteration 1.
+  budget_implication: >-
+    Against a 50-iteration / 6h budget, the value is the ~12 iterations per 15 that
+    are freed for axes still unexplored — plus never suffering the blind arm's bad
+    restart, which spent 14 iterations before first clearing the baseline.
+  artifact: ml_modelling/phase4_ablation.json
+  reproduce: "python experiments/p4_kb_ablation.py --iterations 15 --restarts 3"
+
 # --------------------------------------------------------------- scale transfer
 scale_transfer:
   derived_from: kuairand_pure
