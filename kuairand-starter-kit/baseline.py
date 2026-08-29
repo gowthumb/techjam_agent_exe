@@ -72,7 +72,7 @@ class FM:
     def predict(self, X, bs=200_000):
         return np.concatenate([self.logits(X[i:i + bs])[0] for i in range(0, len(X), bs)])
 
-def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbose=True):
+def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False):
     enc, dim = encode(splits)
     Xtr, ytr, _ = enc['train']; Xva, yva, uva = enc['valid']; Xte, yte, ute = enc['test']
     m = FM(dim, k=k, lr=lr, seed=seed)
@@ -94,8 +94,12 @@ def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbo
                 if verbose: print(f"  early stop at epoch {ep}")
                 break
     m.V, m.W, m.b = best_state
-    return {'valid': evaluate(uva, yva, m.predict(Xva)),
-            'test':  evaluate(ute, yte, m.predict(Xte))}
+    test_scores = m.predict(Xte)
+    result = {'valid': evaluate(uva, yva, m.predict(Xva)),
+              'test': evaluate(ute, yte, test_scores)}
+    if return_predictions:
+        result['test_scores'] = test_scores
+    return result
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
