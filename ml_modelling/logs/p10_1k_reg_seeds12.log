@@ -1,0 +1,54 @@
+loading 1k ...
+  per-field vocab / share of rows unseen in train:
+    user_id      vocab=      983  unseen=0.3%
+    video_id     vocab=2,119,510  unseen=46.0%
+    author_id    vocab=  805,027  unseen=13.3%
+    tab          vocab=       14  unseen=0.0%
+    dur_bucket   vocab=       10  unseen=0.0%
+  dim=2925549
+[10-1k-pointwise-noise0.05-seed1] 1K overfits by epoch 2, so regularisation is the natural lever; embedding noise is the cheap regulariser validated on Pure, tried here at the strengths that bracketed the Pure optimum
+[10-1k-pointwise-noise0.05-seed1] valid primary 0.6405 (no comparable baseline) -> unknown  [180s]
+[10-1k-pointwise-noise0.05-seed2] 1K overfits by epoch 2, so regularisation is the natural lever; embedding noise is the cheap regulariser validated on Pure, tried here at the strengths that bracketed the Pure optimum
+[10-1k-pointwise-noise0.05-seed2] valid primary 0.6424 (no comparable baseline) -> unknown  [179s]
+[10-1k-pointwise-noise0.1-seed1] 1K overfits by epoch 2, so regularisation is the natural lever; embedding noise is the cheap regulariser validated on Pure, tried here at the strengths that bracketed the Pure optimum
+[10-1k-pointwise-noise0.1-seed1] valid primary 0.6401 (no comparable baseline) -> unknown  [242s]
+[10-1k-pointwise-noise0.1-seed2] 1K overfits by epoch 2, so regularisation is the natural lever; embedding noise is the cheap regulariser validated on Pure, tried here at the strengths that bracketed the Pure optimum
+[10-1k-pointwise-noise0.1-seed2] valid primary 0.6430 (no comparable baseline) -> unknown  [258s]
+[10-1k-pointwise-noise0.2-seed1] 1K overfits by epoch 2, so regularisation is the natural lever; embedding noise is the cheap regulariser validated on Pure, tried here at the strengths that bracketed the Pure optimum
+[10-1k-pointwise-noise0.2-seed1] valid primary 0.6401 (no comparable baseline) -> unknown  [397s]
+[10-1k-pointwise-noise0.2-seed2] 1K overfits by epoch 2, so regularisation is the natural lever; embedding noise is the cheap regulariser validated on Pure, tried here at the strengths that bracketed the Pure optimum
+[10-1k-pointwise-noise0.2-seed2] valid primary 0.6422 (no comparable baseline) -> unknown  [392s]
+[10-1k-pointwise-lr0.0005-ep60-seed1] best_epoch=2 at lr=0.001 is the too-fast-fit signature; a smaller step with a longer budget may find a better minimum
+[10-1k-pointwise-lr0.0005-ep60-seed1] valid primary 0.6451 (no comparable baseline) -> unknown  [314s]
+[10-1k-pointwise-lr0.0005-ep60-seed2] best_epoch=2 at lr=0.001 is the too-fast-fit signature; a smaller step with a longer budget may find a better minimum
+[10-1k-pointwise-lr0.0005-ep60-seed2] valid primary 0.6418 (no comparable baseline) -> unknown  [292s]
+[10-1k-pointwise-lr0.0002-ep60-seed1] best_epoch=2 at lr=0.001 is the too-fast-fit signature; a smaller step with a longer budget may find a better minimum
+[10-1k-pointwise-lr0.0002-ep60-seed1] valid primary 0.6404 (no comparable baseline) -> unknown  [374s]
+[10-1k-pointwise-lr0.0002-ep60-seed2] best_epoch=2 at lr=0.001 is the too-fast-fit signature; a smaller step with a longer budget may find a better minimum
+[10-1k-pointwise-lr0.0002-ep60-seed2] valid primary 0.6430 (no comparable baseline) -> unknown  [552s]
+[10-1k-pointwise-k32-seed1] k=16 (0.6438) beat k=4 and k=64 on 1K but k=32 was never tested; the bracket-the-optimum prior requires filling the interior gap
+[10-1k-pointwise-k32-seed1] valid primary 0.6442 (no comparable baseline) -> unknown  [267s]
+[10-1k-pointwise-k32-seed2] k=16 (0.6438) beat k=4 and k=64 on 1K but k=32 was never tested; the bracket-the-optimum prior requires filling the interior gap
+[10-1k-pointwise-k32-seed2] valid primary 0.6408 (no comparable baseline) -> unknown  [269s]
+
+exp_id                                 phase    valid    test  d_valid  outcome  s
+----------------------------------------------------------------------------------
+10-1k-pointwise-lr0.0005-ep60-seed1    10      0.6451  0.6406        -  unknown  314
+10-1k-pointwise-lr0.0005-ep60-seed0    10      0.6447  0.6419        -  unknown  239
+10-1k-pointwise-k32-seed1              10      0.6442  0.6347        -  unknown  267
+10-1k-pointwise-noise0.2-seed0         10      0.6431  0.6402        -  unknown  322
+10-1k-pointwise-noise0.1-seed2         10      0.6430  0.6375        -  unknown  258
+10-1k-pointwise-lr0.0002-ep60-seed2    10      0.6430  0.6423        -  unknown  552
+10-1k-pointwise-noise0.1-seed0         10      0.6426  0.6351        -  unknown  239
+10-1k-pointwise-noise0.05-seed2        10      0.6424  0.6378        -  unknown  179
+10-1k-pointwise-noise0.2-seed2         10      0.6422  0.6401        -  unknown  392
+10-1k-pointwise-noise0.05-seed0        10      0.6419  0.6380        -  unknown  181
+10-1k-pointwise-lr0.0005-ep60-seed2    10      0.6418  0.6381        -  unknown  292
+10-1k-pointwise-lr0.0002-ep60-seed0    10      0.6416  0.6379        -  unknown  363
+10-1k-pointwise-k32-seed0              10      0.6409  0.6352        -  unknown  202
+10-1k-pointwise-k32-seed2              10      0.6408  0.6337        -  unknown  269
+10-1k-pointwise-noise0.05-seed1        10      0.6405  0.6382        -  unknown  180
+10-1k-pointwise-lr0.0002-ep60-seed1    10      0.6404  0.6400        -  unknown  374
+10-1k-pointwise-noise0.1-seed1         10      0.6401  0.6375        -  unknown  242
+10-1k-pointwise-noise0.2-seed1         10      0.6401  0.6335        -  unknown  397
+10-1k-pointwise-aff-user_author-seed0  10      0.6358  0.6400        -  unknown  133
