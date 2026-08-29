@@ -1,0 +1,50 @@
+{
+ "bpr-k6 x5 seeds|rank": {
+  "valid": 0.604019045829773,
+  "test": 0.5979746580123901
+ },
+ "bpr-k6 x5 seeds|score": {
+  "valid": 0.603905200958252,
+  "test": 0.5979311466217041
+ },
+ "bpr-k8 x5 seeds|rank": {
+  "valid": 0.6038182377815247,
+  "test": 0.5978541374206543
+ },
+ "bpr-k8 x5 seeds|score": {
+  "valid": 0.6035295128822327,
+  "test": 0.5981526374816895
+ },
+ "bpr-k16 x5 seeds|rank": {
+  "valid": 0.6038359999656677,
+  "test": 0.5980136394500732
+ },
+ "bpr-k16 x5 seeds|score": {
+  "valid": 0.6037166118621826,
+  "test": 0.5979284644126892
+ },
+ "pointwise-k16 x5 seeds|rank": {
+  "valid": 0.6026831865310669,
+  "test": 0.5962117910385132
+ },
+ "pointwise-k16 x5 seeds|score": {
+  "valid": 0.6026076078414917,
+  "test": 0.5961786508560181
+ },
+ "all BPR cells x seeds (15)|rank": {
+  "valid": 0.6039887070655823,
+  "test": 0.5978465676307678
+ },
+ "all BPR cells x seeds (15)|score": {
+  "valid": 0.6039833426475525,
+  "test": 0.5980422496795654
+ },
+ "everything (20)|rank": {
+  "valid": 0.6044111251831055,
+  "test": 0.5981352925300598
+ },
+ "everything (20)|score": {
+  "valid": 0.6040219068527222,
+  "test": 0.5983526706695557
+ }
+}

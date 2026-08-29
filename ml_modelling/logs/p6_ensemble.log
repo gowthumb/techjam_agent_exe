@@ -1,0 +1,84 @@
+[6-bpr-k6-seed0] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k6-seed0] valid primary 0.6037 (+0.0021 vs baseline) -> positive  [51s]
+[6-bpr-k6-seed1] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k6-seed1] valid primary 0.6033 (+0.0017 vs baseline) -> positive  [52s]
+[6-bpr-k6-seed2] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k6-seed2] valid primary 0.6041 (+0.0025 vs baseline) -> positive  [155s]
+[6-bpr-k6-seed3] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k6-seed3] valid primary 0.6041 (+0.0025 vs baseline) -> positive  [144s]
+[6-bpr-k6-seed4] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k6-seed4] valid primary 0.6044 (+0.0028 vs baseline) -> positive  [75s]
+[6-bpr-k8-seed0] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k8-seed0] valid primary 0.6040 (+0.0024 vs baseline) -> positive  [69s]
+[6-bpr-k8-seed1] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k8-seed1] valid primary 0.6034 (+0.0018 vs baseline) -> positive  [106s]
+[6-bpr-k8-seed2] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k8-seed2] valid primary 0.6033 (+0.0018 vs baseline) -> positive  [166s]
+[6-bpr-k8-seed3] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k8-seed3] valid primary 0.6034 (+0.0018 vs baseline) -> positive  [118s]
+[6-bpr-k8-seed4] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k8-seed4] valid primary 0.6040 (+0.0024 vs baseline) -> positive  [128s]
+[6-bpr-k16-seed0] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k16-seed0] valid primary 0.6031 (+0.0015 vs baseline) -> neutral  [87s]
+[6-bpr-k16-seed1] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k16-seed1] valid primary 0.6033 (+0.0017 vs baseline) -> positive  [95s]
+[6-bpr-k16-seed2] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k16-seed2] valid primary 0.6044 (+0.0028 vs baseline) -> positive  [107s]
+[6-bpr-k16-seed3] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k16-seed3] valid primary 0.6042 (+0.0026 vs baseline) -> positive  [82s]
+[6-bpr-k16-seed4] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-bpr-k16-seed4] valid primary 0.6042 (+0.0026 vs baseline) -> positive  [83s]
+[6-pointwise-k16-seed0] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-pointwise-k16-seed0] valid primary 0.6022 (+0.0006 vs baseline) -> neutral  [52s]
+[6-pointwise-k16-seed1] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-pointwise-k16-seed1] valid primary 0.6024 (+0.0008 vs baseline) -> neutral  [49s]
+[6-pointwise-k16-seed2] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-pointwise-k16-seed2] valid primary 0.6017 (+0.0001 vs baseline) -> neutral  [48s]
+[6-pointwise-k16-seed3] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-pointwise-k16-seed3] valid primary 0.6015 (-0.0001 vs baseline) -> neutral  [38s]
+[6-pointwise-k16-seed4] Replicate every candidate cell on the same 5 seeds before calling any of them better, and keep the predictions so the ensemble costs no extra training
+[6-pointwise-k16-seed4] valid primary 0.6010 (-0.0006 vs baseline) -> neutral  [41s]
+
+=== REPLICATED CELLS (5 seeds each) ===
+cell              n    valid      sd     test      sd
+bpr-k6            5   0.6039  0.0004   0.5980  0.0002
+bpr-k8            5   0.6036  0.0004   0.5978  0.0004
+bpr-k16           5   0.6038  0.0006   0.5980  0.0002
+pointwise-k16     5   0.6018  0.0005   0.5948  0.0008
+
+=== ENSEMBLES (no new training) ===
+ensemble                             mode     valid     test  vs best single
+bpr-k6 x5 seeds                      rank    0.6040   0.5980         -0.0000
+bpr-k6 x5 seeds                      score   0.6039   0.5979         -0.0001
+bpr-k8 x5 seeds                      rank    0.6038   0.5979         -0.0001
+bpr-k8 x5 seeds                      score   0.6035   0.5982         +0.0002
+bpr-k16 x5 seeds                     rank    0.6038   0.5980         +0.0000
+bpr-k16 x5 seeds                     score   0.6037   0.5979         -0.0001
+pointwise-k16 x5 seeds               rank    0.6027   0.5962         -0.0018
+pointwise-k16 x5 seeds               score   0.6026   0.5962         -0.0018
+all BPR cells x seeds (15)           rank    0.6040   0.5978         -0.0002
+all BPR cells x seeds (15)           score   0.6040   0.5980         +0.0000
+everything (20)                      rank    0.6044   0.5981         +0.0001
+everything (20)                      score   0.6040   0.5984         +0.0004
+[6-ensemble-rank-best] Averaging within-user percentile ranks across already-trained models costs no new training and should clear the noise band
+[6-ensemble-rank-best] valid primary 0.6044 (+0.0028 vs baseline) -> positive  [0s]
+Traceback (most recent call last):
+  File "C:\Users\rombo\Desktop\Tiktok_hackathon\techjam_agent_exe\ml_modelling\experiments\p6_ensemble.py", line 189, in <module>
+    main()
+  File "C:\Users\rombo\Desktop\Tiktok_hackathon\techjam_agent_exe\ml_modelling\experiments\p6_ensemble.py", line 183, in main
+    json.dump({f'{k[0]}|{k[1]}': {'valid': vv['primary'], 'test': tt['primary']}
+  File "C:\Program Files\Python312\Lib\json\__init__.py", line 179, in dump
+    for chunk in iterable:
+                 ^^^^^^^^
+  File "C:\Program Files\Python312\Lib\json\encoder.py", line 432, in _iterencode
+    yield from _iterencode_dict(o, _current_indent_level)
+  File "C:\Program Files\Python312\Lib\json\encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "C:\Program Files\Python312\Lib\json\encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "C:\Program Files\Python312\Lib\json\encoder.py", line 439, in _iterencode
+    o = _default(o)
+        ^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\json\encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type float32 is not JSON serializable

@@ -26,19 +26,27 @@ def sigmoid(x):
 class FM:
     """Identical math and init to kuairand-starter-kit/baseline.py::FM."""
 
-    def __init__(self, dim, k=16, lr=0.001, l2=1e-6, seed=0, sparse=False):
+    def __init__(self, dim, k=16, lr=0.001, l2=1e-6, seed=0, sparse=False,
+                 emb_noise=0.0):
         rng = np.random.default_rng(seed)
         self.V = rng.normal(0, 0.01, (dim, k)).astype(np.float32)
         self.W = np.zeros(dim, dtype=np.float32)
         self.b = np.float32(0.0)
         self.lr, self.l2 = lr, l2
         self.sparse = sparse       # opt-in; see apply_grad_sparse for the caveat
+        # Gaussian noise added to embeddings during training only. Because the
+        # noise is ADDITIVE, dE'/dV = I and the gradient keeps its exact form --
+        # apply_grad needs no change, it just receives the noised E and S.
+        self.emb_noise = emb_noise
+        self._nrng = np.random.default_rng(seed + 9973)
         self.mV = np.zeros_like(self.V); self.vV = np.zeros_like(self.V)
         self.mW = np.zeros_like(self.W); self.vW = np.zeros_like(self.W)
         self.t = 0
 
-    def logits(self, X):
+    def logits(self, X, noise=False):
         E = self.V[X]                                    # (B,F,k)
+        if noise and self.emb_noise > 0:
+            E = E + self._nrng.normal(0, self.emb_noise, E.shape).astype(np.float32)
         S = E.sum(1)                                     # (B,k)
         inter = 0.5 * ((S ** 2).sum(1) - (E ** 2).sum((1, 2)))
         return self.b + self.W[X].sum(1) + inter, E, S
@@ -148,7 +156,7 @@ def _step_pointwise(m, X, y, rows, bs, rng, w=None):
     for i in range(0, len(idx), bs):
         r = rows[idx[i:i + bs]]
         Xb, yb = X[r], y[r]
-        z, E, S = m.logits(Xb)
+        z, E, S = m.logits(Xb, noise=True)
         p = sigmoid(z)
         g = (p - yb)
         if w is not None:
@@ -171,7 +179,7 @@ def _step_bpr(m, X, y, groups, pairs_per_pos, bs, rng):
         p_r, n_r = P[i:i + bs], N[i:i + bs]
         r = np.concatenate([p_r, n_r])
         Xb = X[r]
-        z, E, S = m.logits(Xb)
+        z, E, S = m.logits(Xb, noise=True)
         h = len(p_r)
         d = z[:h] - z[h:]
         s = sigmoid(-d)                       # dL/d(delta) magnitude
@@ -192,7 +200,7 @@ def _step_listwise(m, X, y, groups, users_per_batch, rng, scale=1.0):
         rows = np.concatenate([g[0] for g in gs])
         seg = np.repeat(np.arange(len(gs)), [len(g[0]) for g in gs])
         Xb, yb = X[rows], y[rows]
-        z, E, S = m.logits(Xb)
+        z, E, S = m.logits(Xb, noise=True)
         p = seg_softmax(z, seg, len(gs))
         npos = np.bincount(seg, weights=yb, minlength=len(gs))
         t = (yb / npos[seg]).astype(np.float32)     # target = uniform over positives
@@ -211,11 +219,12 @@ def _step_hybrid(m, X, y, rows, groups, bs, users_per_batch, lam, rng):
 def train(enc, dim, loss='pointwise', k=16, lr=0.001, l2=1e-6, epochs=40, bs=8192,
           patience=4, seed=0, pairs_per_pos=1, users_per_batch=256, lam=1.0,
           skip_degenerate=True, evaluator=None, verbose=True, row_weight=None,
-          sparse=False):
+          sparse=False, emb_noise=0.0):
     """Train and early-stop on valid primary. Returns (model, info)."""
     Xtr, ytr, utr = enc['train']
     Xva, yva, uva = enc['valid']
-    m = FM(dim, k=k, lr=lr, l2=l2, seed=seed, sparse=sparse)
+    m = FM(dim, k=k, lr=lr, l2=l2, seed=seed, sparse=sparse,
+           emb_noise=emb_noise)
     rng = np.random.default_rng(seed)
     rows = np.arange(len(ytr))
     groups = (user_groups(utr, ytr, skip_degenerate)

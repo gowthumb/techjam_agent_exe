@@ -50,6 +50,7 @@ def main():
     ap.add_argument('--axis', default=None)
     ap.add_argument('--detail', action='store_true')
     ap.add_argument('--check', action='store_true')
+    ap.add_argument('--ids', action='store_true', help='full id-readability audit')
     a = ap.parse_args()
 
     rows = H.read_log()
@@ -61,7 +62,24 @@ def main():
             print('  ! ' + p)
     else:
         print('log hygiene: clean')
+
+    unreadable = audit_ids(rows)
+    both = [x for x in unreadable if len(x[3]) == len(x[2])]
+    if unreadable:
+        print(f'\nID READABILITY: {len(unreadable)} axis/parameter pairs are not readable '
+              f'from the exp_id ({len(both)} where NO value is readable).')
+        print('  Run with --ids for the full list. These do not collide, but a reader')
+        print('  cannot tell from the id which value a run used -- the phase-7 failure mode.')
+        for axis, key, vals, missing in both[:6]:
+            print(f'   ! {axis:24} {key:14} {", ".join(vals[:4])}')
     if a.check:
+        return
+
+    if a.ids:
+        print()
+        for axis, key, vals, missing in unreadable:
+            print(f'  {axis:24} {key:18} values: {", ".join(vals[:5])}')
+            print(f'  {"":24} {"":18} unreadable: {", ".join(missing)}')
         return
 
     axes = [a.axis] if a.axis else sorted({r['axis'] for r in rows})
@@ -89,6 +107,64 @@ def main():
         if a.detail or a.axis:
             for r in sel:
                 print(fmt(r))
+
+
+
+
+# ---------------------------------------------------------------- id schema
+def audit_ids(rows):
+    """Which parameters cannot be read off the exp_id?
+
+    hygiene() already guarantees no two runs share an id, so a true "mis-tuned run
+    masquerading as a tuned one" cannot exist *within* the log. The phase-7 failure
+    was subtler: the run was unique, but nothing in its id said lr=0.002, so it read
+    as comparable to a run at lr=0.0002 when it was not.
+
+    So the well-posed question is readability, not collision: for every parameter
+    that varies inside an axis, is each distinct value recoverable from the ids of
+    the runs that used it? Numbers are compared with %g so 1.0/1 and 0.001/.001
+    match the way they are actually written into ids.
+    """
+    import collections as _c
+    by_axis = _c.defaultdict(list)
+    for r in rows:
+        by_axis[r['axis']].append(r)
+
+    IGNORE = {'fields', 'aux_positive_rate', 'task_weights', 'aux_tasks', 'blocks',
+              'n_features', 'n_categorical', 'n_params', 'members', 'device',
+              'effective_rows', 'train_rows', 'train_rows_pct', 'metric',
+              'ndcg_eval_at', 'objective', 'verbosity', 'benchmark', 'subsample',
+              'sparse_updates', 'mode', 'model', 'bs'}
+
+    def tokens(v):
+        """How this value could plausibly be written into an id."""
+        out = {str(v)}
+        try:
+            f = float(v)
+            out |= {f'{f:g}', f'{f:g}'.replace('0.', '.'), str(int(f)) if f == int(f) else ''}
+        except (TypeError, ValueError):
+            pass
+        return {t for t in out if t}
+
+    unreadable = []
+    for axis, sel in sorted(by_axis.items()):
+        keys = set()
+        for r in sel:
+            keys |= set((r.get('config') or {}).keys())
+        for key in sorted(keys - IGNORE):
+            vals = _c.defaultdict(list)
+            for r in sel:
+                v = (r.get('config') or {}).get(key)
+                if isinstance(v, (list, dict)) or v is None:
+                    continue
+                vals[str(v)].append(r)
+            if len(vals) < 2:
+                continue
+            missing = [sv for sv, rs in vals.items()
+                       if not any(any(t in r['exp_id'] for t in tokens(sv)) for r in rs)]
+            if missing:
+                unreadable.append((axis, key, sorted(vals), missing))
+    return unreadable
 
 
 if __name__ == '__main__':

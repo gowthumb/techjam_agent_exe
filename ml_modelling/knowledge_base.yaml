@@ -80,6 +80,15 @@ decision_protocol:
     valid is flat but test moves consistently in one direction across a whole
     sweep, treat it as weak evidence FOR the intervention, not against it — but
     still select on valid.
+  log_schema_rule: >-
+    EVERY parameter that varies within an axis must be readable from the exp_id, not
+    merely present in the row. A run that is unique but whose id omits the deciding
+    parameter still reads as comparable to one it is not — that is how an
+    architecture grid got run at 10x the validated learning rate and was nearly
+    reported as an architecture result. tools/analyze.py --ids audits this; it
+    currently flags 23 axis/parameter pairs, 14 of them with no readable value at
+    all. Same failure class as reporting only `primary` and losing the GAUC/nDCG
+    split: a log schema coarser than the questions being asked of it.
   control_rule: >-
     Before crediting an intervention, run the control that isolates it. Two
     findings in this KB reversed under their control: multi-task (a random label
@@ -178,6 +187,20 @@ priors:
     evidence:
       exp_ids: [1D-pointwise-k64, 1D-pointwise-k128, 1K-pointwise-k2-seed0,
                 1J-bpr-lr0.0002-k6-ep60-seed0]
+
+  - if: "a sweep's best value sits at the edge of the grid"
+    then: "extend the grid until the peak is INTERIOR before reporting an optimum"
+    why: >-
+      Twice in this work the answer was outside the first grid. The BPR learning
+      rate was swept upward when the optimum was 5x DOWN, which briefly made the
+      whole loss axis look dead; and the embedding-noise sweep stopped at 0.05 while
+      still rising, missing both the true pointwise peak (0.1) and the cliff just
+      past it (-0.0104 by 0.5). An edge value is not an optimum, it is an unfinished
+      sweep.
+    evidence:
+      exp_ids: ["1A-bpr-lr0.02", "1A-bpr-lr0.0002",
+                "8-pointwise-noise0.05-seed0", "8-pointwise-noise0.1-seed0",
+                "8-pointwise-noise0.5-seed0"]
 
   - if: "a config's advantage comes from a single run and the config is unusual (very small k, an exotic loss)"
     then: "replicate on 3 seeds before acting on it — extreme configs have larger seed variance"
@@ -338,6 +361,15 @@ candidate_models:
     cost: "~70s at k=6 / lr 0.0002 / 60 epochs; ~100s at k=16 for the same score"
     recommended: true
     recommended_config: {loss: bpr, lr: 0.0002, k: 6, epochs: 60, patience: 6, l2: 0.000001}
+    metric_decomposition: >-
+      The gain is majority GAUC, which is what a pairwise loss should produce: GAUC
+      IS within-user pair order, while nDCG@5 only reads the top 5. valid GAUC
+      +0.0027 / nDCG@5 +0.0014 (GAUC = 66% of the primary delta); test GAUC +0.0036
+      / nDCG@5 +0.0028 (56%). The mechanism matches the theory, not just the score.
+    architecture_independent: >-
+      Confirmed across four architectures at their own validated learning rates:
+      FM +0.0013, AutoInt +0.0013, FFM +0.0004, DeepFM +0.0003 valid. The result is
+      a property of the objective, not of the FM.
     evidence:
       exp_ids: [1H-seedstudy-bpr-seed0, 1H-seedstudy-bpr-seed1,
                 1J-bpr-lr0.0002-k6-ep60-seed0, 1J-bpr-lr0.0002-k6-ep60-seed1,
@@ -519,6 +551,30 @@ dead_ends:
     result: "gains reproduce with random labels; the signal content does nothing"
     evidence: {exp_ids: [1C-aux-random_sparse-w0.3]}
 
+  - what: "any architecture beyond plain FM (FFM, DeepFM, AutoInt)"
+    result: >-
+      None beats FM under BPR at 5 seeds: FM 0.6040, AutoInt 0.6041 (+0.0001, a
+      tenth of the noise band, and behind on test), DeepFM 0.6032. FFM is worse at
+      5.7x the parameters. Capacity is not the bottleneck in a fourth place.
+    evidence: {exp_ids: ["7-autoint-bpr-k16-lr0.0002", "7-deepfm-bpr-k16-lr0.0002",
+                         "7-ffm-bpr-k16-lr0.0002", "7-fm-bpr-k16-lr0.0002"]}
+
+  - what: "mean-pooled behaviour sequences (the non-attention variant)"
+    result: >-
+      0.6037 valid against 0.6040 without the sequence — slightly negative. With the
+      DIN attention result this closes the axis from both ends: the history carries
+      nothing the user_id x video_id cross has not already learned.
+    evidence: {exp_ids: ["7-fm-bpr-k16-lr0.0002-seqmean",
+                         "7-deepfm-bpr-k16-lr0.0002-seqmean"]}
+
+  - what: "ensembling seeds of the same model family"
+    result: >-
+      +0.0005 valid at best (20 models, rank-averaged). Seed-averaging inside one
+      cell gives ~0.0000 — the members are too correlated to pay. Only the mix that
+      included pointwise moved at all, so what little there is comes from diversity,
+      not from ensembling per se.
+    evidence: {exp_ids: ["6-ensemble-rank-best"]}
+
   - what: "exposure-based behaviour sequences in a DIN"
     result: "0.6022, below its own no-sequence control at 0.6034, at 11x the cost"
     evidence: {exp_ids: [1I-din-exposure-d16-lr0.003, 1I-din-noseq-d16-lr0.003]}
@@ -547,6 +603,39 @@ dataset_facts:
     all_negative: 0.271     # nDCG identically 0, unreachable by any model
     all_positive: 0.092     # nDCG identically 1
     discriminative: 0.637   # the only users GAUC scores
+
+# --------------------------------------------------- cheap regularisation
+# Phase 1C showed auxiliary heads act as regularisers, not as transfer. Phase 8
+# buys that regularisation directly instead.
+embedding_noise:
+  what: "Gaussian noise added to embeddings during training only (fm.train(emb_noise=s))"
+  cost: "one RNG draw per batch; no extra head, task weights or forward pass"
+  under_pointwise:
+    verdict: confirmed
+    optimum: 0.1
+    effect: "+0.0008 valid (0.6021 -> 0.6029), ~3.3 se over 3 seeds"
+    note: >-
+      Reproduces and slightly exceeds the best auxiliary head (+0.0011) at a
+      fraction of the cost, which closes the multi-task finding: the mechanism was
+      regularisation, and regularisation is available directly.
+  under_bpr:
+    verdict: no_gain_on_the_selection_split
+    effect: "+0.0003 valid at sigma=0.05 (5 seeds, ~1 se) — NOT separated"
+    unclaimed_lead: >-
+      sigma=0.1 gives test +0.0006 at 2 se while valid is exactly flat. This lands
+      on decision_protocol.valid_blind_spot. It is NOT acted on: selecting it would
+      mean selecting on test, which the protocol forbids, and two sigmas were
+      compared on test so the multiple-comparison risk is real. Recorded as a lead
+      for a future run with a genuinely held-out third split, not as a result.
+    why: "BPR appears to already supply part of the same regularisation"
+  danger_zone: >-
+    The cliff is close and steep. Past sigma=0.2 the score collapses, and BPR
+    degrades about twice as hard as pointwise (-0.0104 vs -0.0043 at sigma=0.5).
+  evidence:
+    exp_ids: ["8-pointwise-noise0-seed0", "8-pointwise-noise0.1-seed0",
+              "8-pointwise-noise0.5-seed0", "8-bpr-noise0-seed0",
+              "8-bpr-noise0.05-seed0", "8-bpr-noise0.1-seed0",
+              "8-bpr-noise0.5-seed0"]
 
 # --------------------------------------------------------- what this KB buys
 # Measured, not assumed (Phase 4). Same loop, same 15-iteration budget, one arm

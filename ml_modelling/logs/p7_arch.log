@@ -1,0 +1,114 @@
+
+[7-fm-bpr-k16] 684,421 params, lr=0.002
+[7-fm-bpr-k16] fm under bpr: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.6520 | GAUC 0.6614 nDCG@5 0.5318 primary 0.5966 | 1s
+  ep  2 | loss 0.5723 | GAUC 0.6660 nDCG@5 0.5352 primary 0.6006 | 1s
+  ep  3 | loss 0.5513 | GAUC 0.6692 nDCG@5 0.5365 primary 0.6028 | 1s
+  ep  4 | loss 0.5420 | GAUC 0.6702 nDCG@5 0.5374 primary 0.6038 | 1s
+  ep  5 | loss 0.5337 | GAUC 0.6680 nDCG@5 0.5354 primary 0.6017 | 1s
+  ep  6 | loss 0.5234 | GAUC 0.6653 nDCG@5 0.5348 primary 0.6000 | 1s
+  ep  7 | loss 0.5119 | GAUC 0.6655 nDCG@5 0.5344 primary 0.5999 | 1s
+  ep  8 | loss 0.4997 | GAUC 0.6636 nDCG@5 0.5326 primary 0.5981 | 1s
+  early stop at epoch 8
+[7-fm-bpr-k16] valid primary 0.6038 (+0.0022 vs baseline) -> positive  [11s]
+
+[7-fm-pointwise-k16] 684,421 params, lr=0.001
+[7-fm-pointwise-k16] fm under pointwise: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.6350 | GAUC 0.6497 nDCG@5 0.5289 primary 0.5893 | 2s
+  ep  2 | loss 0.5433 | GAUC 0.6615 nDCG@5 0.5340 primary 0.5978 | 2s
+  ep  3 | loss 0.5117 | GAUC 0.6645 nDCG@5 0.5346 primary 0.5996 | 2s
+  ep  4 | loss 0.5012 | GAUC 0.6662 nDCG@5 0.5352 primary 0.6007 | 2s
+  ep  5 | loss 0.4961 | GAUC 0.6668 nDCG@5 0.5360 primary 0.6014 | 2s
+  ep  6 | loss 0.4925 | GAUC 0.6680 nDCG@5 0.5361 primary 0.6020 | 2s
+  ep  7 | loss 0.4894 | GAUC 0.6684 nDCG@5 0.5366 primary 0.6025 | 2s
+  ep  8 | loss 0.4864 | GAUC 0.6683 nDCG@5 0.5363 primary 0.6023 | 2s
+  ep  9 | loss 0.4834 | GAUC 0.6672 nDCG@5 0.5357 primary 0.6015 | 2s
+  ep 10 | loss 0.4803 | GAUC 0.6664 nDCG@5 0.5355 primary 0.6009 | 2s
+  ep 11 | loss 0.4770 | GAUC 0.6656 nDCG@5 0.5349 primary 0.6003 | 2s
+  early stop at epoch 11
+[7-fm-pointwise-k16] valid primary 0.6025 (+0.0009 vs baseline) -> neutral  [19s]
+
+[7-ffm-bpr-k16] 3,905,221 params, lr=0.002
+[7-ffm-bpr-k16] ffm under bpr: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.6442 | GAUC 0.6633 nDCG@5 0.5329 primary 0.5981 | 9s
+  ep  2 | loss 0.5578 | GAUC 0.6667 nDCG@5 0.5358 primary 0.6012 | 9s
+  ep  3 | loss 0.5179 | GAUC 0.6680 nDCG@5 0.5361 primary 0.6020 | 9s
+  ep  4 | loss 0.4719 | GAUC 0.6640 nDCG@5 0.5348 primary 0.5994 | 10s
+  ep  5 | loss 0.4238 | GAUC 0.6565 nDCG@5 0.5318 primary 0.5941 | 10s
+  ep  6 | loss 0.3787 | GAUC 0.6500 nDCG@5 0.5290 primary 0.5895 | 10s
+  ep  7 | loss 0.3405 | GAUC 0.6449 nDCG@5 0.5268 primary 0.5859 | 11s
+  early stop at epoch 7
+[7-ffm-bpr-k16] valid primary 0.6020 (+0.0004 vs baseline) -> neutral  [69s]
+
+[7-ffm-pointwise-k16] 3,905,221 params, lr=0.001
+[7-ffm-pointwise-k16] ffm under pointwise: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.6136 | GAUC 0.6533 nDCG@5 0.5299 primary 0.5916 | 16s
+  ep  2 | loss 0.5211 | GAUC 0.6660 nDCG@5 0.5353 primary 0.6006 | 15s
+  ep  3 | loss 0.4994 | GAUC 0.6681 nDCG@5 0.5363 primary 0.6022 | 15s
+  ep  4 | loss 0.4880 | GAUC 0.6685 nDCG@5 0.5368 primary 0.6026 | 16s
+  ep  5 | loss 0.4758 | GAUC 0.6686 nDCG@5 0.5369 primary 0.6027 | 16s
+  ep  6 | loss 0.4614 | GAUC 0.6668 nDCG@5 0.5360 primary 0.6014 | 15s
+  ep  7 | loss 0.4454 | GAUC 0.6655 nDCG@5 0.5356 primary 0.6006 | 15s
+  ep  8 | loss 0.4281 | GAUC 0.6628 nDCG@5 0.5340 primary 0.5984 | 15s
+  ep  9 | loss 0.4104 | GAUC 0.6590 nDCG@5 0.5317 primary 0.5953 | 15s
+  early stop at epoch 9
+[7-ffm-pointwise-k16] valid primary 0.6027 (+0.0011 vs baseline) -> neutral  [139s]
+
+[7-deepfm-bpr-k16] 703,110 params, lr=0.002
+[7-deepfm-bpr-k16] deepfm under bpr: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.6135 | GAUC 0.6674 nDCG@5 0.5352 primary 0.6013 | 2s
+  ep  2 | loss 0.5514 | GAUC 0.6679 nDCG@5 0.5361 primary 0.6020 | 2s
+  ep  3 | loss 0.5336 | GAUC 0.6597 nDCG@5 0.5312 primary 0.5954 | 2s
+  ep  4 | loss 0.5129 | GAUC 0.6569 nDCG@5 0.5310 primary 0.5939 | 2s
+  ep  5 | loss 0.4922 | GAUC 0.6478 nDCG@5 0.5264 primary 0.5871 | 2s
+  ep  6 | loss 0.4683 | GAUC 0.6352 nDCG@5 0.5214 primary 0.5783 | 2s
+  early stop at epoch 6
+[7-deepfm-bpr-k16] valid primary 0.6020 (+0.0004 vs baseline) -> neutral  [13s]
+
+[7-deepfm-pointwise-k16] 703,110 params, lr=0.001
+[7-deepfm-pointwise-k16] deepfm under pointwise: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.5762 | GAUC 0.6661 nDCG@5 0.5353 primary 0.6007 | 3s
+  ep  2 | loss 0.5075 | GAUC 0.6694 nDCG@5 0.5370 primary 0.6032 | 3s
+  ep  3 | loss 0.5013 | GAUC 0.6699 nDCG@5 0.5373 primary 0.6036 | 3s
+  ep  4 | loss 0.4983 | GAUC 0.6696 nDCG@5 0.5368 primary 0.6032 | 3s
+  ep  5 | loss 0.4951 | GAUC 0.6697 nDCG@5 0.5361 primary 0.6029 | 3s
+  ep  6 | loss 0.4906 | GAUC 0.6672 nDCG@5 0.5349 primary 0.6010 | 3s
+  ep  7 | loss 0.4852 | GAUC 0.6616 nDCG@5 0.5325 primary 0.5970 | 3s
+  early stop at epoch 7
+[7-deepfm-pointwise-k16] valid primary 0.6036 (+0.0020 vs baseline) -> positive  [20s]
+
+[7-autoint-bpr-k16] 685,590 params, lr=0.002
+[7-autoint-bpr-k16] autoint under bpr: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.6306 | GAUC 0.6648 nDCG@5 0.5342 primary 0.5995 | 4s
+  ep  2 | loss 0.5590 | GAUC 0.6673 nDCG@5 0.5360 primary 0.6017 | 4s
+  ep  3 | loss 0.5511 | GAUC 0.6696 nDCG@5 0.5364 primary 0.6030 | 4s
+  ep  4 | loss 0.5425 | GAUC 0.6692 nDCG@5 0.5366 primary 0.6029 | 4s
+  ep  5 | loss 0.5340 | GAUC 0.6658 nDCG@5 0.5343 primary 0.6000 | 4s
+  ep  6 | loss 0.5243 | GAUC 0.6630 nDCG@5 0.5338 primary 0.5984 | 4s
+  ep  7 | loss 0.5138 | GAUC 0.6603 nDCG@5 0.5322 primary 0.5963 | 4s
+  early stop at epoch 7
+[7-autoint-bpr-k16] valid primary 0.6030 (+0.0014 vs baseline) -> neutral  [26s]
+
+[7-autoint-pointwise-k16] 685,590 params, lr=0.001
+[7-autoint-pointwise-k16] autoint under pointwise: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.5887 | GAUC 0.6597 nDCG@5 0.5326 primary 0.5962 | 5s
+  ep  2 | loss 0.5108 | GAUC 0.6661 nDCG@5 0.5355 primary 0.6008 | 5s
+  ep  3 | loss 0.5027 | GAUC 0.6674 nDCG@5 0.5360 primary 0.6017 | 5s
+  ep  4 | loss 0.4999 | GAUC 0.6684 nDCG@5 0.5372 primary 0.6028 | 5s
+  ep  5 | loss 0.4983 | GAUC 0.6676 nDCG@5 0.5364 primary 0.6020 | 5s
+  ep  6 | loss 0.4971 | GAUC 0.6680 nDCG@5 0.5363 primary 0.6021 | 5s
+  ep  7 | loss 0.4963 | GAUC 0.6683 nDCG@5 0.5368 primary 0.6026 | 5s
+  ep  8 | loss 0.4954 | GAUC 0.6682 nDCG@5 0.5368 primary 0.6025 | 5s
+  early stop at epoch 8
+[7-autoint-pointwise-k16] valid primary 0.6028 (+0.0012 vs baseline) -> neutral  [41s]
+
+exp_id                   phase    valid    test  d_valid  outcome  s
+--------------------------------------------------------------------
+7-fm-bpr-k16             7       0.6038  0.5949  +0.0022 positive  11
+7-deepfm-pointwise-k16   7       0.6036  0.5981  +0.0020 positive  20
+7-autoint-bpr-k16        7       0.6030  0.5954  +0.0014  neutral  26
+7-autoint-pointwise-k16  7       0.6028  0.5966  +0.0012  neutral  41
+7-ffm-pointwise-k16      7       0.6027  0.5958  +0.0011  neutral  139
+7-fm-pointwise-k16       7       0.6025  0.5955  +0.0009  neutral  19
+7-ffm-bpr-k16            7       0.6020  0.5951  +0.0004  neutral  69
+7-deepfm-bpr-k16         7       0.6020  0.5970  +0.0004  neutral  13
