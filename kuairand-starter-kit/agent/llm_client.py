@@ -50,6 +50,7 @@ class LLMResponse:
 _ROOT = Path(__file__).resolve().parents[2]
 _MODEL_ANNOUNCED = False
 _QUOTA_PAUSE_COUNT = 0
+_ROLE_TEMPERATURES = {"CODER": 0.15, "DEBUGGER": 0.15, "PLANNER": 0.6}
 
 
 def _load_configuration() -> tuple[str, str, str]:
@@ -69,6 +70,18 @@ def resolve_model(role: str) -> str:
     """Return a role-specific compatible model, falling back to LLM_MODEL."""
     _, _, shared_model = _load_configuration()
     return os.environ.get(role.upper() + "_MODEL") or shared_model
+
+
+def resolve_temperature(role: str) -> float | None:
+    """Return a role-specific temperature, preserving provider defaults for unknown roles."""
+    role = role.upper()
+    configured = os.environ.get(role + "_TEMPERATURE")
+    if configured is None:
+        return _ROLE_TEMPERATURES.get(role)
+    try:
+        return float(configured)
+    except ValueError as error:
+        raise LLMError(role + "_TEMPERATURE must be a number.") from error
 
 
 def _raise_provider_error(error: Exception) -> None:
@@ -113,7 +126,7 @@ def _timestamp() -> str:
 
 def call_llm(
     system_prompt: str, user_prompt: str, *, max_tokens: int = 4096, model: str | None = None,
-    max_quota_pauses: int = 3, role: str = "UNSPECIFIED",
+    temperature: float | None = None, max_quota_pauses: int = 3, role: str = "UNSPECIFIED",
 ) -> LLMResponse:
     """Send one chat-completion request and return provider-reported token usage."""
     global _MODEL_ANNOUNCED, _QUOTA_PAUSE_COUNT
@@ -129,17 +142,20 @@ def call_llm(
             % (_timestamp(), role, selected_model, len(system_prompt) + len(user_prompt))
         )
         try:
-            completion = client.chat.completions.create(
-                model=selected_model,
-                messages=[
+            request = {
+                "model": selected_model,
+                "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
-                max_tokens=max_tokens,
-                extra_headers={
+                "max_tokens": max_tokens,
+                "extra_headers": {
                     "HTTP-Referer": "https://github.com/gowthumb/techjam_agent_exe",
                 },
-            )
+            }
+            if temperature is not None:
+                request["temperature"] = temperature
+            completion = client.chat.completions.create(**request)
             print(
                 "[%s] LLM response received: role=%s model=%s elapsed_s=%.2f"
                 % (_timestamp(), role, selected_model, time.monotonic() - request_started_at)

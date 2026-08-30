@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from typing import Any, Dict
 
 from agent.llm_client import call_llm, resolve_model
+from agent.llm_client import resolve_temperature
+from agent.patcher import extract_patch_blocks
 
 
 _HYPOTHESIS_KEYS = {"description", "rationale", "target_module"}
@@ -37,12 +39,12 @@ def _system_prompt(current_code: str) -> str:
     return """You are the Coder in an autonomous recommender-system research pipeline.
 Translate the supplied hypothesis into a surgical patch for the complete current Python module below.
 
-Return ONLY one or more Search/Replace blocks. Do not include prose, Markdown fences, or explanations.
+Return ONLY one or more Search/Replace blocks. No explanation, no Markdown fences, and nothing outside the Search/Replace blocks.
 Use this exact format:
 <<<<<<< SEARCH
-(exact existing code, verbatim)
+def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbose=True):
 =======
-(replacement code)
+def run_fm(splits, k=6, lr=0.0002, epochs=60, bs=8192, patience=4, seed=0, verbose=True):
 >>>>>>> REPLACE
 
 Hard constraints:
@@ -67,9 +69,12 @@ def propose_patch(current_code: str, hypothesis: Dict[str, Any]) -> CoderResult:
             "Target module: " + hypothesis["target_module"],
         )
     )
-    response = call_llm(_system_prompt(current_code), user_prompt, model=resolve_model("CODER"), role="CODER")
+    response = call_llm(
+        _system_prompt(current_code), user_prompt, model=resolve_model("CODER"),
+        temperature=resolve_temperature("CODER"), role="CODER",
+    )
     return CoderResult(
-        diff=_clean_diff(response.text),
+        diff=extract_patch_blocks(_clean_diff(response.text)),
         raw_response=response.text,
         input_tokens=response.input_tokens,
         output_tokens=response.output_tokens,

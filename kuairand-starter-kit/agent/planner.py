@@ -9,6 +9,7 @@ from typing import Any, Dict
 
 from agent.coder import _validate_hypothesis
 from agent.llm_client import call_llm, resolve_model
+from agent.llm_client import resolve_temperature
 from agent.state import RunState
 
 
@@ -46,6 +47,18 @@ def _history_context(history: list[Dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
+def _confirmed_knowledge_context(knowledge_base: str) -> str:
+    """Extract validated or recommended model entries before the full YAML context."""
+    entries = re.findall(r"^\s*- name: ([^\n]+)(.*?)(?=^\s*- name:|^#|\Z)", knowledge_base, re.MULTILINE | re.DOTALL)
+    confirmed = []
+    for name, body in entries:
+        if "validated: true" not in body and "recommended: true" not in body and "CONFIRMED" not in body:
+            continue
+        details = [line.strip() for line in body.splitlines() if line.strip().startswith(("validated:", "result:", "recommended:", "recommended_config:"))]
+        confirmed.append("- %s%s" % (name, " | " + " | ".join(details) if details else ""))
+    return "\n".join(confirmed) if confirmed else "- No explicitly confirmed/high-confidence entries found."
+
+
 def _system_prompt(knowledge_base: str, state: RunState) -> str:
     return """You are the Planner in an autonomous recommender-system research pipeline. Select exactly one next hypothesis for the Coder; you do not write code.
 
@@ -58,9 +71,10 @@ Hard constraints:
 - Do NOT substantially duplicate a rejected historical hypothesis. Check the supplied history explicitly.
 - The rationale must cite a numbered knowledge-base item, or clearly justify a direction beyond the knowledge base.
 
------ KNOWLEDGE BASE -----
+----- CONFIRMED / HIGH-CONFIDENCE KNOWLEDGE -----
+""" + _confirmed_knowledge_context(knowledge_base) + """
+----- FULL KNOWLEDGE BASE -----
 """ + knowledge_base + "\n----- CURRENT BEST VALIDATION METRICS -----\n" + json.dumps(state.best_metrics, default=str) + "\n----- EXPERIMENT HISTORY -----\n" + _history_context(state.experiment_history)
-
 
 def propose_hypothesis(
     state: RunState, knowledge_base_path: str = "knowledge_base/knowledge_base.yaml"
@@ -74,6 +88,7 @@ def propose_hypothesis(
         _system_prompt(knowledge_base, state),
         "Choose the next hypothesis now.",
         model=resolve_model("PLANNER"),
+        temperature=resolve_temperature("PLANNER"),
         role="PLANNER",
     )
     try:

@@ -16,6 +16,9 @@ class CoderSmokeTest(unittest.TestCase):
         self.assertEqual(result.diff, "<<<<<<< SEARCH\nvalue = 1\n=======\nvalue = 2\n>>>>>>> REPLACE")
         self.assertEqual((result.input_tokens, result.output_tokens), (10, 3))
         self.assertIn("value = 1", call.call_args.args[0])
+        self.assertEqual(call.call_args.kwargs["temperature"], 0.15)
+        self.assertIn("nothing outside the Search/Replace blocks", call.call_args.args[0])
+        self.assertIn("def run_fm(splits, k=6, lr=0.0002, epochs=60", call.call_args.args[0])
 
     def test_rejects_malformed_hypothesis(self):
         with self.assertRaisesRegex(ValueError, "exactly"):

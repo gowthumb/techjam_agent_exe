@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import agent.llm_client as llm_client
-from agent.llm_client import resolve_model
+from agent.llm_client import resolve_model, resolve_temperature
 
 
 class ModelRoutingTest(unittest.TestCase):
@@ -21,6 +21,17 @@ class ModelRoutingTest(unittest.TestCase):
             llm_client, "_load_configuration", return_value=("key", "url", "shared")
         ):
             self.assertEqual(resolve_model("DEBUGGER"), "shared")
+
+    def test_role_temperature_defaults_and_environment_override(self):
+        with patch.dict(os.environ, {}, clear=False):
+            for role in ("CODER", "DEBUGGER", "PLANNER"):
+                os.environ.pop(role + "_TEMPERATURE", None)
+            self.assertEqual(resolve_temperature("CODER"), 0.15)
+            self.assertEqual(resolve_temperature("DEBUGGER"), 0.15)
+            self.assertEqual(resolve_temperature("PLANNER"), 0.6)
+            self.assertIsNone(resolve_temperature("OTHER"))
+        with patch.dict(os.environ, {"CODER_TEMPERATURE": "0.25"}, clear=False):
+            self.assertEqual(resolve_temperature("CODER"), 0.25)
 
     def test_reset_quota_pause_budget_starts_a_new_run_cleanly(self):
         llm_client._QUOTA_PAUSE_COUNT = 3
@@ -45,3 +56,16 @@ class ModelRoutingTest(unittest.TestCase):
         self.assertIn("elapsed_s=", output)
         self.assertNotIn("secret response", output)
         self.assertNotIn("secret-key", output)
+
+    def test_call_omits_temperature_when_unspecified(self):
+        completion = SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content="ok"))],
+            usage=SimpleNamespace(prompt_tokens=1, completion_tokens=1),
+        )
+        create = unittest.mock.Mock(return_value=completion)
+        client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+        with patch.object(llm_client, "OpenAI", return_value=client), patch.object(
+            llm_client, "_load_configuration", return_value=("key", "url", "model")
+        ), patch("builtins.print"):
+            llm_client.call_llm("system", "user")
+        self.assertNotIn("temperature", create.call_args.kwargs)

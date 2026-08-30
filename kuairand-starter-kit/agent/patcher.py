@@ -24,10 +24,16 @@ def _parse_blocks(diff: str) -> list[tuple[str, str]]:
         raise PatchError(
             "No valid Search/Replace block found. Use <<<<<<< SEARCH, =======, and >>>>>>> REPLACE markers."
         )
-    remainder = _BLOCK_PATTERN.sub("", diff)
-    if remainder.strip():
-        raise PatchError("Patch contains text outside Search/Replace blocks.")
     return blocks
+
+
+def extract_patch_blocks(response: str) -> str:
+    """Extract Search/Replace blocks from an LLM response that may contain prose."""
+    blocks = _parse_blocks(response)
+    return "\n\n".join(
+        "<<<<<<< SEARCH\n%s\n=======\n%s\n>>>>>>> REPLACE" % (search, replacement)
+        for search, replacement in blocks
+    )
 
 
 def apply_patch(current_code: str, diff: str) -> str:
