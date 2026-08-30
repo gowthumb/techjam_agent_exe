@@ -54,6 +54,8 @@ Hard constraints:
 - run_fm must accept return_predictions: bool = False. When it is True, return a test_scores array or list aligned to the test split row order alongside valid and test metrics. Its default must remain False.
 - Keep existing imports, including from data import load, encode, unless the hypothesis specifically requires changing them.
 
+Execution contract: the normal runner invokes run_fm(splits) in an isolated subprocess and receives only validation metrics. Finalization alone invokes run_fm(splits, return_predictions=True), which must return aligned test_scores. Do not alter evaluate.py, change the split names, remove valid/test metric keys, or add code that exposes test scores during normal iteration. Preserve data.load() row order: never reorder, filter, or resort rows in a way that breaks submission row_id-to-(user_id, video_id) alignment; ml_modelling.explib.dataset.verify_row_order_matches_starter_kit() verifies this invariant. Preserve the baseline forward-pass structure, Adam optimizer update, and initialization unless the hypothesis explicitly changes one of them, so an accepted result is attributable to the stated hypothesis.
+
 Current code follows:
 ----- CURRENT CODE -----
 """ + current_code + "\n----- END CURRENT CODE -----"

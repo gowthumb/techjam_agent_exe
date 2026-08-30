@@ -15,6 +15,13 @@ from agent.state import RunState
 
 _ROOT = Path(__file__).resolve().parents[1]
 _FENCE_PATTERN = re.compile(r"^\s*```(?:json)?\s*\n?|\n?\s*```\s*$")
+_PLANNER_SECTIONS = (
+    "decision_protocol",
+    "candidate_models",
+    "dead_ends",
+    "feature_engineering_menu",
+    "priors",
+)
 
 
 @dataclass(frozen=True)
@@ -59,6 +66,33 @@ def _confirmed_knowledge_context(knowledge_base: str) -> str:
     return "\n".join(confirmed) if confirmed else "- No explicitly confirmed/high-confidence entries found."
 
 
+def _yaml_section(knowledge_base: str, section: str) -> str:
+    """Return one top-level YAML section without requiring a YAML dependency."""
+    match = re.search(r"^%s:\n(.*?)(?=^[A-Za-z_][A-Za-z0-9_]*:|\Z)" % re.escape(section), knowledge_base, re.MULTILINE | re.DOTALL)
+    return section + ":\n" + match.group(1).rstrip() if match else ""
+
+
+def _decision_rules_context(knowledge_base: str) -> str:
+    decision_protocol = _yaml_section(knowledge_base, "decision_protocol")
+    rules = []
+    for rule_name in ("replication_rule", "control_rule", "unbiased_veto"):
+        match = re.search(r"^  %s: (.*?)(?=^  [A-Za-z_][A-Za-z0-9_]*:|^#|^[A-Za-z_][A-Za-z0-9_]*:|\Z)" % rule_name, decision_protocol, re.MULTILINE | re.DOTALL)
+        if match:
+            rules.append("- %s: %s" % (rule_name, " ".join(match.group(1).split())))
+    rules.append(
+        "- attribution_invariant: Preserve the baseline forward-pass structure, Adam optimizer update, "
+        "and initialization unless the hypothesis explicitly targets one of them; otherwise an accepted "
+        "result cannot be attributed to the stated change."
+    )
+    return "\n".join(rules) if rules else "- No replication/control/veto rules found."
+
+
+def _planner_knowledge_context(knowledge_base: str) -> str:
+    """Keep only per-iteration planning sections from the curated YAML."""
+    sections = [_yaml_section(knowledge_base, section) for section in _PLANNER_SECTIONS]
+    return "\n\n".join(section for section in sections if section)
+
+
 def _system_prompt(knowledge_base: str, state: RunState) -> str:
     return """You are the Planner in an autonomous recommender-system research pipeline. Select exactly one next hypothesis for the Coder; you do not write code.
 
@@ -73,8 +107,10 @@ Hard constraints:
 
 ----- CONFIRMED / HIGH-CONFIDENCE KNOWLEDGE -----
 """ + _confirmed_knowledge_context(knowledge_base) + """
------ FULL KNOWLEDGE BASE -----
-""" + knowledge_base + "\n----- CURRENT BEST VALIDATION METRICS -----\n" + json.dumps(state.best_metrics, default=str) + "\n----- EXPERIMENT HISTORY -----\n" + _history_context(state.experiment_history)
+----- DECISION PROTOCOL: REPLICATION / CONTROL / VETO -----
+""" + _decision_rules_context(knowledge_base) + """
+----- ITERATION-RELEVANT KNOWLEDGE BASE -----
+""" + _planner_knowledge_context(knowledge_base) + "\n----- CURRENT BEST VALIDATION METRICS -----\n" + json.dumps(state.best_metrics, default=str) + "\n----- EXPERIMENT HISTORY -----\n" + _history_context(state.experiment_history)
 
 def propose_hypothesis(
     state: RunState, knowledge_base_path: str = "knowledge_base/knowledge_base.yaml"
