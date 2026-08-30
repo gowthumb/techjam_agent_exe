@@ -992,6 +992,46 @@ scale_transfer:
       sample), so expect the 1K regime — item cold-start — not the Pure one, and
       expect the pointwise baseline to be the right starting point.
 
+  onek_tuning_attempts:
+    what: >-
+      After confirming BPR loses on 1K (above), 1K's OWN pointwise baseline
+      (valid 0.6439 +/- 0.0022, test 0.6380 +/- 0.0021, 3 seeds) was tuned
+      directly rather than re-testing Pure's recipe: embedding noise, a smaller
+      learning rate with a longer budget, k=32 (filling the gap between the
+      already-tested k=16/k=64), and (user,author) causal affinity -- retried
+      because 1K's (user,author) pairs are 26.5% warm on test vs Pure's dead
+      2.6%, so the coverage objection that killed it on Pure does not apply here.
+    result: NONE_BEAT_BASELINE
+    detail:
+      noise_sigma_0.05: {valid: 0.6416, d_valid: -0.0023}
+      noise_sigma_0.1:  {valid: 0.6419, d_valid: -0.0020}
+      noise_sigma_0.2:  {valid: 0.6418, d_valid: -0.0021}
+      lr_0.0005_ep60:   {valid: 0.6439, d_valid: -0.0000, note: "single-run lead of +0.0008 fully evaporated on replication"}
+      lr_0.0002_ep60:   {valid: 0.6417, d_valid: -0.0022}
+      k32:              {valid: 0.6420, d_valid: -0.0019, note: "closes the capacity bracket: k=16 stays the 1K optimum"}
+      user_author_affinity: {valid: 0.6358, d_valid: -0.0081, note: "worse despite 10x the coverage Pure had; coverage alone was not sufficient"}
+    caution: >-
+      All 3-seed means, all within ~1se of the baseline. This mirrors
+      embedding_noise's own history on Pure: a lr-variant showed valid flat /
+      test +0.002 here too (lr_0.0005: d_test +0.0022, lr_0.0002: d_test
+      +0.0021), the exact valid-flat/test-up shape that turned out to be a
+      rand_valid-detectable bias artifact under embedding_noise. 1K DOES have
+      its own random-exposure log (log_random_4_22_to_5_08_1k.csv, 1K's data
+      dir) but explib/unbiased.py currently only loads Pure's
+      (D.load_logs(random_log=True)) -- extending it to 1K is the correct next
+      step before trusting either lr delta, not a smaller-lr recommendation.
+    evidence:
+      exp_ids: [10-1k-pointwise-noise0.05-seed0, 10-1k-pointwise-noise0.05-seed1,
+                10-1k-pointwise-noise0.05-seed2, 10-1k-pointwise-noise0.1-seed0,
+                10-1k-pointwise-noise0.1-seed1, 10-1k-pointwise-noise0.1-seed2,
+                10-1k-pointwise-noise0.2-seed0, 10-1k-pointwise-noise0.2-seed1,
+                10-1k-pointwise-noise0.2-seed2,
+                "10-1k-pointwise-lr0.0005-ep60-seed0", "10-1k-pointwise-lr0.0005-ep60-seed1",
+                "10-1k-pointwise-lr0.0005-ep60-seed2", "10-1k-pointwise-lr0.0002-ep60-seed0",
+                "10-1k-pointwise-lr0.0002-ep60-seed1", "10-1k-pointwise-lr0.0002-ep60-seed2",
+                10-1k-pointwise-k32-seed0, 10-1k-pointwise-k32-seed1, 10-1k-pointwise-k32-seed2,
+                10-1k-pointwise-aff-user_author-seed0]
+
   evidence:
     exp_ids: [5-1k-baseline-seed0, 5-1k-baseline-seed1, 5-1k-baseline-seed2,
               5-1k-kbpick-seed0, 5-1k-kbpick-seed1, 5-1k-kbpick-seed2,
