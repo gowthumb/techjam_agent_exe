@@ -1,0 +1,20 @@
+{
+  "best_validation_metrics": {
+    "GAUC": 0.6674,
+    "nDCG@5": 0.5357,
+    "primary": 0.6016
+  },
+  "consecutive_abandoned": 5,
+  "final_test_metrics": {
+    "GAUC": 0.6621216535568237,
+    "nDCG@5": 0.5285593271255493,
+    "primary": 0.5953404903411865,
+    "rows": 170588,
+    "users": 23875
+  },
+  "manual_interventions": 0,
+  "stopping_reason": "abandonment safety valve",
+  "total_iterations": 1,
+  "total_tokens": 165712,
+  "total_wall_clock_s": 685.3589999999967
+}

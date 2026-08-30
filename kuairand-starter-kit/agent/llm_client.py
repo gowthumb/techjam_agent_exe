@@ -136,6 +136,9 @@ def call_llm(
                     {"role": "user", "content": user_prompt},
                 ],
                 max_tokens=max_tokens,
+                extra_headers={
+                    "HTTP-Referer": "https://github.com/gowthumb/techjam_agent_exe",
+                },
             )
             print(
                 "[%s] LLM response received: role=%s model=%s elapsed_s=%.2f"
@@ -156,7 +159,6 @@ def call_llm(
             _raise_provider_error(error)
 
     if not _MODEL_ANNOUNCED:
-        print("LLM base URL: " + base_url)
         print("LLM model: " + selected_model)
         _MODEL_ANNOUNCED = True
     if not completion.choices or completion.choices[0].message.content is None:
