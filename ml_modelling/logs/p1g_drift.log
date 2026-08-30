@@ -1,0 +1,28 @@
+train spans 13 days; rows per day: [52736, 227808, 278835, 166076, 94711, 71252, 58892, 60904, 44023, 24560, 20443, 20851, 20021]
+
+[1G-recency-tau2] Training is dominated by early high-volume days while evaluation is a later, lower-engagement regime; down-weighting stale rows should align the fitted distribution with the evaluated one
+[1G-recency-tau2] valid primary 0.5930 (-0.0086 vs baseline) -> negative  [53s]
+[1G-recency-tau4] Training is dominated by early high-volume days while evaluation is a later, lower-engagement regime; down-weighting stale rows should align the fitted distribution with the evaluated one
+[1G-recency-tau4] valid primary 0.6005 (-0.0011 vs baseline) -> neutral  [59s]
+[1G-recency-tau7] Training is dominated by early high-volume days while evaluation is a later, lower-engagement regime; down-weighting stale rows should align the fitted distribution with the evaluated one
+[1G-recency-tau7] valid primary 0.6025 (+0.0009 vs baseline) -> neutral  [61s]
+[1G-recency-tau14] Training is dominated by early high-volume days while evaluation is a later, lower-engagement regime; down-weighting stale rows should align the fitted distribution with the evaluated one
+[1G-recency-tau14] valid primary 0.6025 (+0.0009 vs baseline) -> neutral  [59s]
+[1G-window-3d] If drift is what limits the baseline, dropping stale days outright should help despite the large loss of training rows; if it hurts monotonically, volume matters more than recency and the KB should say so
+[1G-window-3d] valid primary 0.5742 (-0.0274 vs baseline) -> negative  [22s]
+[1G-window-5d] If drift is what limits the baseline, dropping stale days outright should help despite the large loss of training rows; if it hurts monotonically, volume matters more than recency and the KB should say so
+[1G-window-5d] valid primary 0.5852 (-0.0164 vs baseline) -> negative  [21s]
+[1G-window-7d] If drift is what limits the baseline, dropping stale days outright should help despite the large loss of training rows; if it hurts monotonically, volume matters more than recency and the KB should say so
+[1G-window-7d] valid primary 0.5925 (-0.0091 vs baseline) -> negative  [22s]
+[1G-window-10d] If drift is what limits the baseline, dropping stale days outright should help despite the large loss of training rows; if it hurts monotonically, volume matters more than recency and the KB should say so
+[1G-window-10d] valid primary 0.5991 (-0.0025 vs baseline) -> negative  [36s]
+exp_id            phase    valid    test  d_valid  outcome  s
+-------------------------------------------------------------
+1G-recency-tau7   1G      0.6025  0.5946  +0.0009  neutral  61
+1G-recency-tau14  1G      0.6025  0.5952  +0.0009  neutral  59
+1G-recency-tau4   1G      0.6005  0.5929  -0.0011  neutral  59
+1G-window-10d     1G      0.5991  0.5925  -0.0025 negative  36
+1G-recency-tau2   1G      0.5930  0.5847  -0.0086 negative  53
+1G-window-7d      1G      0.5925  0.5860  -0.0091 negative  22
+1G-window-5d      1G      0.5852  0.5769  -0.0164 negative  21
+1G-window-3d      1G      0.5742  0.5657  -0.0274 negative  22

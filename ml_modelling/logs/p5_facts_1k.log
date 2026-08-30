@@ -1,0 +1,37 @@
+{
+  "benchmark": "1k",
+  "rows_total": 11713045,
+  "date_range": [
+    20220408,
+    20220508
+  ],
+  "users_total": 1000,
+  "videos_total": 4369953,
+  "splits": {
+    "train": {
+      "rows": 5055984,
+      "users": 983
+    },
+    "valid": {
+      "rows": 2524980,
+      "users": 978,
+      "users_seen_in_train": 0.9928,
+      "videos_seen_in_train": 0.2373
+    },
+    "test": {
+      "rows": 4132081,
+      "users": 997,
+      "users_seen_in_train": 0.984,
+      "videos_seen_in_train": 0.1507
+    }
+  },
+  "label_rate": {
+    "train": 0.2635,
+    "valid": 0.2645,
+    "test": 0.2588
+  }
+}
+
+wrote C:\Users\rombo\Desktop\Tiktok_hackathon\techjam_agent_exe\ml_modelling\phase5_facts_1k.json  (67s)
+
+scale vs pure: 8.2x rows, 0.0x users

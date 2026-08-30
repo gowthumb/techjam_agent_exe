@@ -1,0 +1,103 @@
+loading 1k ...
+  per-field vocab / share of rows unseen in train:
+    user_id      vocab=      983  unseen=0.3%
+    video_id     vocab=2,119,510  unseen=46.0%
+    author_id    vocab=  805,027  unseen=13.3%
+    tab          vocab=       14  unseen=0.0%
+    dur_bucket   vocab=       10  unseen=0.0%
+  11,713,045 rows, dim=2925549, loaded in 61s
+  split rows: {'train': 5055984, 'valid': 2524980, 'test': 4132081}
+[5-1k-baseline-seed1] The one confirmed Pure finding is that BPR beats pointwise by +0.0021 valid. Ranking losses avoid fitting the global rate, which is a property of the metric rather than of the data volume, so it should transfer; if it does not, the KB cannot claim loss choice is scale-invariant
+  epoch  1 | loss 0.5083 | valid GAUC 0.6672 nDCG@5 0.5963 primary 0.6318 | 31.2s
+  epoch  2 | loss 0.4425 | valid GAUC 0.6744 nDCG@5 0.6091 primary 0.6417 | 31.1s
+  epoch  3 | loss 0.4199 | valid GAUC 0.6752 nDCG@5 0.5981 primary 0.6366 | 31.9s
+  epoch  4 | loss 0.3961 | valid GAUC 0.6729 nDCG@5 0.5923 primary 0.6326 | 32.6s
+  epoch  5 | loss 0.3716 | valid GAUC 0.6682 nDCG@5 0.5703 primary 0.6192 | 31.9s
+  epoch  6 | loss 0.3477 | valid GAUC 0.6637 nDCG@5 0.5554 primary 0.6095 | 32.9s
+  early stop at epoch 6
+[5-1k-baseline-seed1] valid primary 0.6417 (no comparable baseline) -> unknown  [211s]
+[5-1k-baseline-seed2] The one confirmed Pure finding is that BPR beats pointwise by +0.0021 valid. Ranking losses avoid fitting the global rate, which is a property of the metric rather than of the data volume, so it should transfer; if it does not, the KB cannot claim loss choice is scale-invariant
+  epoch  1 | loss 0.5061 | valid GAUC 0.6684 nDCG@5 0.5984 primary 0.6334 | 33.4s
+  epoch  2 | loss 0.4406 | valid GAUC 0.6757 nDCG@5 0.6168 primary 0.6462 | 32.8s
+  epoch  3 | loss 0.4173 | valid GAUC 0.6756 nDCG@5 0.5965 primary 0.6361 | 34.7s
+  epoch  4 | loss 0.3929 | valid GAUC 0.6726 nDCG@5 0.5856 primary 0.6291 | 34.6s
+  epoch  5 | loss 0.3678 | valid GAUC 0.6681 nDCG@5 0.5687 primary 0.6184 | 34.7s
+  epoch  6 | loss 0.3428 | valid GAUC 0.6638 nDCG@5 0.5543 primary 0.6091 | 34.3s
+  early stop at epoch 6
+[5-1k-baseline-seed2] valid primary 0.6462 (no comparable baseline) -> unknown  [225s]
+[5-1k-kbpick-seed1] The one confirmed Pure finding is that BPR beats pointwise by +0.0021 valid. Ranking losses avoid fitting the global rate, which is a property of the metric rather than of the data volume, so it should transfer; if it does not, the KB cannot claim loss choice is scale-invariant
+  983 training users with both classes (5055984 rows)
+  epoch  1 | loss 0.6870 | valid GAUC 0.6456 nDCG@5 0.5696 primary 0.6076 | 16.0s
+  epoch  2 | loss 0.6655 | valid GAUC 0.6504 nDCG@5 0.5747 primary 0.6126 | 15.9s
+  epoch  3 | loss 0.6354 | valid GAUC 0.6548 nDCG@5 0.5771 primary 0.6160 | 16.2s
+  epoch  4 | loss 0.6063 | valid GAUC 0.6577 nDCG@5 0.5786 primary 0.6182 | 15.5s
+  epoch  5 | loss 0.5817 | valid GAUC 0.6602 nDCG@5 0.5818 primary 0.6210 | 15.1s
+  epoch  6 | loss 0.5632 | valid GAUC 0.6625 nDCG@5 0.5846 primary 0.6236 | 15.3s
+  epoch  7 | loss 0.5490 | valid GAUC 0.6645 nDCG@5 0.5824 primary 0.6234 | 15.5s
+  epoch  8 | loss 0.5370 | valid GAUC 0.6660 nDCG@5 0.5814 primary 0.6237 | 15.0s
+  epoch  9 | loss 0.5272 | valid GAUC 0.6672 nDCG@5 0.5819 primary 0.6245 | 15.1s
+  epoch 10 | loss 0.5183 | valid GAUC 0.6680 nDCG@5 0.5802 primary 0.6241 | 15.2s
+  epoch 11 | loss 0.5104 | valid GAUC 0.6687 nDCG@5 0.5837 primary 0.6262 | 15.4s
+  epoch 12 | loss 0.5027 | valid GAUC 0.6691 nDCG@5 0.5829 primary 0.6260 | 15.3s
+  epoch 13 | loss 0.4950 | valid GAUC 0.6695 nDCG@5 0.5812 primary 0.6253 | 14.9s
+  epoch 14 | loss 0.4879 | valid GAUC 0.6697 nDCG@5 0.5834 primary 0.6265 | 15.1s
+  epoch 15 | loss 0.4802 | valid GAUC 0.6699 nDCG@5 0.5864 primary 0.6281 | 16.0s
+  epoch 16 | loss 0.4730 | valid GAUC 0.6700 nDCG@5 0.5859 primary 0.6280 | 15.8s
+  epoch 17 | loss 0.4659 | valid GAUC 0.6701 nDCG@5 0.5869 primary 0.6285 | 16.2s
+  epoch 18 | loss 0.4589 | valid GAUC 0.6699 nDCG@5 0.5848 primary 0.6273 | 16.2s
+  epoch 19 | loss 0.4521 | valid GAUC 0.6699 nDCG@5 0.5866 primary 0.6282 | 15.7s
+  epoch 20 | loss 0.4454 | valid GAUC 0.6698 nDCG@5 0.5848 primary 0.6273 | 15.9s
+  epoch 21 | loss 0.4385 | valid GAUC 0.6698 nDCG@5 0.5878 primary 0.6288 | 15.9s
+  epoch 22 | loss 0.4320 | valid GAUC 0.6696 nDCG@5 0.5877 primary 0.6287 | 16.0s
+  epoch 23 | loss 0.4254 | valid GAUC 0.6695 nDCG@5 0.5869 primary 0.6282 | 15.9s
+  epoch 24 | loss 0.4199 | valid GAUC 0.6692 nDCG@5 0.5863 primary 0.6278 | 15.8s
+  epoch 25 | loss 0.4131 | valid GAUC 0.6690 nDCG@5 0.5881 primary 0.6286 | 15.9s
+  epoch 26 | loss 0.4080 | valid GAUC 0.6688 nDCG@5 0.5888 primary 0.6288 | 16.1s
+  epoch 27 | loss 0.4016 | valid GAUC 0.6686 nDCG@5 0.5868 primary 0.6277 | 15.8s
+  epoch 28 | loss 0.3959 | valid GAUC 0.6684 nDCG@5 0.5854 primary 0.6269 | 16.0s
+  epoch 29 | loss 0.3907 | valid GAUC 0.6680 nDCG@5 0.5826 primary 0.6253 | 16.2s
+  epoch 30 | loss 0.3855 | valid GAUC 0.6678 nDCG@5 0.5811 primary 0.6245 | 15.9s
+  epoch 31 | loss 0.3799 | valid GAUC 0.6676 nDCG@5 0.5802 primary 0.6239 | 15.9s
+  epoch 32 | loss 0.3759 | valid GAUC 0.6673 nDCG@5 0.5788 primary 0.6231 | 15.9s
+  early stop at epoch 32
+[5-1k-kbpick-seed1] valid primary 0.6288 (no comparable baseline) -> unknown  [522s]
+[5-1k-kbpick-seed2] The one confirmed Pure finding is that BPR beats pointwise by +0.0021 valid. Ranking losses avoid fitting the global rate, which is a property of the metric rather than of the data volume, so it should transfer; if it does not, the KB cannot claim loss choice is scale-invariant
+  983 training users with both classes (5055984 rows)
+  epoch  1 | loss 0.6869 | valid GAUC 0.6457 nDCG@5 0.5689 primary 0.6073 | 15.9s
+  epoch  2 | loss 0.6653 | valid GAUC 0.6505 nDCG@5 0.5746 primary 0.6125 | 16.0s
+  epoch  3 | loss 0.6353 | valid GAUC 0.6547 nDCG@5 0.5753 primary 0.6150 | 16.0s
+  epoch  4 | loss 0.6065 | valid GAUC 0.6577 nDCG@5 0.5734 primary 0.6156 | 15.9s
+  epoch  5 | loss 0.5822 | valid GAUC 0.6602 nDCG@5 0.5753 primary 0.6177 | 15.8s
+  epoch  6 | loss 0.5632 | valid GAUC 0.6625 nDCG@5 0.5752 primary 0.6188 | 16.2s
+  epoch  7 | loss 0.5489 | valid GAUC 0.6645 nDCG@5 0.5811 primary 0.6228 | 16.2s
+  epoch  8 | loss 0.5370 | valid GAUC 0.6659 nDCG@5 0.5771 primary 0.6215 | 15.4s
+  epoch  9 | loss 0.5272 | valid GAUC 0.6670 nDCG@5 0.5782 primary 0.6226 | 15.5s
+  epoch 10 | loss 0.5182 | valid GAUC 0.6678 nDCG@5 0.5789 primary 0.6233 | 16.1s
+  epoch 11 | loss 0.5106 | valid GAUC 0.6684 nDCG@5 0.5763 primary 0.6224 | 16.0s
+  epoch 12 | loss 0.5028 | valid GAUC 0.6690 nDCG@5 0.5795 primary 0.6242 | 15.5s
+  epoch 13 | loss 0.4950 | valid GAUC 0.6693 nDCG@5 0.5820 primary 0.6256 | 15.5s
+  epoch 14 | loss 0.4871 | valid GAUC 0.6696 nDCG@5 0.5820 primary 0.6258 | 15.9s
+  epoch 15 | loss 0.4803 | valid GAUC 0.6698 nDCG@5 0.5821 primary 0.6260 | 16.0s
+  epoch 16 | loss 0.4728 | valid GAUC 0.6699 nDCG@5 0.5855 primary 0.6277 | 15.8s
+  epoch 17 | loss 0.4654 | valid GAUC 0.6700 nDCG@5 0.5872 primary 0.6286 | 15.9s
+  epoch 18 | loss 0.4594 | valid GAUC 0.6700 nDCG@5 0.5894 primary 0.6297 | 16.0s
+  epoch 19 | loss 0.4517 | valid GAUC 0.6699 nDCG@5 0.5844 primary 0.6272 | 15.9s
+  epoch 20 | loss 0.4454 | valid GAUC 0.6697 nDCG@5 0.5792 primary 0.6245 | 15.6s
+  epoch 21 | loss 0.4388 | valid GAUC 0.6697 nDCG@5 0.5797 primary 0.6247 | 15.8s
+  epoch 22 | loss 0.4321 | valid GAUC 0.6696 nDCG@5 0.5794 primary 0.6245 | 15.9s
+  epoch 23 | loss 0.4257 | valid GAUC 0.6695 nDCG@5 0.5833 primary 0.6264 | 15.4s
+  epoch 24 | loss 0.4193 | valid GAUC 0.6692 nDCG@5 0.5816 primary 0.6254 | 15.6s
+  early stop at epoch 24
+[5-1k-kbpick-seed2] valid primary 0.6297 (no comparable baseline) -> unknown  [399s]
+
+exp_id                  phase    valid    test  d_valid  outcome  s
+-------------------------------------------------------------------
+5-1k-baseline-seed2     5       0.6462  0.6369        -  unknown  225
+5-1k-baseline-seed0     5       0.6438  0.6405        -  unknown  219
+5-1k-baseline-seed1     5       0.6417  0.6367        -  unknown  211
+5-1k-kbpick-seed2       5       0.6297  0.6254        -  unknown  399
+5-1k-kbpick-seed1       5       0.6288  0.6141        -  unknown  522
+5-1k-kbpick-seed0       5       0.6279  0.6294        -  unknown  313
+5-1k-bpr-lr0.001-seed0  5       0.6274  0.6138        -  unknown  190
+5-1k-bpr-lr0.02-seed0   5       0.6243  0.6203        -  unknown  120
+5-1k-bpr-lr0.005-seed0  5       0.6220  0.6084        -  unknown  134

@@ -1,0 +1,26 @@
+[12-ssm-global-lr0.0005-t2-n4-k8] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-ssm-global-lr0.0005-t2-n4-k8] valid primary 0.6035 (+0.0019 vs baseline) -> positive  [124s]
+  12-ssm-global-lr0.0005-t2-n4-k8      v 0.6035  t 0.5962  rv 0.3635  rt 0.3685  [ep21/26]
+[12-bpr-ppp2-lr0.0002-k16] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-bpr-ppp2-lr0.0002-k16] valid primary 0.6033 (+0.0017 vs baseline) -> positive  [137s]
+  12-bpr-ppp2-lr0.0002-k16             v 0.6033  t 0.5975  rv 0.3722  rt 0.3820  [ep16/22]
+[12-bpr-ppp4-lr0.0002-k16] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-bpr-ppp4-lr0.0002-k16] valid primary 0.6034 (+0.0018 vs baseline) -> positive  [376s]
+  12-bpr-ppp4-lr0.0002-k16             v 0.6034  t 0.5980  rv 0.3710  rt 0.3807  [ep9/15]
+
+exp_id                           phase    valid    test  d_valid  outcome  s
+----------------------------------------------------------------------------
+12-ssm-lr0.0005-t2-n4-k8         12      0.6043  0.5978  +0.0027 positive  54
+12-ssm-lr0.0003-t2-n8-k16        12      0.6040  0.5987  +0.0024 positive  152
+12-ssm-lr0.0005-t1-n4-k8         12      0.6040  0.5980  +0.0024 positive  40
+12-ssm-lr0.001-t1-n4-k8          12      0.6039  0.5977  +0.0023 positive  124
+12-ssm-lr0.0005-t0.5-n4-k8       12      0.6036  0.5975  +0.0020 positive  41
+12-ssm-lr0.001-t2-n4-k8          12      0.6036  0.5981  +0.0020 positive  41
+12-ssm-lr0.0005-t2-n8-k16        12      0.6036  0.5985  +0.0020 positive  104
+12-ssm-lr0.0003-t1-n8-k16        12      0.6036  0.5986  +0.0020 positive  115
+12-ssm-global-lr0.0005-t2-n4-k8  12      0.6035  0.5962  +0.0019 positive  124
+12-bpr-ppp4-lr0.0002-k16         12      0.6034  0.5980  +0.0018 positive  376
+12-ssm-lr0.0005-t1-n8-k16        12      0.6034  0.5986  +0.0018 positive  104
+12-bpr-ppp2-lr0.0002-k16         12      0.6033  0.5975  +0.0017 positive  137
+12-ssm-lr0.001-t0.5-n4-k8        12      0.6032  0.5970  +0.0016  neutral  32
+12-ssm-lr0.0005-t1-n16-k16       12      0.6030  0.5968  +0.0014  neutral  198

@@ -1,0 +1,129 @@
+loading 1k ...
+  per-field vocab / share of rows unseen in train:
+    user_id      vocab=      983  unseen=0.3%
+    video_id     vocab=2,119,510  unseen=46.0%
+    author_id    vocab=  805,027  unseen=13.3%
+    tab          vocab=       14  unseen=0.0%
+    dur_bucket   vocab=       10  unseen=0.0%
+  11,713,045 rows, dim=2925549, loaded in 60s
+  split rows: {'train': 5055984, 'valid': 2524980, 'test': 4132081}
+[5-1k-pointwise-k4-seed0] On Pure, k is flat from 1 to 16 and wasteful above 32. More data should support more capacity, so this is the KB claim most likely to invert at scale; if the optimum moves up, scale_transfer must say so explicitly
+  epoch  1 | loss 0.5370 | valid GAUC 0.6611 nDCG@5 0.5904 primary 0.6258 | 22.7s
+  epoch  2 | loss 0.4527 | valid GAUC 0.6690 nDCG@5 0.5932 primary 0.6311 | 23.2s
+  epoch  3 | loss 0.4384 | valid GAUC 0.6721 nDCG@5 0.6022 primary 0.6371 | 22.3s
+  epoch  4 | loss 0.4252 | valid GAUC 0.6730 nDCG@5 0.6047 primary 0.6389 | 22.4s
+  epoch  5 | loss 0.4117 | valid GAUC 0.6720 nDCG@5 0.5968 primary 0.6344 | 21.6s
+  epoch  6 | loss 0.3979 | valid GAUC 0.6708 nDCG@5 0.5874 primary 0.6291 | 20.9s
+  epoch  7 | loss 0.3841 | valid GAUC 0.6687 nDCG@5 0.5856 primary 0.6272 | 21.2s
+  epoch  8 | loss 0.3705 | valid GAUC 0.6659 nDCG@5 0.5764 primary 0.6212 | 21.2s
+  early stop at epoch 8
+[5-1k-pointwise-k4-seed0] valid primary 0.6389 (no comparable baseline) -> unknown  [193s]
+[5-1k-bpr-k4-seed0] On Pure, k is flat from 1 to 16 and wasteful above 32. More data should support more capacity, so this is the KB claim most likely to invert at scale; if the optimum moves up, scale_transfer must say so explicitly
+  983 training users with both classes (5055984 rows)
+  epoch  1 | loss 0.6876 | valid GAUC 0.6469 nDCG@5 0.5608 primary 0.6039 | 14.3s
+  epoch  2 | loss 0.6702 | valid GAUC 0.6499 nDCG@5 0.5685 primary 0.6092 | 14.0s
+  epoch  3 | loss 0.6457 | valid GAUC 0.6536 nDCG@5 0.5725 primary 0.6130 | 14.2s
+  epoch  4 | loss 0.6201 | valid GAUC 0.6563 nDCG@5 0.5748 primary 0.6155 | 13.9s
+  epoch  5 | loss 0.5972 | valid GAUC 0.6585 nDCG@5 0.5744 primary 0.6165 | 14.1s
+  epoch  6 | loss 0.5781 | valid GAUC 0.6606 nDCG@5 0.5777 primary 0.6191 | 14.5s
+  epoch  7 | loss 0.5625 | valid GAUC 0.6626 nDCG@5 0.5793 primary 0.6209 | 14.8s
+  epoch  8 | loss 0.5504 | valid GAUC 0.6644 nDCG@5 0.5786 primary 0.6215 | 14.8s
+  epoch  9 | loss 0.5397 | valid GAUC 0.6657 nDCG@5 0.5791 primary 0.6224 | 15.0s
+  epoch 10 | loss 0.5312 | valid GAUC 0.6667 nDCG@5 0.5793 primary 0.6230 | 14.8s
+  epoch 11 | loss 0.5228 | valid GAUC 0.6676 nDCG@5 0.5794 primary 0.6235 | 14.6s
+  epoch 12 | loss 0.5156 | valid GAUC 0.6683 nDCG@5 0.5783 primary 0.6233 | 14.8s
+  epoch 13 | loss 0.5087 | valid GAUC 0.6689 nDCG@5 0.5773 primary 0.6231 | 15.0s
+  epoch 14 | loss 0.5022 | valid GAUC 0.6694 nDCG@5 0.5787 primary 0.6240 | 14.7s
+  epoch 15 | loss 0.4956 | valid GAUC 0.6697 nDCG@5 0.5793 primary 0.6245 | 14.8s
+  epoch 16 | loss 0.4894 | valid GAUC 0.6698 nDCG@5 0.5814 primary 0.6256 | 14.9s
+  epoch 17 | loss 0.4831 | valid GAUC 0.6701 nDCG@5 0.5823 primary 0.6262 | 14.5s
+  epoch 18 | loss 0.4773 | valid GAUC 0.6701 nDCG@5 0.5831 primary 0.6266 | 14.2s
+  epoch 19 | loss 0.4713 | valid GAUC 0.6703 nDCG@5 0.5841 primary 0.6272 | 14.2s
+  epoch 20 | loss 0.4655 | valid GAUC 0.6702 nDCG@5 0.5841 primary 0.6272 | 15.2s
+  epoch 21 | loss 0.4599 | valid GAUC 0.6703 nDCG@5 0.5856 primary 0.6280 | 15.1s
+  epoch 22 | loss 0.4538 | valid GAUC 0.6703 nDCG@5 0.5839 primary 0.6271 | 14.9s
+  epoch 23 | loss 0.4479 | valid GAUC 0.6702 nDCG@5 0.5831 primary 0.6266 | 14.8s
+  epoch 24 | loss 0.4425 | valid GAUC 0.6701 nDCG@5 0.5857 primary 0.6279 | 15.0s
+  epoch 25 | loss 0.4373 | valid GAUC 0.6700 nDCG@5 0.5852 primary 0.6276 | 14.7s
+  epoch 26 | loss 0.4314 | valid GAUC 0.6700 nDCG@5 0.5873 primary 0.6287 | 14.7s
+  epoch 27 | loss 0.4264 | valid GAUC 0.6698 nDCG@5 0.5883 primary 0.6291 | 14.7s
+  epoch 28 | loss 0.4210 | valid GAUC 0.6698 nDCG@5 0.5875 primary 0.6286 | 14.9s
+  epoch 29 | loss 0.4158 | valid GAUC 0.6694 nDCG@5 0.5833 primary 0.6263 | 14.7s
+  epoch 30 | loss 0.4111 | valid GAUC 0.6693 nDCG@5 0.5828 primary 0.6260 | 14.4s
+  epoch 31 | loss 0.4061 | valid GAUC 0.6691 nDCG@5 0.5808 primary 0.6250 | 14.6s
+  epoch 32 | loss 0.4013 | valid GAUC 0.6688 nDCG@5 0.5800 primary 0.6244 | 14.8s
+  epoch 33 | loss 0.3968 | valid GAUC 0.6688 nDCG@5 0.5796 primary 0.6242 | 14.5s
+  early stop at epoch 33
+[5-1k-bpr-k4-seed0] valid primary 0.6291 (no comparable baseline) -> unknown  [502s]
+[5-1k-pointwise-k16-seed0] On Pure, k is flat from 1 to 16 and wasteful above 32. More data should support more capacity, so this is the KB claim most likely to invert at scale; if the optimum moves up, scale_transfer must say so explicitly
+  epoch  1 | loss 0.5070 | valid GAUC 0.6676 nDCG@5 0.6008 primary 0.6342 | 33.9s
+  epoch  2 | loss 0.4420 | valid GAUC 0.6757 nDCG@5 0.6120 primary 0.6438 | 34.0s
+  epoch  3 | loss 0.4197 | valid GAUC 0.6757 nDCG@5 0.5953 primary 0.6355 | 34.5s
+  epoch  4 | loss 0.3959 | valid GAUC 0.6729 nDCG@5 0.5912 primary 0.6321 | 34.1s
+  epoch  5 | loss 0.3716 | valid GAUC 0.6685 nDCG@5 0.5720 primary 0.6202 | 34.7s
+  epoch  6 | loss 0.3478 | valid GAUC 0.6642 nDCG@5 0.5575 primary 0.6108 | 34.1s
+  early stop at epoch 6
+[5-1k-pointwise-k16-seed0] valid primary 0.6438 (no comparable baseline) -> unknown  [226s]
+[5-1k-bpr-k16-seed0] On Pure, k is flat from 1 to 16 and wasteful above 32. More data should support more capacity, so this is the KB claim most likely to invert at scale; if the optimum moves up, scale_transfer must say so explicitly
+  983 training users with both classes (5055984 rows)
+  epoch  1 | loss 0.6848 | valid GAUC 0.6473 nDCG@5 0.5630 primary 0.6052 | 21.2s
+  epoch  2 | loss 0.6479 | valid GAUC 0.6544 nDCG@5 0.5682 primary 0.6113 | 21.0s
+  epoch  3 | loss 0.6021 | valid GAUC 0.6584 nDCG@5 0.5749 primary 0.6167 | 21.0s
+  epoch  4 | loss 0.5693 | valid GAUC 0.6623 nDCG@5 0.5785 primary 0.6204 | 21.0s
+  epoch  5 | loss 0.5477 | valid GAUC 0.6653 nDCG@5 0.5801 primary 0.6227 | 21.0s
+  epoch  6 | loss 0.5323 | valid GAUC 0.6673 nDCG@5 0.5824 primary 0.6248 | 21.0s
+  epoch  7 | loss 0.5192 | valid GAUC 0.6685 nDCG@5 0.5801 primary 0.6243 | 21.2s
+  epoch  8 | loss 0.5081 | valid GAUC 0.6693 nDCG@5 0.5813 primary 0.6253 | 21.0s
+  epoch  9 | loss 0.4964 | valid GAUC 0.6698 nDCG@5 0.5853 primary 0.6275 | 21.2s
+  epoch 10 | loss 0.4857 | valid GAUC 0.6701 nDCG@5 0.5864 primary 0.6283 | 21.1s
+  epoch 11 | loss 0.4743 | valid GAUC 0.6704 nDCG@5 0.5866 primary 0.6285 | 21.0s
+  epoch 12 | loss 0.4637 | valid GAUC 0.6705 nDCG@5 0.5843 primary 0.6274 | 21.2s
+  epoch 13 | loss 0.4529 | valid GAUC 0.6704 nDCG@5 0.5826 primary 0.6265 | 21.2s
+  epoch 14 | loss 0.4427 | valid GAUC 0.6705 nDCG@5 0.5838 primary 0.6271 | 21.3s
+  epoch 15 | loss 0.4325 | valid GAUC 0.6702 nDCG@5 0.5824 primary 0.6263 | 19.0s
+  epoch 16 | loss 0.4227 | valid GAUC 0.6697 nDCG@5 0.5774 primary 0.6235 | 19.7s
+  epoch 17 | loss 0.4130 | valid GAUC 0.6698 nDCG@5 0.5767 primary 0.6233 | 19.2s
+  early stop at epoch 17
+[5-1k-bpr-k16-seed0] valid primary 0.6285 (no comparable baseline) -> unknown  [374s]
+[5-1k-pointwise-k64-seed0] On Pure, k is flat from 1 to 16 and wasteful above 32. More data should support more capacity, so this is the KB claim most likely to invert at scale; if the optimum moves up, scale_transfer must say so explicitly
+  epoch  1 | loss 0.4874 | valid GAUC 0.6734 nDCG@5 0.6046 primary 0.6390 | 67.9s
+  epoch  2 | loss 0.4285 | valid GAUC 0.6764 nDCG@5 0.6001 primary 0.6383 | 70.7s
+  epoch  3 | loss 0.3914 | valid GAUC 0.6709 nDCG@5 0.5849 primary 0.6279 | 68.7s
+  epoch  4 | loss 0.3492 | valid GAUC 0.6641 nDCG@5 0.5573 primary 0.6107 | 68.6s
+  epoch  5 | loss 0.3065 | valid GAUC 0.6569 nDCG@5 0.5435 primary 0.6002 | 68.5s
+  early stop at epoch 5
+[5-1k-pointwise-k64-seed0] valid primary 0.6390 (no comparable baseline) -> unknown  [372s]
+[5-1k-bpr-k64-seed0] On Pure, k is flat from 1 to 16 and wasteful above 32. More data should support more capacity, so this is the KB claim most likely to invert at scale; if the optimum moves up, scale_transfer must say so explicitly
+  983 training users with both classes (5055984 rows)
+  epoch  1 | loss 0.6762 | valid GAUC 0.6491 nDCG@5 0.5738 primary 0.6114 | 39.1s
+  epoch  2 | loss 0.6034 | valid GAUC 0.6584 nDCG@5 0.5776 primary 0.6180 | 39.6s
+  epoch  3 | loss 0.5544 | valid GAUC 0.6652 nDCG@5 0.5842 primary 0.6247 | 38.6s
+  epoch  4 | loss 0.5302 | valid GAUC 0.6682 nDCG@5 0.5806 primary 0.6244 | 38.7s
+  epoch  5 | loss 0.5100 | valid GAUC 0.6699 nDCG@5 0.5770 primary 0.6235 | 38.9s
+  epoch  6 | loss 0.4906 | valid GAUC 0.6710 nDCG@5 0.5858 primary 0.6284 | 38.7s
+  epoch  7 | loss 0.4714 | valid GAUC 0.6711 nDCG@5 0.5821 primary 0.6266 | 38.8s
+  epoch  8 | loss 0.4533 | valid GAUC 0.6713 nDCG@5 0.5808 primary 0.6261 | 38.5s
+  epoch  9 | loss 0.4351 | valid GAUC 0.6712 nDCG@5 0.5823 primary 0.6267 | 38.2s
+  epoch 10 | loss 0.4182 | valid GAUC 0.6708 nDCG@5 0.5785 primary 0.6247 | 38.7s
+  epoch 11 | loss 0.4016 | valid GAUC 0.6705 nDCG@5 0.5757 primary 0.6231 | 38.9s
+  epoch 12 | loss 0.3862 | valid GAUC 0.6697 nDCG@5 0.5705 primary 0.6201 | 38.8s
+  early stop at epoch 12
+[5-1k-bpr-k64-seed0] valid primary 0.6284 (no comparable baseline) -> unknown  [493s]
+
+exp_id                    phase    valid    test  d_valid  outcome  s
+---------------------------------------------------------------------
+5-1k-baseline-seed2       5       0.6462  0.6369        -  unknown  225
+5-1k-baseline-seed0       5       0.6438  0.6405        -  unknown  219
+5-1k-pointwise-k16-seed0  5       0.6438  0.6405        -  unknown  226
+5-1k-baseline-seed1       5       0.6417  0.6367        -  unknown  211
+5-1k-pointwise-k64-seed0  5       0.6390  0.6384        -  unknown  372
+5-1k-pointwise-k4-seed0   5       0.6389  0.6369        -  unknown  193
+5-1k-kbpick-seed2         5       0.6297  0.6254        -  unknown  399
+5-1k-bpr-k4-seed0         5       0.6291  0.6209        -  unknown  502
+5-1k-kbpick-seed1         5       0.6288  0.6141        -  unknown  522
+5-1k-bpr-k16-seed0        5       0.6285  0.6271        -  unknown  374
+5-1k-bpr-k64-seed0        5       0.6284  0.6267        -  unknown  493
+5-1k-kbpick-seed0         5       0.6279  0.6294        -  unknown  313
+5-1k-bpr-lr0.001-seed0    5       0.6274  0.6138        -  unknown  190
+5-1k-bpr-lr0.02-seed0     5       0.6243  0.6203        -  unknown  120
+5-1k-bpr-lr0.005-seed0    5       0.6220  0.6084        -  unknown  134

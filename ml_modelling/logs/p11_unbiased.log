@@ -1,0 +1,55 @@
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
+encoding the randomly-exposed log with the frozen train encoder ...
+  rand_valid: 288338 rows, 19091 users, label rate 0.0806
+  rand_test: 897721 rows, 26907 users, label rate 0.0864
+
+unbiased calibration rungs:
+  rand_valid: random 0.3120  popularity 0.3605  oracle 0.6854
+  rand_test: random 0.3126  popularity 0.3731  oracle 0.8138
+[11-pointwise-k16] valid is exposure-biased; the KB documents interventions that move test but not valid. Scoring known configs on the randomly-exposed log tests whether an unbiased split tracks test better on exactly those cases, and whether it is stable enough to break ties inside the 0.0016 noise band
+  11-pointwise-k16               valid 0.6022  test 0.5945  rand_valid 0.3644  rand_test 0.3698
+[11-pointwise-k16] valid primary 0.6022 (+0.0006 vs baseline) -> neutral  [49s]
+[11-pointwise-k16-seed1] valid is exposure-biased; the KB documents interventions that move test but not valid. Scoring known configs on the randomly-exposed log tests whether an unbiased split tracks test better on exactly those cases, and whether it is stable enough to break ties inside the 0.0016 noise band
+  11-pointwise-k16-seed1         valid 0.6024  test 0.5949  rand_valid 0.3625  rand_test 0.3676
+[11-pointwise-k16-seed1] valid primary 0.6024 (+0.0008 vs baseline) -> neutral  [51s]
+[11-pointwise-k2] valid is exposure-biased; the KB documents interventions that move test but not valid. Scoring known configs on the randomly-exposed log tests whether an unbiased split tracks test better on exactly those cases, and whether it is stable enough to break ties inside the 0.0016 noise band
+  11-pointwise-k2                valid 0.6027  test 0.5965  rand_valid 0.3632  rand_test 0.3686
+[11-pointwise-k2] valid primary 0.6027 (+0.0011 vs baseline) -> neutral  [26s]
+[11-pointwise-k16-noise0.1] valid is exposure-biased; the KB documents interventions that move test but not valid. Scoring known configs on the randomly-exposed log tests whether an unbiased split tracks test better on exactly those cases, and whether it is stable enough to break ties inside the 0.0016 noise band
+  11-pointwise-k16-noise0.1      valid 0.6032  test 0.5956  rand_valid 0.3620  rand_test 0.3675
+[11-pointwise-k16-noise0.1] valid primary 0.6032 (+0.0016 vs baseline) -> neutral  [97s]
+[11-pointwise-k16-noise0.1-seed1] valid is exposure-biased; the KB documents interventions that move test but not valid. Scoring known configs on the randomly-exposed log tests whether an unbiased split tracks test better on exactly those cases, and whether it is stable enough to break ties inside the 0.0016 noise band
+  11-pointwise-k16-noise0.1-seed1 valid 0.6030  test 0.5962  rand_valid 0.3621  rand_test 0.3681
+[11-pointwise-k16-noise0.1-seed1] valid primary 0.6030 (+0.0014 vs baseline) -> neutral  [105s]
+[11-bpr-k6] valid is exposure-biased; the KB documents interventions that move test but not valid. Scoring known configs on the randomly-exposed log tests whether an unbiased split tracks test better on exactly those cases, and whether it is stable enough to break ties inside the 0.0016 noise band
+  11-bpr-k6                      valid 0.6037  test 0.5978  rand_valid 0.3758  rand_test 0.3878
+[11-bpr-k6] valid primary 0.6037 (+0.0021 vs baseline) -> positive  [69s]
+[11-bpr-k6-seed1] valid is exposure-biased; the KB documents interventions that move test but not valid. Scoring known configs on the randomly-exposed log tests whether an unbiased split tracks test better on exactly those cases, and whether it is stable enough to break ties inside the 0.0016 noise band
+  11-bpr-k6-seed1                valid 0.6033  test 0.5978  rand_valid 0.3760  rand_test 0.3885
+[11-bpr-k6-seed1] valid primary 0.6033 (+0.0017 vs baseline) -> positive  [68s]
+[11-bpr-k16] valid is exposure-biased; the KB documents interventions that move test but not valid. Scoring known configs on the randomly-exposed log tests whether an unbiased split tracks test better on exactly those cases, and whether it is stable enough to break ties inside the 0.0016 noise band
+  11-bpr-k16                     valid 0.6031  test 0.5979  rand_valid 0.3742  rand_test 0.3864
+[11-bpr-k16] valid primary 0.6031 (+0.0015 vs baseline) -> neutral  [79s]
+[11-bpr-k16-seed1] valid is exposure-biased; the KB documents interventions that move test but not valid. Scoring known configs on the randomly-exposed log tests whether an unbiased split tracks test better on exactly those cases, and whether it is stable enough to break ties inside the 0.0016 noise band
+  11-bpr-k16-seed1               valid 0.6033  test 0.5979  rand_valid 0.3770  rand_test 0.3900
+[11-bpr-k16-seed1] valid primary 0.6033 (+0.0017 vs baseline) -> positive  [75s]
+[11-bpr-k16-noise0.1] valid is exposure-biased; the KB documents interventions that move test but not valid. Scoring known configs on the randomly-exposed log tests whether an unbiased split tracks test better on exactly those cases, and whether it is stable enough to break ties inside the 0.0016 noise band
+  11-bpr-k16-noise0.1            valid 0.6038  test 0.5977  rand_valid 0.3685  rand_test 0.3791
+[11-bpr-k16-noise0.1] valid primary 0.6038 (+0.0022 vs baseline) -> positive  [234s]
+[11-bpr-k16-noise0.1-seed1] valid is exposure-biased; the KB documents interventions that move test but not valid. Scoring known configs on the randomly-exposed log tests whether an unbiased split tracks test better on exactly those cases, and whether it is stable enough to break ties inside the 0.0016 noise band
+  11-bpr-k16-noise0.1-seed1      valid 0.6040  test 0.5985  rand_valid 0.3698  rand_test 0.3807
+[11-bpr-k16-noise0.1-seed1] valid primary 0.6040 (+0.0024 vs baseline) -> positive  [204s]
+[11-listwise-lr0.001] valid is exposure-biased; the KB documents interventions that move test but not valid. Scoring known configs on the randomly-exposed log tests whether an unbiased split tracks test better on exactly those cases, and whether it is stable enough to break ties inside the 0.0016 noise band
+  11-listwise-lr0.001            valid 0.5999  test 0.5924  rand_valid 0.3739  rand_test 0.3866
+[11-listwise-lr0.001] valid primary 0.5999 (-0.0017 vs baseline) -> negative  [24s]
+
+=== SELECTION-SPLIT RELIABILITY ===
+  spearman(valid, test)      = +0.929
+  spearman(rand_valid, test) = +0.321
+
+=== KB BLIND-SPOT CASES (delta vs the matched baseline) ===
+  pointwise_noise0.1     valid +0.0008  test +0.0012  rand_valid -0.0014  (DISAGREES with test)
+  bpr_noise0.1           valid +0.0007  test +0.0002  rand_valid -0.0064  (DISAGREES with test)
+  bpr_vs_pointwise       valid +0.0009  test +0.0032  rand_valid +0.0121  (agrees with test)
+
+wrote C:\Users\rombo\Desktop\Tiktok_hackathon\techjam_agent_exe\ml_modelling\phase11_unbiased.json

@@ -1,0 +1,12 @@
+video_age warm coverage on test: 100.0%  (regime split: 0.18 short)
+[14-bpr-regime-shuffled] long_view bifurcates at duration 18s and video freshness varies within a user list; a regime field and an age bucket are interactions the baseline five fields cannot represent. KNOWLEDGE_BASE_PLAN.md Phase 1b; README directions #4/#6
+[14-bpr-regime-shuffled] valid primary 0.6040 (+0.0024 vs baseline) -> positive  [231s]
+  14-bpr-regime-shuffled                       v 0.6040 t 0.5978 rv 0.3677 rt 0.3744
+
+exp_id                  phase    valid    test  d_valid  outcome  s
+-------------------------------------------------------------------
+14-bpr-regime-shuffled  14      0.6040  0.5978  +0.0024 positive  231
+14-bpr-regime           14      0.6040  0.5984  +0.0024 positive  162
+14-bpr-durbuckets20     14      0.6036  0.5980  +0.0020 positive  134
+14-bpr-videoage         14      0.5983  0.5946  -0.0033 negative  156
+14-bpr-regime+age       14      0.5979  0.5945  -0.0037 negative  59

@@ -1,0 +1,116 @@
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260 rows={'train': 1141112, 'valid': 124909, 'test': 170588}
+
+[1A-control-pointwise] CONTROL: my FM+encoder with pointwise logloss reproduces the official baseline
+  epoch  1 | loss 0.6404 | valid GAUC 0.6489 nDCG@5 0.5283 primary 0.5886 | 3.0s
+  epoch  2 | loss 0.5508 | valid GAUC 0.6592 nDCG@5 0.5325 primary 0.5959 | 3.0s
+  epoch  3 | loss 0.5136 | valid GAUC 0.6650 nDCG@5 0.5348 primary 0.5999 | 3.0s
+  epoch  4 | loss 0.5004 | valid GAUC 0.6653 nDCG@5 0.5356 primary 0.6005 | 3.0s
+  epoch  5 | loss 0.4940 | valid GAUC 0.6672 nDCG@5 0.5360 primary 0.6016 | 3.0s
+  epoch  6 | loss 0.4895 | valid GAUC 0.6677 nDCG@5 0.5355 primary 0.6016 | 2.9s
+  epoch  7 | loss 0.4855 | valid GAUC 0.6682 nDCG@5 0.5361 primary 0.6022 | 2.9s
+  epoch  8 | loss 0.4814 | valid GAUC 0.6679 nDCG@5 0.5356 primary 0.6017 | 3.0s
+  epoch  9 | loss 0.4774 | valid GAUC 0.6665 nDCG@5 0.5345 primary 0.6005 | 2.9s
+  epoch 10 | loss 0.4730 | valid GAUC 0.6646 nDCG@5 0.5341 primary 0.5994 | 3.0s
+  epoch 11 | loss 0.4686 | valid GAUC 0.6636 nDCG@5 0.5340 primary 0.5988 | 2.9s
+  early stop at epoch 11
+[1A-control-pointwise] valid primary 0.6022 (+0.0006 vs baseline) -> neutral  [33s]
+
+[1A-listwise-lr0.001] Within-user softmax CE optimizes the same within-user ordering the metric scores, so it should beat pointwise logloss at equal capacity
+  24290 training users with both classes (1130240 rows)
+  epoch  1 | loss 3.3770 | valid GAUC 0.6605 nDCG@5 0.5325 primary 0.5965 | 2.6s
+  epoch  2 | loss 3.2947 | valid GAUC 0.6649 nDCG@5 0.5350 primary 0.5999 | 2.6s
+  epoch  3 | loss 3.2699 | valid GAUC 0.6642 nDCG@5 0.5353 primary 0.5998 | 2.5s
+  epoch  4 | loss 3.2599 | valid GAUC 0.6620 nDCG@5 0.5341 primary 0.5980 | 2.6s
+  epoch  5 | loss 3.2510 | valid GAUC 0.6612 nDCG@5 0.5336 primary 0.5974 | 2.5s
+  epoch  6 | loss 3.2408 | valid GAUC 0.6611 nDCG@5 0.5337 primary 0.5974 | 2.6s
+  early stop at epoch 6
+[1A-listwise-lr0.001] valid primary 0.5999 (-0.0017 vs baseline) -> negative  [16s]
+
+[1A-listwise-lr0.005] Within-user softmax CE optimizes the same within-user ordering the metric scores, so it should beat pointwise logloss at equal capacity
+  24290 training users with both classes (1130240 rows)
+  epoch  1 | loss 3.3199 | valid GAUC 0.6574 nDCG@5 0.5319 primary 0.5946 | 2.7s
+  epoch  2 | loss 3.2613 | valid GAUC 0.6589 nDCG@5 0.5324 primary 0.5957 | 2.5s
+  epoch  3 | loss 3.2145 | valid GAUC 0.6507 nDCG@5 0.5276 primary 0.5892 | 2.7s
+  epoch  4 | loss 3.1401 | valid GAUC 0.6367 nDCG@5 0.5225 primary 0.5796 | 2.6s
+  epoch  5 | loss 3.0520 | valid GAUC 0.6258 nDCG@5 0.5181 primary 0.5720 | 2.5s
+  epoch  6 | loss 2.9730 | valid GAUC 0.6208 nDCG@5 0.5159 primary 0.5683 | 2.5s
+  early stop at epoch 6
+[1A-listwise-lr0.005] valid primary 0.5957 (-0.0059 vs baseline) -> negative  [16s]
+
+[1A-listwise-lr0.02] Within-user softmax CE optimizes the same within-user ordering the metric scores, so it should beat pointwise logloss at equal capacity
+  24290 training users with both classes (1130240 rows)
+  epoch  1 | loss 3.3116 | valid GAUC 0.6459 nDCG@5 0.5275 primary 0.5867 | 2.7s
+  epoch  2 | loss 3.2258 | valid GAUC 0.6297 nDCG@5 0.5185 primary 0.5741 | 2.6s
+  epoch  3 | loss 3.0543 | valid GAUC 0.6183 nDCG@5 0.5141 primary 0.5662 | 2.6s
+  epoch  4 | loss 2.9327 | valid GAUC 0.6110 nDCG@5 0.5125 primary 0.5617 | 2.6s
+  epoch  5 | loss 2.9068 | valid GAUC 0.6096 nDCG@5 0.5092 primary 0.5594 | 2.7s
+  early stop at epoch 5
+[1A-listwise-lr0.02] valid primary 0.5867 (-0.0149 vs baseline) -> negative  [14s]
+
+[1A-bpr-lr0.001] Within-user pairwise BPR optimizes exactly the quantity GAUC measures (P(pos ranked above neg) within a user), so it should beat pointwise
+  24290 training users with both classes (1130240 rows)
+  epoch  1 | loss 0.6759 | valid GAUC 0.6579 nDCG@5 0.5302 primary 0.5941 | 1.9s
+  epoch  2 | loss 0.6192 | valid GAUC 0.6633 nDCG@5 0.5329 primary 0.5981 | 1.9s
+  epoch  3 | loss 0.5751 | valid GAUC 0.6669 nDCG@5 0.5352 primary 0.6011 | 2.0s
+  epoch  4 | loss 0.5573 | valid GAUC 0.6695 nDCG@5 0.5364 primary 0.6029 | 1.9s
+  epoch  5 | loss 0.5493 | valid GAUC 0.6689 nDCG@5 0.5360 primary 0.6025 | 2.0s
+  epoch  6 | loss 0.5434 | valid GAUC 0.6682 nDCG@5 0.5359 primary 0.6020 | 1.9s
+  epoch  7 | loss 0.5381 | valid GAUC 0.6686 nDCG@5 0.5360 primary 0.6023 | 1.9s
+  epoch  8 | loss 0.5338 | valid GAUC 0.6687 nDCG@5 0.5358 primary 0.6022 | 1.9s
+  early stop at epoch 8
+[1A-bpr-lr0.001] valid primary 0.6029 (+0.0013 vs baseline) -> neutral  [16s]
+
+[1A-bpr-lr0.005] Within-user pairwise BPR optimizes exactly the quantity GAUC measures (P(pos ranked above neg) within a user), so it should beat pointwise
+  24290 training users with both classes (1130240 rows)
+  epoch  1 | loss 0.6120 | valid GAUC 0.6648 nDCG@5 0.5350 primary 0.5999 | 2.0s
+  epoch  2 | loss 0.5486 | valid GAUC 0.6649 nDCG@5 0.5350 primary 0.6000 | 1.9s
+  epoch  3 | loss 0.5253 | valid GAUC 0.6615 nDCG@5 0.5330 primary 0.5972 | 1.9s
+  epoch  4 | loss 0.4958 | valid GAUC 0.6567 nDCG@5 0.5316 primary 0.5941 | 1.9s
+  epoch  5 | loss 0.4651 | valid GAUC 0.6487 nDCG@5 0.5278 primary 0.5883 | 1.9s
+  epoch  6 | loss 0.4359 | valid GAUC 0.6416 nDCG@5 0.5247 primary 0.5831 | 1.9s
+  early stop at epoch 6
+[1A-bpr-lr0.005] valid primary 0.6000 (-0.0016 vs baseline) -> negative  [12s]
+
+[1A-bpr-lr0.02] Within-user pairwise BPR optimizes exactly the quantity GAUC measures (P(pos ranked above neg) within a user), so it should beat pointwise
+  24290 training users with both classes (1130240 rows)
+  epoch  1 | loss 0.5823 | valid GAUC 0.6613 nDCG@5 0.5332 primary 0.5973 | 1.9s
+  epoch  2 | loss 0.4899 | valid GAUC 0.6436 nDCG@5 0.5250 primary 0.5843 | 1.9s
+  epoch  3 | loss 0.4095 | valid GAUC 0.6288 nDCG@5 0.5206 primary 0.5747 | 1.9s
+  epoch  4 | loss 0.3522 | valid GAUC 0.6198 nDCG@5 0.5168 primary 0.5683 | 1.9s
+  epoch  5 | loss 0.3173 | valid GAUC 0.6165 nDCG@5 0.5154 primary 0.5660 | 2.0s
+  early stop at epoch 5
+[1A-bpr-lr0.02] valid primary 0.5973 (-0.0043 vs baseline) -> negative  [10s]
+
+[1A-hybrid-lam1] Pointwise supplies a dense, well-conditioned signal for rare ids while listwise supplies the rank signal; the sum should beat either alone
+  24290 training users with both classes (1130240 rows)
+  epoch  1 | loss 3.9442 | valid GAUC 0.6636 nDCG@5 0.5346 primary 0.5991 | 5.3s
+  epoch  2 | loss 3.8080 | valid GAUC 0.6650 nDCG@5 0.5347 primary 0.5998 | 5.2s
+  epoch  3 | loss 3.7581 | valid GAUC 0.6630 nDCG@5 0.5338 primary 0.5984 | 5.2s
+  epoch  4 | loss 3.7151 | valid GAUC 0.6597 nDCG@5 0.5324 primary 0.5961 | 5.1s
+  epoch  5 | loss 3.6683 | valid GAUC 0.6544 nDCG@5 0.5302 primary 0.5923 | 5.2s
+  epoch  6 | loss 3.6186 | valid GAUC 0.6459 nDCG@5 0.5271 primary 0.5865 | 5.1s
+  early stop at epoch 6
+[1A-hybrid-lam1] valid primary 0.5998 (-0.0018 vs baseline) -> negative  [32s]
+
+[1A-hybrid-lam0.3] Pointwise supplies a dense, well-conditioned signal for rare ids while listwise supplies the rank signal; the sum should beat either alone
+  24290 training users with both classes (1130240 rows)
+  epoch  1 | loss 1.6347 | valid GAUC 0.6628 nDCG@5 0.5337 primary 0.5982 | 5.4s
+  epoch  2 | loss 1.5223 | valid GAUC 0.6639 nDCG@5 0.5346 primary 0.5993 | 5.3s
+  epoch  3 | loss 1.4837 | valid GAUC 0.6631 nDCG@5 0.5336 primary 0.5984 | 5.2s
+  epoch  4 | loss 1.4613 | valid GAUC 0.6616 nDCG@5 0.5329 primary 0.5973 | 5.2s
+  epoch  5 | loss 1.4408 | valid GAUC 0.6573 nDCG@5 0.5311 primary 0.5942 | 5.2s
+  epoch  6 | loss 1.4199 | valid GAUC 0.6497 nDCG@5 0.5285 primary 0.5891 | 5.2s
+  early stop at epoch 6
+[1A-hybrid-lam0.3] valid primary 0.5993 (-0.0024 vs baseline) -> negative  [32s]
+
+exp_id                phase    valid    test  d_valid  outcome  s
+-----------------------------------------------------------------
+1A-bpr-lr0.001        1A      0.6029  0.5965  +0.0013  neutral  16
+1A-control-pointwise  1A      0.6022  0.5945  +0.0006  neutral  33
+1A-bpr-lr0.005        1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.001   1A      0.5999  0.5924  -0.0017 negative  16
+1A-hybrid-lam1        1A      0.5998  0.5929  -0.0018 negative  32
+1A-hybrid-lam0.3      1A      0.5993  0.5923  -0.0024 negative  32
+1A-bpr-lr0.02         1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005   1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02    1A      0.5867  0.5790  -0.0149 negative  14

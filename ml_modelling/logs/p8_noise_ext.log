@@ -1,0 +1,59 @@
+[8-pointwise-noise0.1-seed0] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-pointwise-noise0.1-seed0] valid primary 0.6032 (+0.0016 vs baseline) -> neutral  [70s]
+[8-pointwise-noise0.1-seed1] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-pointwise-noise0.1-seed1] valid primary 0.6030 (+0.0014 vs baseline) -> neutral  [70s]
+[8-pointwise-noise0.1-seed2] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-pointwise-noise0.1-seed2] valid primary 0.6026 (+0.0010 vs baseline) -> neutral  [62s]
+[8-pointwise-noise0.2-seed0] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-pointwise-noise0.2-seed0] valid primary 0.6005 (-0.0011 vs baseline) -> neutral  [101s]
+[8-pointwise-noise0.2-seed1] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-pointwise-noise0.2-seed1] valid primary 0.6017 (+0.0001 vs baseline) -> neutral  [174s]
+[8-pointwise-noise0.2-seed2] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-pointwise-noise0.2-seed2] valid primary 0.6008 (-0.0008 vs baseline) -> neutral  [100s]
+[8-pointwise-noise0.35-seed0] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-pointwise-noise0.35-seed0] valid primary 0.5998 (-0.0018 vs baseline) -> negative  [175s]
+[8-pointwise-noise0.35-seed1] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-pointwise-noise0.35-seed1] valid primary 0.5998 (-0.0018 vs baseline) -> negative  [174s]
+[8-pointwise-noise0.35-seed2] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-pointwise-noise0.35-seed2] valid primary 0.6000 (-0.0016 vs baseline) -> neutral  [173s]
+[8-pointwise-noise0.5-seed0] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-pointwise-noise0.5-seed0] valid primary 0.5972 (-0.0044 vs baseline) -> negative  [156s]
+[8-pointwise-noise0.5-seed1] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-pointwise-noise0.5-seed1] valid primary 0.5979 (-0.0037 vs baseline) -> negative  [174s]
+[8-pointwise-noise0.5-seed2] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-pointwise-noise0.5-seed2] valid primary 0.5981 (-0.0035 vs baseline) -> negative  [174s]
+[8-bpr-noise0.1-seed0] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-bpr-noise0.1-seed0] valid primary 0.6038 (+0.0022 vs baseline) -> positive  [172s]
+[8-bpr-noise0.1-seed1] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-bpr-noise0.1-seed1] valid primary 0.6040 (+0.0024 vs baseline) -> positive  [158s]
+[8-bpr-noise0.1-seed2] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-bpr-noise0.1-seed2] valid primary 0.6038 (+0.0022 vs baseline) -> positive  [161s]
+[8-bpr-noise0.2-seed0] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-bpr-noise0.2-seed0] valid primary 0.6021 (+0.0005 vs baseline) -> neutral  [172s]
+[8-bpr-noise0.2-seed1] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-bpr-noise0.2-seed1] valid primary 0.6019 (+0.0003 vs baseline) -> neutral  [172s]
+[8-bpr-noise0.2-seed2] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-bpr-noise0.2-seed2] valid primary 0.6022 (+0.0006 vs baseline) -> neutral  [173s]
+[8-bpr-noise0.35-seed0] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-bpr-noise0.35-seed0] valid primary 0.5973 (-0.0043 vs baseline) -> negative  [172s]
+[8-bpr-noise0.35-seed1] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-bpr-noise0.35-seed1] valid primary 0.5976 (-0.0040 vs baseline) -> negative  [172s]
+[8-bpr-noise0.35-seed2] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-bpr-noise0.35-seed2] valid primary 0.5973 (-0.0043 vs baseline) -> negative  [173s]
+[8-bpr-noise0.5-seed0] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-bpr-noise0.5-seed0] valid primary 0.5931 (-0.0085 vs baseline) -> negative  [172s]
+[8-bpr-noise0.5-seed1] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-bpr-noise0.5-seed1] valid primary 0.5933 (-0.0083 vs baseline) -> negative  [172s]
+[8-bpr-noise0.5-seed2] Auxiliary heads were shown to act as regularisers rather than as transfer (a random label matched the best real signal). Gaussian embedding noise is the same mechanism bought directly: if it reproduces the +0.001 band, the multi-task machinery is redundant; if it does not, the aux-head effect is something else
+[8-bpr-noise0.5-seed2] valid primary 0.5930 (-0.0086 vs baseline) -> negative  [174s]
+
+=== EMBEDDING NOISE AS A REGULARIZER (3 seeds each) ===
+loss         sigma    valid      sd     test      sd  d vs sigma=0
+pointwise      0.1   0.6029  0.0003   0.5958  0.0004          +nan
+pointwise      0.2   0.6010  0.0006   0.5952  0.0003          +nan
+pointwise     0.35   0.5999  0.0002   0.5934  0.0003          +nan
+pointwise      0.5   0.5977  0.0005   0.5906  0.0005          +nan
+bpr            0.1   0.6039  0.0001   0.5984  0.0006          +nan
+bpr            0.2   0.6021  0.0002   0.5975  0.0002          +nan
+bpr           0.35   0.5974  0.0002   0.5932  0.0003          +nan
+bpr            0.5   0.5931  0.0002   0.5890  0.0000          +nan

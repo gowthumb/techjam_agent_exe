@@ -1,0 +1,25 @@
+[13-wt-w0.3-onesided-ranklv] long_view is a deterministic threshold on watch time; a regression head on the continuous watch ratio shares the embedding table and trains on strictly more information than the binary head. One-sided (censored) loss for completed plays. KNOWLEDGE_BASE_PLAN.md Phase 1c; README direction #4
+[13-wt-w0.3-onesided-ranklv] valid primary 0.6012 (-0.0004 vs baseline) -> neutral  [0s]
+  13-wt-w0.3-onesided-ranklv                     v 0.6012 t 0.5946 rv 0.3617 rt 0.3672
+[13-wt-w0.5-onesided-ranklv] long_view is a deterministic threshold on watch time; a regression head on the continuous watch ratio shares the embedding table and trains on strictly more information than the binary head. One-sided (censored) loss for completed plays. KNOWLEDGE_BASE_PLAN.md Phase 1c; README direction #4
+[13-wt-w0.5-onesided-ranklv] valid primary 0.6014 (-0.0002 vs baseline) -> neutral  [0s]
+  13-wt-w0.5-onesided-ranklv                     v 0.6014 t 0.5955 rv 0.3616 rt 0.3673
+[13-wt-w1-onesided-ranklv] long_view is a deterministic threshold on watch time; a regression head on the continuous watch ratio shares the embedding table and trains on strictly more information than the binary head. One-sided (censored) loss for completed plays. KNOWLEDGE_BASE_PLAN.md Phase 1c; README direction #4
+[13-wt-w1-onesided-ranklv] valid primary 0.6022 (+0.0006 vs baseline) -> neutral  [0s]
+  13-wt-w1-onesided-ranklv                       v 0.6022 t 0.5942 rv 0.3594 rt 0.3647
+[13-wt-w0.5-onesided-rankwt] long_view is a deterministic threshold on watch time; a regression head on the continuous watch ratio shares the embedding table and trains on strictly more information than the binary head. One-sided (censored) loss for completed plays. KNOWLEDGE_BASE_PLAN.md Phase 1c; README direction #4
+[13-wt-w0.5-onesided-rankwt] valid primary 0.5868 (-0.0148 vs baseline) -> negative  [0s]
+  13-wt-w0.5-onesided-rankwt                     v 0.5868 t 0.5795 rv 0.3583 rt 0.3748
+[13-wt-w0.5-onesided-rankblend] long_view is a deterministic threshold on watch time; a regression head on the continuous watch ratio shares the embedding table and trains on strictly more information than the binary head. One-sided (censored) loss for completed plays. KNOWLEDGE_BASE_PLAN.md Phase 1c; README direction #4
+[13-wt-w0.5-onesided-rankblend] valid primary 0.5915 (-0.0101 vs baseline) -> negative  [0s]
+  13-wt-w0.5-onesided-rankblend                  v 0.5915 t 0.5836 rv 0.3536 rt 0.3688
+
+main best: w_wt=1.0 valid 0.6022
+
+exp_id                         phase    valid    test  d_valid  outcome  s
+--------------------------------------------------------------------------
+13-wt-w1-onesided-ranklv       13      0.6022  0.5942  +0.0006  neutral  0
+13-wt-w0.5-onesided-ranklv     13      0.6014  0.5955  -0.0002  neutral  0
+13-wt-w0.3-onesided-ranklv     13      0.6012  0.5946  -0.0004  neutral  0
+13-wt-w0.5-onesided-rankblend  13      0.5915  0.5836  -0.0101 negative  0
+13-wt-w0.5-onesided-rankwt     13      0.5868  0.5795  -0.0148 negative  0

@@ -1,0 +1,98 @@
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket'] dim=40260
+
+[1A-listwise-lr0.0001] Listwise divides the gradient by group count not row count, making the effective step ~30x larger than pointwise; a smaller lr should reveal its true ceiling
+  24290 training users with both classes (1130240 rows)
+  epoch  1 | loss 3.4146 | valid GAUC 0.6488 nDCG@5 0.5274 primary 0.5881 | 2.6s
+  epoch  2 | loss 3.4080 | valid GAUC 0.6522 nDCG@5 0.5286 primary 0.5904 | 2.6s
+  epoch  3 | loss 3.3984 | valid GAUC 0.6551 nDCG@5 0.5301 primary 0.5926 | 2.7s
+  epoch  4 | loss 3.3856 | valid GAUC 0.6575 nDCG@5 0.5314 primary 0.5944 | 2.8s
+  epoch  5 | loss 3.3712 | valid GAUC 0.6579 nDCG@5 0.5317 primary 0.5948 | 2.7s
+  epoch  6 | loss 3.3564 | valid GAUC 0.6596 nDCG@5 0.5324 primary 0.5960 | 2.7s
+  epoch  7 | loss 3.3427 | valid GAUC 0.6604 nDCG@5 0.5327 primary 0.5966 | 2.8s
+  epoch  8 | loss 3.3302 | valid GAUC 0.6607 nDCG@5 0.5328 primary 0.5968 | 2.9s
+  epoch  9 | loss 3.3194 | valid GAUC 0.6613 nDCG@5 0.5329 primary 0.5971 | 2.8s
+  epoch 10 | loss 3.3099 | valid GAUC 0.6614 nDCG@5 0.5327 primary 0.5970 | 2.8s
+  epoch 11 | loss 3.3019 | valid GAUC 0.6616 nDCG@5 0.5329 primary 0.5973 | 2.8s
+  epoch 12 | loss 3.2951 | valid GAUC 0.6616 nDCG@5 0.5329 primary 0.5972 | 2.8s
+  epoch 13 | loss 3.2890 | valid GAUC 0.6622 nDCG@5 0.5331 primary 0.5976 | 2.8s
+  epoch 14 | loss 3.2842 | valid GAUC 0.6622 nDCG@5 0.5335 primary 0.5979 | 2.8s
+  epoch 15 | loss 3.2800 | valid GAUC 0.6633 nDCG@5 0.5339 primary 0.5986 | 2.8s
+  epoch 16 | loss 3.2764 | valid GAUC 0.6632 nDCG@5 0.5342 primary 0.5987 | 2.8s
+  epoch 17 | loss 3.2732 | valid GAUC 0.6633 nDCG@5 0.5341 primary 0.5987 | 3.0s
+  epoch 18 | loss 3.2706 | valid GAUC 0.6637 nDCG@5 0.5341 primary 0.5989 | 2.7s
+  epoch 19 | loss 3.2683 | valid GAUC 0.6638 nDCG@5 0.5345 primary 0.5991 | 2.8s
+  epoch 20 | loss 3.2663 | valid GAUC 0.6642 nDCG@5 0.5346 primary 0.5994 | 2.8s
+  epoch 21 | loss 3.2645 | valid GAUC 0.6650 nDCG@5 0.5351 primary 0.6001 | 2.7s
+  epoch 22 | loss 3.2629 | valid GAUC 0.6648 nDCG@5 0.5351 primary 0.5999 | 2.8s
+  epoch 23 | loss 3.2615 | valid GAUC 0.6647 nDCG@5 0.5349 primary 0.5998 | 2.8s
+  epoch 24 | loss 3.2601 | valid GAUC 0.6650 nDCG@5 0.5354 primary 0.6002 | 2.8s
+  epoch 25 | loss 3.2590 | valid GAUC 0.6646 nDCG@5 0.5350 primary 0.5998 | 2.8s
+  epoch 26 | loss 3.2579 | valid GAUC 0.6646 nDCG@5 0.5349 primary 0.5997 | 2.8s
+  epoch 27 | loss 3.2568 | valid GAUC 0.6642 nDCG@5 0.5349 primary 0.5995 | 2.8s
+  epoch 28 | loss 3.2558 | valid GAUC 0.6644 nDCG@5 0.5351 primary 0.5998 | 2.8s
+  epoch 29 | loss 3.2550 | valid GAUC 0.6646 nDCG@5 0.5351 primary 0.5999 | 2.9s
+  epoch 30 | loss 3.2541 | valid GAUC 0.6644 nDCG@5 0.5353 primary 0.5999 | 2.9s
+  early stop at epoch 30
+[1A-listwise-lr0.0001] valid primary 0.6002 (-0.0014 vs baseline) -> neutral  [85s]
+
+[1A-listwise-lr0.0002] Listwise divides the gradient by group count not row count, making the effective step ~30x larger than pointwise; a smaller lr should reveal its true ceiling
+  24290 training users with both classes (1130240 rows)
+  epoch  1 | loss 3.4116 | valid GAUC 0.6517 nDCG@5 0.5286 primary 0.5902 | 2.9s
+  epoch  2 | loss 3.3937 | valid GAUC 0.6568 nDCG@5 0.5311 primary 0.5940 | 2.8s
+  epoch  3 | loss 3.3667 | valid GAUC 0.6596 nDCG@5 0.5323 primary 0.5959 | 2.8s
+  epoch  4 | loss 3.3388 | valid GAUC 0.6604 nDCG@5 0.5325 primary 0.5964 | 3.2s
+  epoch  5 | loss 3.3161 | valid GAUC 0.6614 nDCG@5 0.5327 primary 0.5970 | 2.9s
+  epoch  6 | loss 3.2993 | valid GAUC 0.6619 nDCG@5 0.5331 primary 0.5975 | 3.1s
+  epoch  7 | loss 3.2874 | valid GAUC 0.6625 nDCG@5 0.5336 primary 0.5980 | 3.2s
+  epoch  8 | loss 3.2788 | valid GAUC 0.6635 nDCG@5 0.5343 primary 0.5989 | 3.1s
+  epoch  9 | loss 3.2727 | valid GAUC 0.6640 nDCG@5 0.5344 primary 0.5992 | 3.1s
+  epoch 10 | loss 3.2680 | valid GAUC 0.6648 nDCG@5 0.5350 primary 0.5999 | 3.2s
+  epoch 11 | loss 3.2646 | valid GAUC 0.6645 nDCG@5 0.5351 primary 0.5998 | 3.2s
+  epoch 12 | loss 3.2618 | valid GAUC 0.6644 nDCG@5 0.5350 primary 0.5997 | 3.1s
+  epoch 13 | loss 3.2593 | valid GAUC 0.6647 nDCG@5 0.5352 primary 0.6000 | 3.2s
+  epoch 14 | loss 3.2574 | valid GAUC 0.6645 nDCG@5 0.5354 primary 0.5999 | 3.2s
+  epoch 15 | loss 3.2555 | valid GAUC 0.6645 nDCG@5 0.5354 primary 0.5999 | 3.1s
+  epoch 16 | loss 3.2538 | valid GAUC 0.6637 nDCG@5 0.5349 primary 0.5993 | 3.0s
+  epoch 17 | loss 3.2521 | valid GAUC 0.6641 nDCG@5 0.5350 primary 0.5995 | 3.1s
+  epoch 18 | loss 3.2505 | valid GAUC 0.6635 nDCG@5 0.5347 primary 0.5991 | 3.0s
+  epoch 19 | loss 3.2488 | valid GAUC 0.6634 nDCG@5 0.5347 primary 0.5991 | 3.0s
+  early stop at epoch 19
+[1A-listwise-lr0.0002] valid primary 0.6000 (-0.0016 vs baseline) -> negative  [59s]
+
+[1A-listwise-lr0.0005] Listwise divides the gradient by group count not row count, making the effective step ~30x larger than pointwise; a smaller lr should reveal its true ceiling
+  24290 training users with both classes (1130240 rows)
+  epoch  1 | loss 3.3998 | valid GAUC 0.6576 nDCG@5 0.5310 primary 0.5943 | 3.1s
+  epoch  2 | loss 3.3420 | valid GAUC 0.6614 nDCG@5 0.5327 primary 0.5970 | 3.2s
+  epoch  3 | loss 3.2970 | valid GAUC 0.6633 nDCG@5 0.5340 primary 0.5986 | 3.1s
+  epoch  4 | loss 3.2762 | valid GAUC 0.6642 nDCG@5 0.5346 primary 0.5994 | 3.1s
+  epoch  5 | loss 3.2663 | valid GAUC 0.6641 nDCG@5 0.5348 primary 0.5995 | 3.1s
+  epoch  6 | loss 3.2602 | valid GAUC 0.6637 nDCG@5 0.5349 primary 0.5993 | 3.1s
+  epoch  7 | loss 3.2555 | valid GAUC 0.6622 nDCG@5 0.5346 primary 0.5984 | 3.1s
+  epoch  8 | loss 3.2509 | valid GAUC 0.6633 nDCG@5 0.5345 primary 0.5989 | 3.1s
+  epoch  9 | loss 3.2463 | valid GAUC 0.6634 nDCG@5 0.5347 primary 0.5991 | 3.0s
+  epoch 10 | loss 3.2412 | valid GAUC 0.6633 nDCG@5 0.5348 primary 0.5991 | 3.1s
+  epoch 11 | loss 3.2356 | valid GAUC 0.6616 nDCG@5 0.5338 primary 0.5977 | 3.1s
+  early stop at epoch 11
+[1A-listwise-lr0.0005] valid primary 0.5995 (-0.0021 vs baseline) -> negative  [35s]
+
+exp_id                            phase    valid    test  d_valid  outcome  s
+-----------------------------------------------------------------------------
+1A-bpr-lr0.0002                   1A      0.6031  0.5979  +0.0015  neutral  60
+1A-bpr-lr0.001                    1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001                   1A      0.6025  0.5975  +0.0009  neutral  84
+1A-bpr-lr0.0005                   1A      0.6024  0.5973  +0.0008  neutral  32
+1A-control-pointwise              1A      0.6022  0.5945  +0.0006  neutral  33
+1C-control-singletask             1C      0.6022  0.5945  +0.0006  neutral  44
+1B-pointwise-aff-author-causal    1B      0.6017  0.5943  +0.0001  neutral  34
+1B-pointwise-aff-video-causal     1B      0.6012  0.5947  -0.0004  neutral  34
+1B-pointwise-aff-user_tab-causal  1B      0.6010  0.5939  -0.0006  neutral  30
+1A-listwise-lr0.0001              1A      0.6002  0.5932  -0.0014  neutral  85
+1A-bpr-lr0.005                    1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.0002              1A      0.6000  0.5931  -0.0016 negative  59
+1A-listwise-lr0.001               1A      0.5999  0.5924  -0.0017 negative  16
+1A-hybrid-lam1                    1A      0.5998  0.5929  -0.0018 negative  32
+1A-listwise-lr0.0005              1A      0.5995  0.5928  -0.0021 negative  35
+1A-hybrid-lam0.3                  1A      0.5993  0.5923  -0.0024 negative  32
+1A-bpr-lr0.02                     1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005               1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02                1A      0.5867  0.5790  -0.0149 negative  14

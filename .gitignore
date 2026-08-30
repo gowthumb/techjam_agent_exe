@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+ml_modelling/cache/
+submission*.csv
+.venv/
+.ipynb_checkpoints/
+kuairand-starter-kit/KuaiRand-1K/
+kuairand-starter-kit/KuaiRand-1K.tar.gz
+kuairand-starter-kit/KuaiRand-27K/
+kuairand-starter-kit/KuaiRand-27K.tar.gz

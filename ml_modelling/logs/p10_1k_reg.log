@@ -1,0 +1,29 @@
+loading 1k ...
+  per-field vocab / share of rows unseen in train:
+    user_id      vocab=      983  unseen=0.3%
+    video_id     vocab=2,119,510  unseen=46.0%
+    author_id    vocab=  805,027  unseen=13.3%
+    tab          vocab=       14  unseen=0.0%
+    dur_bucket   vocab=       10  unseen=0.0%
+  dim=2925549
+[10-1k-pointwise-noise0.05-seed0] 1K overfits by epoch 2, so regularisation is the natural lever; embedding noise is the cheap regulariser validated on Pure, tried here at the strengths that bracketed the Pure optimum
+[10-1k-pointwise-noise0.05-seed0] valid primary 0.6419 (no comparable baseline) -> unknown  [181s]
+[10-1k-pointwise-noise0.1-seed0] 1K overfits by epoch 2, so regularisation is the natural lever; embedding noise is the cheap regulariser validated on Pure, tried here at the strengths that bracketed the Pure optimum
+[10-1k-pointwise-noise0.1-seed0] valid primary 0.6426 (no comparable baseline) -> unknown  [239s]
+[10-1k-pointwise-noise0.2-seed0] 1K overfits by epoch 2, so regularisation is the natural lever; embedding noise is the cheap regulariser validated on Pure, tried here at the strengths that bracketed the Pure optimum
+[10-1k-pointwise-noise0.2-seed0] valid primary 0.6431 (no comparable baseline) -> unknown  [322s]
+[10-1k-pointwise-lr0.0005-ep60-seed0] best_epoch=2 at lr=0.001 is the too-fast-fit signature; a smaller step with a longer budget may find a better minimum
+[10-1k-pointwise-lr0.0005-ep60-seed0] valid primary 0.6447 (no comparable baseline) -> unknown  [239s]
+[10-1k-pointwise-lr0.0002-ep60-seed0] best_epoch=2 at lr=0.001 is the too-fast-fit signature; a smaller step with a longer budget may find a better minimum
+[10-1k-pointwise-lr0.0002-ep60-seed0] valid primary 0.6416 (no comparable baseline) -> unknown  [363s]
+[10-1k-pointwise-k32-seed0] k=16 (0.6438) beat k=4 and k=64 on 1K but k=32 was never tested; the bracket-the-optimum prior requires filling the interior gap
+[10-1k-pointwise-k32-seed0] valid primary 0.6409 (no comparable baseline) -> unknown  [202s]
+
+exp_id                               phase    valid    test  d_valid  outcome  s
+--------------------------------------------------------------------------------
+10-1k-pointwise-lr0.0005-ep60-seed0  10      0.6447  0.6419        -  unknown  239
+10-1k-pointwise-noise0.2-seed0       10      0.6431  0.6402        -  unknown  322
+10-1k-pointwise-noise0.1-seed0       10      0.6426  0.6351        -  unknown  239
+10-1k-pointwise-noise0.05-seed0      10      0.6419  0.6380        -  unknown  181
+10-1k-pointwise-lr0.0002-ep60-seed0  10      0.6416  0.6379        -  unknown  363
+10-1k-pointwise-k32-seed0            10      0.6409  0.6352        -  unknown  202
