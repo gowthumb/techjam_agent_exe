@@ -1032,6 +1032,52 @@ scale_transfer:
                 10-1k-pointwise-k32-seed0, 10-1k-pointwise-k32-seed1, 10-1k-pointwise-k32-seed2,
                 10-1k-pointwise-aff-user_author-seed0]
 
+  onek_extended_axes:
+    what: >-
+      Phase 18/19: the Tier-1/2 axes never tested on 1K -- SSM loss (Pure's
+      confirmed BPR-peer), (user,tab)/(user,dur) causal affinity (smaller-
+      cardinality retries of the failed (user,author) test above), and GBDT
+      under a genuinely pairwise objective (rank:pairwise / rank:ndcg -- the
+      gap flagged as the most-cited open item on BOTH benchmarks, never run
+      on either until now). All tested against 1K's own baseline (valid
+      0.6439 +/- 0.0022, 3 seeds); the >1 baseline-SE gate (~0.0013) decides
+      which single-run leads get replicated.
+    result: NONE_BEAT_BASELINE
+    detail:
+      ssm_loss: {valid: 0.6290, d_valid: -0.0149, note: "confirms tier12_note's prediction -- SSM is a within-user normalising loss like BPR and inverts on 1K the same way, for the same item-cold-start reason"}
+      user_tab_affinity: {valid: 0.6422, d_valid: -0.0017, note: "does not clear the gate despite far higher per-(user,tab) coverage than (user,author) had"}
+      user_dur_affinity: {valid: 0.6362, d_valid: -0.0077}
+      gbdt_xgb_pairwise: {valid: 0.6402, d_valid: -0.0037, note: "rank:pairwise, base+causal-affinity features, single run, did not clear the gate so no replication run"}
+      gbdt_xgb_ndcg: {valid_mean: 0.6429, valid_sd: 0.0040, n_seeds: 3, d_valid_mean: -0.0010, note: "single-run lead of +0.0024 (seed0: 0.6463) fully evaporated on 3-seed replication -- the fifth 1K lead this workstream has killed this way"}
+      gbdt_catboost_yetirank: {status: NOT_COMPLETED, note: "killed after 90+ min stuck at ~1 of 16 cores with zero completed boosting rounds -- CatBoost's CPU YetiRank pair-generation does not parallelize the way tree-histogram building does, compounded by a script bug (cat_features was never passed to Pool(), so all ID columns were quantized as continuous instead of categorical). Genuinely untested, not a negative result; would need that fix plus PairLogit instead of YetiRank (or far fewer rounds) before it is worth retrying."}
+    caution: >-
+      user_dur_affinity's test score (0.6392) sits slightly above 1K's
+      baseline test mean (0.6380) despite valid being clearly negative
+      (-0.0077, not flat) -- noted for completeness, but this is not the
+      valid-flat/test-up shape the rand_valid bias veto exists to catch, and
+      valid alone already fails the gate. None of these five results reached
+      the unbiased-eval step: all either failed the single-run gate outright,
+      or (gbdt_xgb_ndcg) failed on replication before qualifying for it.
+    engineering_notes:
+      - >-
+        SSM and both affinity fields required zero new code: fm.py's
+        sparse=True path already covers ssm (_step_ssm routes through the
+        same apply_grad that dispatches to apply_grad_sparse), and
+        features.encode_int_fields/apply_int_fields already covers arbitrary
+        int-valued fields as a 6th column, per the (user,author) precedent
+        above.
+      - >-
+        GBDT-on-1K needed a new bench-aware feature builder
+        (experiments/p19_1k_gbdt.py) that excludes the `user` block (Pure's
+        own KB already shows 0 contribution -- structural, not benchmark-
+        specific) and the `vstat` block (3.4GB 1K source, never a winner even
+        on Pure).
+    evidence:
+      exp_ids: [18-1k-ssm-lr0.0003-t1-n8-k16-seed0, 18-1k-pointwise-aff-user_tab-seed0,
+                18-1k-pointwise-aff-user_dur-seed0, 19-1k-xgb_pairwise-base+aff,
+                19-1k-xgb_ndcg-base+aff, 19-1k-xgb_ndcg-base+aff-seed1,
+                19-1k-xgb_ndcg-base+aff-seed2]
+
   evidence:
     exp_ids: [5-1k-baseline-seed0, 5-1k-baseline-seed1, 5-1k-baseline-seed2,
               5-1k-kbpick-seed0, 5-1k-kbpick-seed1, 5-1k-kbpick-seed2,

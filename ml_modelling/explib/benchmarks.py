@@ -49,33 +49,21 @@ def resolve_files(bench):
 MINIMAL_COLS = {'int': ['date', 'tab', 'long_view'], 'big': [], 'float': ['duration_ms']}
 
 
-def load_logs(bench='pure', refresh=False, max_rows=None, minimal=False):
-    """Parsed logs for a benchmark, cached to npz. Same dict shape as dataset.load_logs.
+def _parse_log_files(files, int_cols, big_cols, flt_cols, max_rows=None):
+    """Chunked parse of one or more log CSVs into a column dict.
 
-    minimal=True keeps only the columns the scale experiments need.
+    Shared by load_logs and load_random_logs -- the standard and random logs are
+    the same 19-column schema, so there is nothing benchmark- or split-specific
+    here, only which files get handed in.
+
+    Parses in chunks, converting each chunk to numpy immediately. Peak memory is
+    then one chunk of Python objects rather than the whole file's worth -- at 1K
+    scale the full-file lists are ~200M int objects, which is what actually
+    exhausts RAM, not the final arrays.
     """
-    if bench == 'pure' and max_rows is None and not minimal:
-        return D.load_logs(refresh=refresh)      # the verified path, unchanged
-
-    int_cols = MINIMAL_COLS['int'] if minimal else D.INT_COLS
-    big_cols = MINIMAL_COLS['big'] if minimal else D.BIG_INT_COLS
-    flt_cols = MINIMAL_COLS['float'] if minimal else D.FLOAT_COLS
-
-    std, _, _, _ = resolve_files(bench)
-    tag = hashlib.md5(('|'.join(os.path.basename(f) for f in std)
-                       + f'|{max_rows}|{minimal}').encode()).hexdigest()[:12]
-    path = os.path.join(D.CACHE_DIR, f'logs_{bench}_{tag}.npz')
-    if os.path.exists(path) and not refresh:
-        with np.load(path) as z:
-            return {k: z[k] for k in z.files}
-
-    # Parse in chunks, converting each chunk to numpy immediately. Peak memory is
-    # then one chunk of Python objects rather than the whole file's worth -- at 1K
-    # scale the full-file lists are ~200M int objects, which is what actually
-    # exhausts RAM, not the final arrays.
     CHUNK = 2_000_000
     parts, n, stop = [], 0, False
-    for f in std:
+    for f in files:
         with open(f, newline='') as fh:
             rdr = csv.reader(fh)
             ix = {name: i for i, name in enumerate(next(rdr))}
@@ -126,6 +114,59 @@ def load_logs(bench='pure', refresh=False, max_rows=None, minimal=False):
     keys = ['user_id', 'video_id'] + int_cols + big_cols + flt_cols
     out = {k: np.concatenate([p[k] for p in parts]) for k in keys}
     del parts
+    return out
+
+
+def load_logs(bench='pure', refresh=False, max_rows=None, minimal=False):
+    """Parsed logs for a benchmark, cached to npz. Same dict shape as dataset.load_logs.
+
+    minimal=True keeps only the columns the scale experiments need.
+    """
+    if bench == 'pure' and max_rows is None and not minimal:
+        return D.load_logs(refresh=refresh)      # the verified path, unchanged
+
+    int_cols = MINIMAL_COLS['int'] if minimal else D.INT_COLS
+    big_cols = MINIMAL_COLS['big'] if minimal else D.BIG_INT_COLS
+    flt_cols = MINIMAL_COLS['float'] if minimal else D.FLOAT_COLS
+
+    std, _, _, _ = resolve_files(bench)
+    tag = hashlib.md5(('|'.join(os.path.basename(f) for f in std)
+                       + f'|{max_rows}|{minimal}').encode()).hexdigest()[:12]
+    path = os.path.join(D.CACHE_DIR, f'logs_{bench}_{tag}.npz')
+    if os.path.exists(path) and not refresh:
+        with np.load(path) as z:
+            return {k: z[k] for k in z.files}
+
+    out = _parse_log_files(std, int_cols, big_cols, flt_cols, max_rows)
+    os.makedirs(D.CACHE_DIR, exist_ok=True)
+    np.savez_compressed(path, **out)
+    return out
+
+
+def load_random_logs(bench='pure', refresh=False, minimal=False):
+    """Parsed RANDOM-EXPOSURE log for a benchmark -- the unbiased-eval source.
+
+    Same shape and caching convention as load_logs, pointed at log_random_*.csv
+    instead of log_standard_*.csv. Delegates to dataset.load_logs(random_log=True)
+    for Pure (the verified path) exactly like load_logs does for the standard case.
+    """
+    if bench == 'pure' and not minimal:
+        return D.load_logs(random_log=True, refresh=refresh)
+
+    int_cols = MINIMAL_COLS['int'] if minimal else D.INT_COLS
+    big_cols = MINIMAL_COLS['big'] if minimal else D.BIG_INT_COLS
+    flt_cols = MINIMAL_COLS['float'] if minimal else D.FLOAT_COLS
+
+    _, rnd, _, _ = resolve_files(bench)
+    if rnd is None:
+        raise FileNotFoundError(f'{bench}: no log_random_*.csv in {data_dir(bench)}')
+    tag = hashlib.md5((os.path.basename(rnd) + f'|{minimal}').encode()).hexdigest()[:12]
+    path = os.path.join(D.CACHE_DIR, f'randlogs_{bench}_{tag}.npz')
+    if os.path.exists(path) and not refresh:
+        with np.load(path) as z:
+            return {k: z[k] for k in z.files}
+
+    out = _parse_log_files([rnd], int_cols, big_cols, flt_cols)
     os.makedirs(D.CACHE_DIR, exist_ok=True)
     np.savez_compressed(path, **out)
     return out

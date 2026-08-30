@@ -1,0 +1,15 @@
+loading 1k ...
+  per-field vocab / share of rows unseen in train:
+    user_id      vocab=      983  unseen=0.3%
+    video_id     vocab=2,119,510  unseen=46.0%
+    author_id    vocab=  805,027  unseen=13.3%
+    tab          vocab=       14  unseen=0.0%
+    dur_bucket   vocab=       10  unseen=0.0%
+  dim=2925549
+[18-1k-ssm-lr0.0003-t1-n8-k16-seed0] Pure's confirmed BPR-peer loss, at its confirmed Pure config; a within-user normalising loss should invert on 1K the same way BPR did (KB tier12_note), which this tests rather than assumes
+[18-1k-ssm-lr0.0003-t1-n8-k16-seed0] valid primary 0.6290 (no comparable baseline) -> unknown  [360s]
+  [ssm] 0.6290 (-0.0149) does not clear the gate (need >0.0013) -- treat as noise, do not replicate
+
+exp_id                              phase    valid    test  d_valid  outcome  s
+-------------------------------------------------------------------------------
+18-1k-ssm-lr0.0003-t1-n8-k16-seed0  18      0.6290  0.6264        -  unknown  360

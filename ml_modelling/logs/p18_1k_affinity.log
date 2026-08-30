@@ -1,0 +1,26 @@
+loading 1k ...
+  per-field vocab / share of rows unseen in train:
+    user_id      vocab=      983  unseen=0.3%
+    video_id     vocab=2,119,510  unseen=46.0%
+    author_id    vocab=  805,027  unseen=13.3%
+    tab          vocab=       14  unseen=0.0%
+    dur_bucket   vocab=       10  unseen=0.0%
+  dim=2925549
+  user_tab train: warm rows 99.9%
+  user_tab valid: warm rows 99.4%
+  user_tab test: warm rows 97.5%
+[18-1k-pointwise-aff-user_tab-seed0] (user,author) affinity failed on 1K despite 10x Pure's coverage. tab and dur_bucket have far smaller cardinality than author, so per-(user,X) coverage should be much higher -- this checks that rather than assuming the (user,author) result generalises to every affinity field
+[18-1k-pointwise-aff-user_tab-seed0] valid primary 0.6422 (no comparable baseline) -> unknown  [212s]
+  [user_tab] 0.6422 (-0.0017) does not clear the gate (need >0.0013) -- treat as noise, do not replicate
+  user_dur train: warm rows 99.8%
+  user_dur valid: warm rows 99.9%
+  user_dur test: warm rows 99.1%
+[18-1k-pointwise-aff-user_dur-seed0] (user,author) affinity failed on 1K despite 10x Pure's coverage. tab and dur_bucket have far smaller cardinality than author, so per-(user,X) coverage should be much higher -- this checks that rather than assuming the (user,author) result generalises to every affinity field
+[18-1k-pointwise-aff-user_dur-seed0] valid primary 0.6362 (no comparable baseline) -> unknown  [233s]
+  [user_dur] 0.6362 (-0.0077) does not clear the gate (need >0.0013) -- treat as noise, do not replicate
+
+exp_id                              phase    valid    test  d_valid  outcome  s
+-------------------------------------------------------------------------------
+18-1k-pointwise-aff-user_tab-seed0  18      0.6422  0.6324        -  unknown  212
+18-1k-pointwise-aff-user_dur-seed0  18      0.6362  0.6392        -  unknown  233
+18-1k-ssm-lr0.0003-t1-n8-k16-seed0  18      0.6290  0.6264        -  unknown  360

@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 ml_modelling/cache/
+ml_modelling/catboost_info/
 submission*.csv
 .venv/
 .ipynb_checkpoints/

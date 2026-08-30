@@ -1,0 +1,51 @@
+loading 1k (minimal columns) ...
+  building 5 affinity fields on 11,713,045 rows ...
+  17 features (5 categorical) in 90s
+[19-1k-xgb_pairwise-base+aff] GBDT was only ever judged on pointwise/lambdarank objectives -- rank:pairwise is the fair test, and it was never run on 1K at all despite 1K being the regime (item cold-start) where numeric affinity features have the clearest structural reason to beat an embedding table that cold items simply do not have a row in
+[0]	valid-ndcg@5:0.55811
+[100]	valid-ndcg@5:0.60434
+[200]	valid-ndcg@5:0.60902
+[269]	valid-ndcg@5:0.60733
+[19-1k-xgb_pairwise-base+aff] valid primary 0.6402 (no comparable baseline) -> unknown  [168s]
+[19-1k-xgb_ndcg-base+aff] GBDT was only ever judged on pointwise/lambdarank objectives -- rank:pairwise is the fair test, and it was never run on 1K at all despite 1K being the regime (item cold-start) where numeric affinity features have the clearest structural reason to beat an embedding table that cold items simply do not have a row in
+[0]	valid-ndcg@5:0.56145
+[100]	valid-ndcg@5:0.60305
+[200]	valid-ndcg@5:0.61816
+[266]	valid-ndcg@5:0.61550
+[19-1k-xgb_ndcg-base+aff] valid primary 0.6463 (no comparable baseline) -> unknown  [167s]
+[19-1k-catboost_yetirank-base+aff] GBDT was only ever judged on pointwise/lambdarank objectives -- rank:pairwise is the fair test, and it was never run on 1K at all despite 1K being the regime (item cold-start) where numeric affinity features have the clearest structural reason to beat an embedding table that cold items simply do not have a row in
+=== replication: xgb_ndcg seed1, seed2 (queued after gate clear, catboost_yetirank skipped per user decision) ===
+loading 1k (minimal columns) ...
+  building 5 affinity fields on 11,713,045 rows ...
+  17 features (5 categorical) in 67s
+[19-1k-xgb_ndcg-base+aff-seed1] GBDT was only ever judged on pointwise/lambdarank objectives -- rank:pairwise is the fair test, and it was never run on 1K at all despite 1K being the regime (item cold-start) where numeric affinity features have the clearest structural reason to beat an embedding table that cold items simply do not have a row in
+[0]	valid-ndcg@5:0.55702
+[100]	valid-ndcg@5:0.59088
+[200]	valid-ndcg@5:0.59973
+[300]	valid-ndcg@5:0.60497
+[400]	valid-ndcg@5:0.61107
+[500]	valid-ndcg@5:0.61264
+[600]	valid-ndcg@5:0.60874
+[617]	valid-ndcg@5:0.61145
+[19-1k-xgb_ndcg-base+aff-seed1] valid primary 0.6384 (no comparable baseline) -> unknown  [322s]
+
+exp_id                         phase    valid    test  d_valid  outcome  s
+--------------------------------------------------------------------------
+19-1k-xgb_ndcg-base+aff        19      0.6463  0.6397        -  unknown  167
+19-1k-xgb_pairwise-base+aff    19      0.6402  0.6403        -  unknown  168
+19-1k-xgb_ndcg-base+aff-seed1  19      0.6384  0.6407        -  unknown  322
+loading 1k (minimal columns) ...
+  building 5 affinity fields on 11,713,045 rows ...
+  17 features (5 categorical) in 102s
+[19-1k-xgb_ndcg-base+aff-seed2] GBDT was only ever judged on pointwise/lambdarank objectives -- rank:pairwise is the fair test, and it was never run on 1K at all despite 1K being the regime (item cold-start) where numeric affinity features have the clearest structural reason to beat an embedding table that cold items simply do not have a row in
+[0]	valid-ndcg@5:0.54000
+[100]	valid-ndcg@5:0.61454
+[158]	valid-ndcg@5:0.60615
+[19-1k-xgb_ndcg-base+aff-seed2] valid primary 0.6440 (no comparable baseline) -> unknown  [119s]
+
+exp_id                         phase    valid    test  d_valid  outcome  s
+--------------------------------------------------------------------------
+19-1k-xgb_ndcg-base+aff        19      0.6463  0.6397        -  unknown  167
+19-1k-xgb_ndcg-base+aff-seed2  19      0.6440  0.6433        -  unknown  119
+19-1k-xgb_pairwise-base+aff    19      0.6402  0.6403        -  unknown  168
+19-1k-xgb_ndcg-base+aff-seed1  19      0.6384  0.6407        -  unknown  322
