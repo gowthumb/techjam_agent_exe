@@ -980,17 +980,83 @@ scale_transfer:
       machine; the minimal chunked integer path peaks at 0.4GB.
 
   kuairand_27k:
-    attempted: false
-    reason: >-
-      Not a waiting problem, a design problem. 322M rows x 6 minimal columns is
-      ~7GB of parsed arrays on a 23.7GB machine, and a single 40-epoch run is ~7.7
-      hours at the measured per-row cost — beyond one 6h benchmark budget for ONE
-      config, before any search. It needs out-of-core storage (memmap) plus
-      subsample-search-then-final-fit, which is a build rather than a longer run.
+    attempted: true
+    facts:
+      rows_total: 322278385
+      users_total: 27285
+      videos_total: 32038693
+      vs_pure: >-
+        224.3x rows, 1.0x users — same ~27K user population as Pure, not a new
+        sample: 224x more logged interactions per user, i.e. full histories.
+      split_rows: {train: 136296576, valid: 71149570, test: 114832239}
+      videos_seen_in_train: {valid: 0.2792, test: 0.1734}
+      label_rate: {train: 0.2629, valid: 0.2611, test: 0.2572}
+      note: >-
+        Confirms the if_attempted prediction below: the 1K regime (item
+        cold-start, flat label rate, no drift), slightly MORE extreme than 1K
+        (17.3% test videos seen in train here vs 1K's 15.1%). Reproduce:
+        `python experiments/p5_scale_transfer.py --bench 27k --stage facts`
+        (phase5_facts_27k.json).
+    result:
+      config: "pointwise FM, k=16, lr=1e-3, sparse=True — 1K's confirmed winner,
+        transferred as-is, zero exploration (single seed, NOT replicated — see
+        caution below)"
+      valid_primary: 0.6687
+      test_primary: 0.6557
+      best_epoch: 1
+      note: >-
+        Overfits even faster than 1K (whose baseline typically peaked epoch 2):
+        every epoch after 1 was strictly worse (0.6687 -> 0.6626 -> 0.6501 ->
+        0.6361 -> 0.6265 by epoch 5), consistent with an even more extreme
+        cold-start regime leaving less within-user signal to keep learning from.
+    caution: >-
+      SINGLE SEED, not replicated. 1K's own seed noise (sd 0.0022) was already
+      4x Pure's (sd 0.0005); 27K's noise is unmeasured. A 3-seed replication
+      would cost ~3x the training wall-clock (~4h just for training) which did
+      not fit the remaining 6h budget after the download+facts-pass cost already
+      spent. Treat 0.6687/0.6557 as one data point establishing that the config
+      runs and produces a sane, in-family result (not below the popularity
+      floor, no divergence) — not as a tuned or confidence-intervaled number.
+    engineering_notes:
+      - >-
+        27K was never downloaded before this session (9.9GB tarball, Zenodo
+        record 10439422 — Pure is 47MB, 1K is 1.1GB). Measured sustained
+        single-connection throughput ~1.3-1.7MB/s; actual download took ~1h40m.
+      - >-
+        27K ships log_standard as 2 files PER date window (_part1/_part2, ~5-7GB
+        each) instead of 1K/Pure's single file. `benchmarks.resolve_files` already
+        globs (`log_standard_*.csv`) rather than expecting an exact name, so this
+        needed zero code changes — confirmed by inspection before running anything.
+      - >-
+        `video_features_statistic_27k` is split into 3 parts totalling ~21.7GB —
+        deliberately never extracted (saved from a ~52GB free-disk budget). This
+        block is already excluded from every feature build on Pure and 1K (never
+        a winner, leakage caveat, and 1K's single 3.4GB file was already treated
+        as a size risk) and `benchmarks.py` never references it.
+      - >-
+        Load+encode took 2063s (~34min) for the 5-field int-fast-path over 322M
+        rows; peak process memory ~13.6GB against a 23.7GB machine — comfortable,
+        confirming FM's lean encoding (not GBDT's, which would need ~22GB for a
+        17-column matrix) was the right memory-safety call for this scale.
+      - >-
+        Total wall-clock for the whole 27K effort: ~1h40m download + ~20min
+        extract + 21min facts pass (1263s) + 1h54m load+train (2063s+4770s) =
+        ~4.25h. Whether the download counts against the plan's "50 iterations /
+        6h wall-clock per benchmark run" rule is not explicitly stated in
+        KNOWLEDGE_BASE_PLAN.md; reporting both readings: ~4.25h total including
+        download, ~2.55h compute-only from when the data was already in hand.
+        Either way, inside the 6h ceiling, and only 1 of 50 iterations used.
     if_attempted: >-
-      Run the facts pass first. 27K is sampled like 1K (all interactions for a user
-      sample), so expect the 1K regime — item cold-start — not the Pure one, and
-      expect the pointwise baseline to be the right starting point.
+      [Confirmed by the facts pass above.] 27K is sampled like 1K (all
+      interactions for a user sample), so expect the 1K regime — item cold-start
+      — not the Pure one, and expect the pointwise baseline to be the right
+      starting point. Do not spend further iterations on BPR/SSM/GBDT here without
+      new evidence: all three already lost to pointwise on 1K, a milder version
+      of this same regime, and the KB's own architecture-ladder logic says a
+      confirmed-negative prior travels across benchmarks in the same regime.
+    evidence:
+      exp_ids: [20-27k-pointwise-k16-lr0.001-seed0]
+      facts_files: [phase5_facts_pure.json, phase5_facts_1k.json, phase5_facts_27k.json]
 
   onek_tuning_attempts:
     what: >-

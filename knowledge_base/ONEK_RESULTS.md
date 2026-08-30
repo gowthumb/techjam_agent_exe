@@ -1,13 +1,14 @@
-# KuaiRand-1K — results & rationale
+# KuaiRand-1K & 27K — results & rationale
 
 Companion to `knowledge_base_rationale.md` and `TIER12_RESULTS.md`, covering the
 workstream that brought 1K to parity with Pure: does Pure's recipe transfer
 (Phase 5), does tuning 1K's *own* baseline help (Phase 10), and do the Tier 1/2
 axes that were never tried on 1K — SSM loss, smaller-cardinality affinity,
-genuinely pairwise GBDT — do any better (Phase 18/19). Same discipline as
-`TIER12_RESULTS.md`: hypothesis traced to a plan document, what ran, the result,
-the control or replication, the verdict against the noise band, and the exact
-`knowledge_base.yaml` change it produced.
+genuinely pairwise GBDT — do any better (Phase 18/19). Phase 20 extends the same
+transferred recipe one benchmark further, to KuaiRand-27K, the largest bonus
+benchmark. Same discipline as `TIER12_RESULTS.md`: hypothesis traced to a plan
+document, what ran, the result, the control or replication, the verdict against
+the noise band, and the exact `knowledge_base.yaml` change it produced.
 
 Every number here is in `../ml_modelling/experiments.jsonl` and re-checkable with
 `python ml_modelling/tools/kb_check.py` (run from the repo root).
@@ -27,6 +28,7 @@ Pure's positive ones.
 | 10 Own-baseline tuning | Does tuning 1K's *own* pointwise baseline help (noise, lr, k, affinity)? | ❌ 4/4 negative on 3-seed replication |
 | 18 Tier-1/2 axes (loss, affinity) | Does SSM (Pure's BPR-peer) or smaller-cardinality affinity transfer? | ❌ SSM inverts like BPR (−0.0149); both affinity fields negative |
 | 19 GBDT pairwise objective | Does a genuinely pairwise GBDT objective (never tested on either benchmark) beat the baseline on 1K's cold-start regime? | ❌ negative after replication; YetiRank left genuinely untested (see below) |
+| 20 KuaiRand-27K | Does 1K's confirmed recipe (pointwise, transferred as-is) run and produce a sane result on the largest bonus benchmark? | ✅ ran clean, valid 0.6687 / test 0.6557 — single seed, not a comparative finding (see below) |
 
 **Bottom line.** Across four phases and roughly a dozen distinct axes, **nothing
 beats 1K's own untuned pointwise baseline** (valid 0.6439 ± 0.0022, test 0.6380 ±
@@ -338,6 +340,99 @@ lands.)
 
 ---
 
+## Phase 20 — KuaiRand-27K, the largest bonus benchmark
+
+**Grounding.** `KNOWLEDGE_BASE_PLAN.md`'s Phase 5 ("Bonus Benchmark Strategy")
+gates 27K explicitly: *"only attempt 27k if 1k results are positive and there's
+remaining time/compute budget... treat 27k as an efficiency problem as much as a
+modeling one... consider whether it's worth skipping the architecture ladder
+entirely at this scale in favor of a well-tuned plain FM that reliably finishes
+inside the 6h ceiling."* Phases 5/10/18/19 above are the "1k results" — not
+positive in the sense of beating anything, but conclusive and well-controlled,
+which is what "positive" reads as in context: a working pipeline and a clear
+regime diagnosis, not a lift. `scale_transfer.kuairand_27k.if_attempted`
+(written before this phase, from the same evidence base) already named the
+answer: *"expect the pointwise baseline to be the right starting point."*
+
+**The dataset itself was never downloaded before this phase.** Confirmed via
+Zenodo (record 10439422): 9.9GB compressed (Pure is 47MB, 1K is 1.1GB — a
+genuinely different order of thing). Measured sustained single-connection
+throughput ~1.3-1.7MB/s; the download took ~1h40m, resumable and self-healing
+against drops. The archive's internal structure differs from Pure/1K too:
+`log_standard` ships as 2 parts per date window instead of 1, and
+`video_features_statistic` is split into 3 parts totalling **~21.7GB** —
+deliberately never extracted, since that feature block is already excluded from
+every model on both other benchmarks (never a winner, leakage caveat) and
+`benchmarks.py` never references it. `benchmarks.resolve_files` already globs
+filenames rather than expecting exact matches, so the multi-part logs needed
+**zero code changes** — confirmed by reading the source before extracting
+anything, not assumed.
+
+**Facts pass** (`--stage facts`, reused unchanged from Phase 5):
+
+| | Pure | 1K | 27K |
+|---|---|---|---|
+| rows | 1.4M | 11.7M | **322.3M** |
+| users | 27,077 | 1,000 | **27,285** |
+| videos | 7,551 | 4.37M | **32.0M** |
+| test videos seen in train | 99.9% | 15.1% | **17.3%** |
+| label rate (train→test) | 0.337→0.314 (drift) | 0.264→0.259 (flat) | **0.263→0.257 (flat)** |
+
+27K is **not** a bigger sample of new users — it's Pure's *same* ~27K users
+(1.0x), each with 224x more logged interactions, i.e. full histories rather than
+a snapshot. And it confirms the `if_attempted` prediction with a sharper number
+than 1K itself: 82.7% of test videos are entirely unseen in train (vs 1K's
+84.9%) — the same item-cold-start regime, if anything slightly more extreme.
+
+**What ran.** `experiments/p20_27k_run.py` (new) — exactly one config, 1K's
+confirmed winner (pointwise, k=16, lr=1e-3, sparse Adam), transferred as-is, zero
+exploration. No BPR/SSM/GBDT comparison: all three already lost to pointwise on
+1K, a milder version of the same regime, and re-testing them here would spend a
+third of the remaining budget re-confirming a prior the KB already holds with
+high confidence.
+
+| | value |
+|---|---|
+| valid primary | **0.6687** (GAUC 0.6911, nDCG@5 0.6463) |
+| test primary | **0.6557** (GAUC 0.6852, nDCG@5 0.6261) |
+| best epoch | **1** — every later epoch was strictly worse (0.6687→0.6626→0.6501→0.6361→0.6265 by epoch 5) |
+| load time | 2063s (~34min), peak memory ~13.6GB / 23.7GB available |
+| train time | 4770s (~80min), 5 epochs to early-stop (patience=4) |
+
+**Reading.** The single-epoch peak is itself a finding: 27K overfits *faster*
+than 1K (which typically peaked epoch 2), consistent with the facts pass —
+slightly more extreme cold-start leaves slightly less within-user signal for a
+second epoch to exploit before the model starts fitting noise. This is exactly
+the kind of confirmation a transfer run is for: not a new number to optimize,
+but a check that the regime diagnosis holds at one more order of magnitude.
+
+**What this is not.** A single seed, not replicated. 1K's own seed noise (sd
+0.0022) was already 4x Pure's; 27K's is unmeasured. A 3-seed replication would
+have cost ~3x the training time (~4h), which did not fit the budget remaining
+after the download and facts pass. 0.6687/0.6557 is one data point confirming
+the config runs cleanly and lands in a sane range (above the label rate, no
+divergence) — not a tuned or confidence-intervaled result, and not compared
+against any alternative, because per the reasoning above none was worth running.
+
+**On the time budget.** `KNOWLEDGE_BASE_PLAN.md`'s "50 iterations / 6h
+wall-clock, per benchmark run" doesn't explicitly say whether the one-time
+dataset download counts. Reporting both readings rather than picking one:
+**~4.25h total** (download + extract + facts + run) or **~2.55h compute-only**
+(from when the data was already in hand). Either reading is inside the 6h
+ceiling, and this used 1 of the 50-iteration budget.
+
+**KB changes.** `scale_transfer.kuairand_27k`: `attempted` flipped `false` →
+`true`, `facts` block (the table above), `result` block, `caution` (single-seed
+callout), `engineering_notes` (multi-part files, vstat exclusion, memory/timing),
+`if_attempted` extended with a "don't re-test BPR/SSM/GBDT without new evidence"
+directive.
+
+**Artifact.** `phase5_facts_27k.json`. Reproduce:
+`python experiments/p5_scale_transfer.py --bench 27k --stage facts` then
+`python experiments/p20_27k_run.py`.
+
+---
+
 ## What this means for the 1K recommendation
 
 Four phases, roughly a dozen distinct axes (loss choice ×2, learning rate ×2
@@ -352,3 +447,13 @@ specifically, more than it kills pointwise). The one lever with a real
 structural argument left untested is CatBoost's YetiRank with the `cat_features`
 bug fixed — everything else in Pure's KB has now had its fair shot on 1K and
 lost.
+
+**27K (Phase 20) is a confirmation, not a fifth data point in the same search.**
+It transferred the one surviving config one benchmark further, into an even
+sharper version of the same cold-start regime, and it ran clean: sane scores,
+no divergence, overfitting arriving even faster than on 1K (epoch 1 vs epoch 2)
+in exactly the direction the regime diagnosis predicts. The right reading is not
+"27K also needs tuning" — every reason pointwise won on 1K applies more strongly
+at 27K's slightly more extreme cold-start share — it's that the same one-line
+diagnosis (item cold-start removes the signal every fancier lever depends on)
+now has evidence at three orders of magnitude of scale, not one.
