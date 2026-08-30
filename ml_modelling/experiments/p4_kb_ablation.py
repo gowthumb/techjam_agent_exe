@@ -37,7 +37,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from sweep import build_columns, AFFINITY_SPECS
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-KB_PATH = os.path.join(ROOT, 'knowledge_base.yaml')
+KB_PATH = os.path.join(ROOT, '..', 'knowledge_base', 'knowledge_base.yaml')
 CACHE_PATH = os.path.join(ROOT, 'cache', 'p4_runs.json')
 
 BASELINE = H.CALIBRATION['official_baseline']['valid']      # 0.6016

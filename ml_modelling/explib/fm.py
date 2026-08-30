@@ -11,9 +11,16 @@ Losses:
   bpr       : within-user pairwise, -log sigmoid(z_pos - z_neg)
   listwise  : within-user softmax cross-entropy against the positive distribution
   hybrid    : pointwise + lam * listwise
+  ssm       : sampled softmax / InfoNCE -- each positive vs neg_per_pos sampled
+              negatives from the SAME user, softmax at temperature `temp`, target
+              the positive. Distinct from `listwise`: that is a softmax over the
+              whole impression list with a uniform-over-positives target, which is
+              a poor fit when ~1/3 of the list is positive. ssm contrasts one
+              positive against a few negatives, the standard implicit-feedback
+              ranking loss. Phase 12 / KNOWLEDGE_BASE_PLAN.md Phase 1a.
 
 Only the per-row gradient coefficient g = dL/dz changes; the FM's dz/dparams and
-the Adam update are shared, byte-for-byte, across all four.
+the Adam update are shared, byte-for-byte, across all of them.
 """
 import time
 import numpy as np
@@ -215,11 +222,59 @@ def _step_hybrid(m, X, y, rows, groups, bs, users_per_batch, lam, rng):
     return lp + lam * ll
 
 
+def _step_ssm(m, X, y, groups, neg_per_pos, temp, bs, rng, global_pool=None):
+    """Sampled softmax / InfoNCE. One example = 1 positive + neg_per_pos negatives.
+
+    Negatives are sampled per positive from the SAME user's negatives, so the
+    contrast is within-user exactly as GAUC/nDCG@5 are. global_pool, if given, is
+    an array of row indices to sample negatives from instead -- the control that
+    isolates whether the within-user structure of the negatives matters.
+
+    p_j = softmax(z_j / temp) over the (1 + neg_per_pos) logits of an example;
+    L = -log p_0 ; dL/dz_j = (p_j - 1[j=0]) / temp.  The softmax is shift
+    invariant so the global bias cancels -- b is left untouched, as in bpr.
+    """
+    pos_list, neg_list = [], []
+    for _, pos, neg in groups:
+        if len(neg) == 0:
+            continue
+        pos_list.append(pos)
+        pool = global_pool if global_pool is not None else neg
+        neg_list.append(pool[rng.integers(0, len(pool), (len(pos), neg_per_pos))])
+    if not pos_list:
+        return 0.0
+    P = np.concatenate(pos_list)                          # (G,)
+    N = np.concatenate(neg_list, axis=0)                  # (G, neg_per_pos)
+    perm = rng.permutation(len(P))
+    P, N = P[perm], N[perm]
+    S = neg_per_pos + 1
+    ex_per_batch = max(1, bs // S)
+    losses = []
+    for i in range(0, len(P), ex_per_batch):
+        p_r = P[i:i + ex_per_batch]
+        n_r = N[i:i + ex_per_batch]
+        g = len(p_r)
+        rows = np.empty(g * S, dtype=n_r.dtype)
+        rows[0::S] = p_r
+        for j in range(neg_per_pos):
+            rows[j + 1::S] = n_r[:, j]
+        Xb = X[rows]
+        z, E, Sm = m.logits(Xb, noise=True)
+        seg = np.repeat(np.arange(g), S)
+        p = seg_softmax(z / temp, seg, g)
+        t = np.zeros(g * S, dtype=np.float32)
+        t[0::S] = 1.0
+        m.apply_grad(Xb, ((p - t) / temp / g).astype(np.float32), E, Sm,
+                     update_bias=False)
+        losses.append(float(-np.mean(np.log(p[0::S] + 1e-9))))
+    return float(np.mean(losses))
+
+
 # ---------------------------------------------------------------- training
 def train(enc, dim, loss='pointwise', k=16, lr=0.001, l2=1e-6, epochs=40, bs=8192,
           patience=4, seed=0, pairs_per_pos=1, users_per_batch=256, lam=1.0,
           skip_degenerate=True, evaluator=None, verbose=True, row_weight=None,
-          sparse=False, emb_noise=0.0):
+          sparse=False, emb_noise=0.0, neg_per_pos=8, temp=1.0, ssm_global=False):
     """Train and early-stop on valid primary. Returns (model, info)."""
     Xtr, ytr, utr = enc['train']
     Xva, yva, uva = enc['valid']
@@ -228,7 +283,7 @@ def train(enc, dim, loss='pointwise', k=16, lr=0.001, l2=1e-6, epochs=40, bs=819
     rng = np.random.default_rng(seed)
     rows = np.arange(len(ytr))
     groups = (user_groups(utr, ytr, skip_degenerate)
-              if loss in ('bpr', 'listwise', 'hybrid') else None)
+              if loss in ('bpr', 'listwise', 'hybrid', 'ssm') else None)
     if groups is not None and verbose:
         print(f"  {len(groups)} training users with both classes "
               f"({sum(len(g[0]) for g in groups)} rows)")
@@ -244,6 +299,9 @@ def train(enc, dim, loss='pointwise', k=16, lr=0.001, l2=1e-6, epochs=40, bs=819
             L = _step_listwise(m, Xtr, ytr, groups, users_per_batch, rng)
         elif loss == 'hybrid':
             L = _step_hybrid(m, Xtr, ytr, rows, groups, bs, users_per_batch, lam, rng)
+        elif loss == 'ssm':
+            L = _step_ssm(m, Xtr, ytr, groups, neg_per_pos, temp, bs, rng,
+                          global_pool=(rows if ssm_global else None))
         else:
             raise ValueError(f'unknown loss {loss}')
         va = evaluator(uva, yva, m.predict(Xva))

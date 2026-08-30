@@ -20,7 +20,9 @@ import yaml
 from explib import harness as H
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-KB_PATH = os.path.join(ROOT, 'knowledge_base.yaml')
+# The KB was packaged into a top-level deliverable folder; this lab still owns the
+# experiment log it is validated against.
+KB_PATH = os.path.join(ROOT, '..', 'knowledge_base', 'knowledge_base.yaml')
 SCORES = os.path.join(ROOT, '..', 'kuairand-starter-kit', 'baseline_scores.json')
 
 REQUIRED = ['meta', 'calibration', 'decision_protocol', 'validated_search_space',

@@ -1,11 +1,12 @@
-# Knowledge Base — Rationale
+# Knowledge Base — Rationale (phases 0–10)
 
 Why every entry in `knowledge_base.yaml` exists, traced to the experiment that
 produced it. The agent never reads this file; it is here so a claim in the YAML
-can be checked rather than taken on trust.
+can be checked rather than taken on trust. Phases 11–17 are in
+`TIER12_RESULTS.md` (sibling file).
 
-Every number below is in `experiments.jsonl` and re-checkable with
-`python tools/kb_check.py`.
+Every number below is in `../ml_modelling/experiments.jsonl` and re-checkable with
+`python ml_modelling/tools/kb_check.py` (run from the repo root).
 
 ---
 

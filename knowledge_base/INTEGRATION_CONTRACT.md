@@ -4,6 +4,11 @@
 `KNOWLEDGE_BASE_PLAN.md`. It needs a yes/no from whoever owns the agent-brain
 workstream; the open questions at the bottom are the ones I cannot decide alone.
 
+Paths in this doc: `knowledge_base.yaml` and `knowledge_base_rationale.md` are
+siblings in this `knowledge_base/` folder; `experiments.jsonl` and `tools/` live
+under `../ml_modelling/` (the lab). Run `python ml_modelling/tools/kb_check.py`
+from the repo root.
+
 ## 1. What the agent reads, and when
 
 | Point in the loop | Reads | Purpose |

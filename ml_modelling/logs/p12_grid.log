@@ -1,0 +1,29 @@
+[12-ssm-lr0.0005-t0.5-n4-k8] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-ssm-lr0.0005-t0.5-n4-k8] valid primary 0.6036 (+0.0020 vs baseline) -> positive  [41s]
+  12-ssm-lr0.0005-t0.5-n4-k8           v 0.6036  t 0.5975  rv 0.3725  rt 0.3824  [ep4/9]
+[12-ssm-lr0.0005-t1-n4-k8] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-ssm-lr0.0005-t1-n4-k8] valid primary 0.6040 (+0.0024 vs baseline) -> positive  [40s]
+  12-ssm-lr0.0005-t1-n4-k8             v 0.6040  t 0.5980  rv 0.3767  rt 0.3892  [ep4/9]
+[12-ssm-lr0.0005-t2-n4-k8] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-ssm-lr0.0005-t2-n4-k8] valid primary 0.6043 (+0.0027 vs baseline) -> positive  [54s]
+  12-ssm-lr0.0005-t2-n4-k8             v 0.6043  t 0.5978  rv 0.3749  rt 0.3860  [ep7/12]
+[12-ssm-lr0.001-t0.5-n4-k8] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-ssm-lr0.001-t0.5-n4-k8] valid primary 0.6032 (+0.0016 vs baseline) -> neutral  [32s]
+  12-ssm-lr0.001-t0.5-n4-k8            v 0.6032  t 0.5970  rv 0.3732  rt 0.3830  [ep2/7]
+[12-ssm-lr0.001-t1-n4-k8] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-ssm-lr0.001-t1-n4-k8] valid primary 0.6039 (+0.0023 vs baseline) -> positive  [124s]
+  12-ssm-lr0.001-t1-n4-k8              v 0.6039  t 0.5977  rv 0.3732  rt 0.3827  [ep3/8]
+[12-ssm-lr0.001-t2-n4-k8] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-ssm-lr0.001-t2-n4-k8] valid primary 0.6036 (+0.0020 vs baseline) -> positive  [41s]
+  12-ssm-lr0.001-t2-n4-k8              v 0.6036  t 0.5980  rv 0.3744  rt 0.3850  [ep4/9]
+
+grid best: lr=0.0005 temp=2.0 valid 0.6043 (peaked ep 7)
+
+exp_id                      phase    valid    test  d_valid  outcome  s
+-----------------------------------------------------------------------
+12-ssm-lr0.0005-t2-n4-k8    12      0.6043  0.5978  +0.0027 positive  54
+12-ssm-lr0.0005-t1-n4-k8    12      0.6040  0.5980  +0.0024 positive  40
+12-ssm-lr0.001-t1-n4-k8     12      0.6039  0.5977  +0.0023 positive  124
+12-ssm-lr0.0005-t0.5-n4-k8  12      0.6036  0.5975  +0.0020 positive  41
+12-ssm-lr0.001-t2-n4-k8     12      0.6036  0.5981  +0.0020 positive  41
+12-ssm-lr0.001-t0.5-n4-k8   12      0.6032  0.5970  +0.0016  neutral  32
