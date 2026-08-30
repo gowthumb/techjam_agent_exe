@@ -8,7 +8,7 @@ from agent.attempt import AttemptResult
 from agent.executor import IterationResult
 from agent.planner import PlannerResult
 from agent.state import RunState
-from scripts.run_agent import run_loop
+from scripts.run_agent import _new_state, run_loop
 
 
 HYPOTHESIS = {"description": "Try a ranking loss.", "rationale": "Knowledge-base item 1.", "target_module": "loss_function"}
@@ -60,6 +60,25 @@ class RunAgentTest(unittest.TestCase):
         self.assertEqual(state.total_tokens, 2)
         self.assertEqual(state.total_wall_clock_s, 5.0)
         self.assertEqual(saved_state.total_wall_clock_s, 5.0)
+
+    def test_skip_final_test_persists_summary_without_test_access(self):
+        state = RunState(current_code="baseline", best_metrics={"primary": 0.55}, run_id="skip-final-test")
+        with tempfile.TemporaryDirectory() as temporary_directory, patch(
+            "scripts.run_agent.score_final_on_test"
+        ) as final_score:
+            root = Path(temporary_directory)
+            summary = run_loop(
+                state, max_iterations=0, max_wallclock_hours=6, data_dir=root,
+                runs_dir=root, cache_dir=root, finalize_on_test=False,
+            )
+        self.assertEqual(summary["stopping_reason"], "iteration cap")
+        self.assertIsNone(summary["final_test_metrics"])
+        final_score.assert_not_called()
+
+    def test_named_new_state_uses_requested_run_id(self):
+        state = _new_state()
+        state.run_id = "named-fresh-run"
+        self.assertEqual(state.run_id, "named-fresh-run")
 
 
 if __name__ == "__main__":

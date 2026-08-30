@@ -93,15 +93,17 @@ def run_candidate(
 
 
 def check_convergence(state: RunState) -> bool:
-    """Apply epsilon=0.002 over the last three scored iteration intervals."""
+    """Apply epsilon=0.002 over three scored intervals after an accepted improvement."""
     best_so_far = []
     best = float("-inf")
+    accepted_improvement = False
     for entry in state.experiment_history:
         valid_metrics = (entry.get("metrics") or {}).get("valid")
         if valid_metrics is not None:
             best = max(best, valid_metrics["primary"])
             best_so_far.append(best)
-    return len(best_so_far) >= 4 and best_so_far[-1] - best_so_far[-4] <= 0.002
+            accepted_improvement = accepted_improvement or entry.get("status") == "accepted"
+    return accepted_improvement and len(best_so_far) >= 4 and best_so_far[-1] - best_so_far[-4] <= 0.002
 
 
 def check_caps(state: RunState) -> bool:

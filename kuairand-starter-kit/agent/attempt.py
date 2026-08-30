@@ -42,28 +42,48 @@ def attempt_hypothesis(
     state.retry_count = 0
     attempted_diffs: list[str] = []
     errors: list[str] = []
+    failed_diff = initial_diff or "<no valid Search/Replace block produced>"
+    tokens_used = initial_tokens
     if initial_diff is None:
-        coder_result = propose_patch(state.current_code, hypothesis)
-        diff = coder_result.diff
-        tokens_used = coder_result.input_tokens + coder_result.output_tokens
+        try:
+            coder_result = propose_patch(state.current_code, hypothesis)
+            failed_diff = coder_result.diff
+            tokens_used = coder_result.input_tokens + coder_result.output_tokens
+        except Exception as error:
+            errors.append("Coder patch generation failed: %s: %s" % (type(error).__name__, error))
     else:
-        diff = initial_diff
-        tokens_used = initial_tokens
+        failed_diff = initial_diff
 
-    for retry_index in range(max_retries + 1):
-        attempted_diffs.append(diff)
+    if not errors:
+        attempted_diffs.append(failed_diff)
         result = run_candidate(
-            state, diff, data_dir, cache_dir, runs_dir, timeout_s,
+            state, failed_diff, data_dir, cache_dir, runs_dir, timeout_s,
+            hypothesis["description"], hypothesis["rationale"], tokens_used,
+        )
+        if result.status in {"accepted", "rejected"}:
+            return AttemptResult(result.status, result, attempted_diffs, errors, 0)
+        errors.append(result.error_trace or "Candidate failed before validation scoring.")
+        failed_diff = attempted_diffs[-1]
+    else:
+        attempted_diffs.append(failed_diff)
+
+    for retry_index in range(1, max_retries + 1):
+        try:
+            repair = fix_patch(state.current_code, failed_diff, errors[-1])
+            failed_diff = repair.diff
+            tokens_used = repair.input_tokens + repair.output_tokens
+        except Exception as error:
+            errors.append("Debugger patch generation failed: %s: %s" % (type(error).__name__, error))
+            attempted_diffs.append(failed_diff)
+            continue
+        attempted_diffs.append(failed_diff)
+        result = run_candidate(
+            state, failed_diff, data_dir, cache_dir, runs_dir, timeout_s,
             hypothesis["description"], hypothesis["rationale"], tokens_used,
         )
         if result.status in {"accepted", "rejected"}:
             return AttemptResult(result.status, result, attempted_diffs, errors, retry_index)
         errors.append(result.error_trace or "Candidate failed before validation scoring.")
-        if retry_index == max_retries:
-            break
-        repair = fix_patch(state.current_code, diff, errors[-1])
-        diff = repair.diff
-        tokens_used = repair.input_tokens + repair.output_tokens
 
     log_iteration(state, {
         "iteration_num": state.iteration_num,

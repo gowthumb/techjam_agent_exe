@@ -1,0 +1,112 @@
+{
+  "best_metrics": {
+    "GAUC": 0.6674,
+    "nDCG@5": 0.5357,
+    "primary": 0.6016
+  },
+  "current_code": "\"\"\"KuaiRand-Pure baselines\u3002\n  --model pop   : item popularity\uff08\u5b98\u65b9 baseline\uff0c\u7eaf\u7edf\u8ba1\uff0c\u4e0d\u8bad\u7ec3\uff09\n  --model fm    : Factorization Machine\uff08\u8d77\u6b65\u6a21\u578b\uff0c\u5b66\u751f\u4ece\u8fd9\u91cc\u5f80\u4e0a\u6539\uff09\n  --model random: \u968f\u673a\u6253\u5206\uff08\u4e0b\u754c\uff0c\u7528\u6765\u81ea\u68c0\u8bc4\u6d4b\u4ee3\u7801\u6ca1\u574f\uff09\n\u53ea\u4f9d\u8d56 numpy\u3002\u7528\u6cd5\u89c1 README.md\n\"\"\"\nimport argparse, collections, time\nimport numpy as np\nfrom data import load, encode, FIELDS\nfrom evaluate import evaluate\n\ndef sigmoid(x): return 1.0 / (1.0 + np.exp(-np.clip(x, -30, 30)))\n\n# ---------------- item popularity\uff08\u5b98\u65b9 baseline\uff09 ----------------\ndef run_pop(splits, prior=20.0):\n    pos, imp = collections.Counter(), collections.Counter()\n    for x in splits['train']:\n        imp[x[2]] += 1; pos[x[2]] += x[6]\n    gmean = sum(pos.values()) / sum(imp.values())\n    score = lambda v: (pos[v] + prior * gmean) / (imp[v] + prior) if imp[v] else gmean\n    out = {}\n    for name in ('valid', 'test'):\n        rws = splits[name]\n        out[name] = evaluate([x[1] for x in rws], [x[6] for x in rws],\n                             [score(x[2]) for x in rws])\n    return out\n\ndef run_random(splits, seed=0):\n    rng = np.random.default_rng(seed)\n    out = {}\n    for name in ('valid', 'test'):\n        rws = splits[name]\n        out[name] = evaluate([x[1] for x in rws], [x[6] for x in rws],\n                             rng.random(len(rws)))\n    return out\n\n# ---------------- Factorization Machine ----------------\nclass FM:\n    def __init__(self, dim, k=16, lr=0.001, l2=1e-6, seed=0):\n        rng = np.random.default_rng(seed)\n        self.V = rng.normal(0, 0.01, (dim, k)).astype(np.float32)\n        self.W = np.zeros(dim, dtype=np.float32)\n        self.b = np.float32(0.0)\n        self.lr, self.l2 = lr, l2\n        self.mV = np.zeros_like(self.V); self.vV = np.zeros_like(self.V)\n        self.mW = np.zeros_like(self.W); self.vW = np.zeros_like(self.W)\n        self.t = 0\n\n    def logits(self, X):\n        E = self.V[X]                                   # (B,F,k)\n        S = E.sum(1)                                    # (B,k)\n        inter = 0.5 * ((S ** 2).sum(1) - (E ** 2).sum((1, 2)))\n        return self.b + self.W[X].sum(1) + inter, E, S\n\n    def step(self, X, y):\n        B = len(y)\n        z, E, S = self.logits(X)\n        g = ((sigmoid(z) - y) / B).astype(np.float32)    # (B,)\n        gV = np.zeros_like(self.V); gW = np.zeros_like(self.W)\n        np.add.at(gW, X, g[:, None])\n        np.add.at(gV, X, g[:, None, None] * (S[:, None, :] - E))\n        gV += self.l2 * self.V; gW += self.l2 * self.W\n        self.t += 1\n        b1, b2, eps = 0.9, 0.999, 1e-8\n        for P, G, M, Vv in ((self.V, gV, self.mV, self.vV), (self.W, gW, self.mW, self.vW)):\n            M *= b1; M += (1 - b1) * G\n            Vv *= b2; Vv += (1 - b2) * (G * G)\n            P -= self.lr * (M / (1 - b1 ** self.t)) / (np.sqrt(Vv / (1 - b2 ** self.t)) + eps)\n        self.b -= self.lr * g.sum()\n        return float(-np.mean(y * np.log(sigmoid(z) + 1e-9) + (1 - y) * np.log(1 - sigmoid(z) + 1e-9)))\n\n    def predict(self, X, bs=200_000):\n        return np.concatenate([self.logits(X[i:i + bs])[0] for i in range(0, len(X), bs)])\n\ndef run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False):\n    enc, dim = encode(splits)\n    Xtr, ytr, _ = enc['train']; Xva, yva, uva = enc['valid']; Xte, yte, ute = enc['test']\n    m = FM(dim, k=k, lr=lr, seed=seed)\n    rng = np.random.default_rng(seed)\n    best, best_state, bad = -1, None, 0\n    for ep in range(1, epochs + 1):\n        idx = rng.permutation(len(ytr)); t0 = time.time()\n        losses = [m.step(Xtr[idx[i:i + bs]], ytr[idx[i:i + bs]]) for i in range(0, len(idx), bs)]\n        va = evaluate(uva, yva, m.predict(Xva))\n        if verbose:\n            print(f\"  epoch {ep:2d} | loss {np.mean(losses):.4f} | valid GAUC {va['GAUC']:.4f} \"\n                  f\"nDCG@5 {va['nDCG@5']:.4f} primary {va['primary']:.4f} | {time.time()-t0:.1f}s\")\n        if va['primary'] > best + 1e-5:\n            best, bad = va['primary'], 0\n            best_state = (m.V.copy(), m.W.copy(), np.float32(m.b))\n        else:\n            bad += 1\n            if bad >= patience:\n                if verbose: print(f\"  early stop at epoch {ep}\")\n                break\n    m.V, m.W, m.b = best_state\n    test_scores = m.predict(Xte)\n    result = {'valid': evaluate(uva, yva, m.predict(Xva)),\n              'test': evaluate(ute, yte, test_scores)}\n    if return_predictions:\n        result['test_scores'] = test_scores\n    return result\n\nif __name__ == '__main__':\n    ap = argparse.ArgumentParser()\n    ap.add_argument('--data_dir', default='./KuaiRand-Pure/data',\n                    help='KuaiRand-Pure \u89e3\u538b\u540e\u7684 data \u76ee\u5f55')\n    ap.add_argument('--model', default='fm', choices=['pop', 'fm', 'random'])\n    ap.add_argument('--k', type=int, default=16)\n    ap.add_argument('--lr', type=float, default=0.001)\n    ap.add_argument('--epochs', type=int, default=40)\n    ap.add_argument('--seed', type=int, default=0)\n    a = ap.parse_args()\n    print(f\"loading {a.data_dir} ...\")\n    splits = load(a.data_dir)\n    print({k_: len(v) for k_, v in splits.items()}, f\"fields={FIELDS}\")\n    res = {'pop': run_pop, 'random': lambda s: run_random(s, a.seed),\n           'fm': lambda s: run_fm(s, k=a.k, lr=a.lr, epochs=a.epochs, seed=a.seed)}[a.model](splits)\n    print(f\"\\n=== {a.model} (seed={a.seed}) ===\")\n    for sp in ('valid', 'test'):\n        r = res[sp]\n        print(f\"  {sp:5s}  GAUC {r['GAUC']:.4f} | nDCG@5 {r['nDCG@5']:.4f} | primary {r['primary']:.4f}\")\n",
+  "experiment_history": [
+    {
+      "code_diff": "<<<<<<< SEARCH\ndef run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False):\n=======\ndef run_fm(splits, k=6, lr=0.0002, epochs=60, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False):\n>>>>>>> REPLACE",
+      "error_trace": null,
+      "hypothesis": "Test margin-shifted same-user BPR: replace the loss with softplus(m - (s_pos - s_neg)) while preserving the recommended FM configuration, one pair per positive, forward pass, initialization, Adam updates, and regularization. Sweep m in {0, 0.25, 0.5, 1.0}, using m=0 as the exact implementation control. Score valid, test, and rand_valid; apply the rand_valid veto and replicate any setting within 0.0015 of the best across at least 3 seeds.",
+      "iteration_num": 1,
+      "metrics": {
+        "valid": {
+          "GAUC": 0.6669939756393433,
+          "nDCG@5": 0.5357919931411743,
+          "primary": 0.6013929843902588,
+          "rows": 124909,
+          "users": 22377
+        }
+      },
+      "rationale": "Confirmed knowledge-base item #2 shows tuned same-user BPR is the safe best model, while item #3 shows a second ranking objective, sampled softmax, independently reaches the same performance tier; together they identify the loss as the productive axis. A positive pairwise margin is not among the tested failures: it changes neither negative sampling nor pair count, so it does not duplicate the rejected global-negative or pairs_per_pos directions. The hypothesis is that explicitly requiring positive-negative score separation will improve top-rank discrimination under embedding regularization. The m=0 run cleanly controls for implementation changes.",
+      "role_models": {
+        "coder": "fugu",
+        "debugger": "fugu",
+        "planner": "fugu"
+      },
+      "status": "rejected",
+      "tokens_used": 3793,
+      "wall_time_s": 75.47592658398207
+    },
+    {
+      "code_diff": "<<<<<<< SEARCH\ndef run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False):\n=======\ndef run_fm(splits, k=6, lr=0.0002, epochs=60, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False):\n>>>>>>> REPLACE",
+      "error_trace": null,
+      "hypothesis": "Test a cross-objective, user-wise rank ensemble of the validated FM-BPR and FM-SSM models. Blend their per-user prediction ranks with BPR weights in {0.0, 0.25, 0.5, 0.75, 1.0}, where the endpoints are exact single-model controls. Use independently trained matched-seed members, evaluate valid, test, and rand_valid, and report a 3+ seed mean for any blend within 0.0015 of the best; apply the rand_valid veto.",
+      "iteration_num": 2,
+      "metrics": {
+        "valid": {
+          "GAUC": 0.6669939756393433,
+          "nDCG@5": 0.5357919931411743,
+          "primary": 0.6013929843902588,
+          "rows": 124909,
+          "users": 22377
+        }
+      },
+      "rationale": "Knowledge-base item #3 explicitly identifies SSM as a validated BPR peer from a different loss family and recommends it as a decorrelated ensemble member. This does not repeat the rejected same-model seed averaging direction: diversity comes from BPR versus sampled-softmax objectives, while rank normalization prevents incompatible score scales from driving the blend. The endpoint controls isolate whether combining objectives adds value beyond either validated model alone.",
+      "role_models": {
+        "coder": "fugu",
+        "debugger": "fugu",
+        "planner": "fugu"
+      },
+      "status": "rejected",
+      "tokens_used": 3870,
+      "wall_time_s": 73.14982229203451
+    },
+    {
+      "code_diff": "<<<<<<< SEARCH\ndef run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False):\n=======\ndef run_fm(splits, k=6, lr=0.0002, epochs=60, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False):\n>>>>>>> REPLACE",
+      "error_trace": null,
+      "hypothesis": "Test online same-user hard-negative mining for FM-BPR. For each positive, sample a pool of C observed same-user negatives, score them with the current FM, select the highest-scoring negative, and apply exactly one standard BPR loss term. Sweep C in {1, 2, 4, 8}; C=1 is the exact recommended BPR control, and include a random-choice-from-8 control to isolate hardness from extra candidate scoring. Preserve the validated BPR hyperparameters, initialization, Adam updates, regularization, and one optimizer loss term per positive. Evaluate valid, test, and rand_valid, apply the rand_valid veto, and replicate any configuration within 0.0015 of the best over at least 3 seeds.",
+      "iteration_num": 3,
+      "metrics": {
+        "valid": {
+          "GAUC": 0.6669939756393433,
+          "nDCG@5": 0.5357919931411743,
+          "primary": 0.6013929843902588,
+          "rows": 124909,
+          "users": 22377
+        }
+      },
+      "rationale": "Knowledge-base item #2 establishes same-user BPR as the safe recommended model, while item #3 shows that contrasting a positive with eight same-user negatives is effective under sampled softmax. Hard-negative mining combines those findings by retaining BPR while concentrating its single pairwise update on the currently most consequential ordering violation, which may improve top-5 ranking without sacrificing GAUC. This is distinct from the rejected pairs_per_pos>1 direction because it still uses only one BPR term per positive, and it does not duplicate the historical margin-loss or ensemble hypotheses. The C=1 and random-choice-from-8 controls isolate the mining mechanism.",
+      "role_models": {
+        "coder": "fugu",
+        "debugger": "fugu",
+        "planner": "fugu"
+      },
+      "status": "rejected",
+      "tokens_used": 3941,
+      "wall_time_s": 72.10789512499468
+    },
+    {
+      "code_diff": "<<<<<<< SEARCH\ndef run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False):\n=======\ndef run_fm(splits, k=6, lr=0.0002, epochs=60, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False):\n>>>>>>> REPLACE",
+      "error_trace": null,
+      "hypothesis": "Test macro-user-balanced same-user BPR by multiplying each pair loss for user u by a normalized weight proportional to (n_pos(u))^-alpha, where counts use training positives only and alpha is swept over {0, 0.5, 1.0}. Alpha=0 must reproduce the recommended BPR exactly. Include a control that randomly permutes positive-count values across users before constructing alpha=1 weights, preserving the weight distribution while removing its relationship to user activity. Keep one random same-user negative per positive and preserve the validated forward pass, initialization, Adam updates, regularization, and hyperparameters. Select on valid, record test and rand_valid, apply the rand_valid veto, and replicate every setting within 0.0015 of the best over at least three seeds.",
+      "iteration_num": 4,
+      "metrics": {
+        "valid": {
+          "GAUC": 0.6669939756393433,
+          "nDCG@5": 0.5357919931411743,
+          "primary": 0.6013929843902588,
+          "rows": 124909,
+          "users": 22377
+        }
+      },
+      "rationale": "Knowledge-base item #2 shows that BPR's gain is primarily GAUC and correctly attributes it to within-user pair ordering, but ordinary row-level training lets users with many positives dominate updates even though GAUC and nDCG@5 are aggregated at the user level. Equalizing user contribution may better align the training objective with evaluation without adding capacity, features, negatives, or a new inference mechanism. This is distinct from the rejected margin, ensemble, and hard-negative hypotheses. The permuted-count control isolates genuine activity balancing from generic loss reweighting or optimization noise.",
+      "role_models": {
+        "coder": "fugu",
+        "debugger": "fugu",
+        "planner": "fugu"
+      },
+      "status": "rejected",
+      "tokens_used": 3875,
+      "wall_time_s": 78.50475812499644
+    }
+  ],
+  "iteration_num": 4,
+  "manual_interventions": 0,
+  "retry_count": 0,
+  "run_id": "kb-hardened-10run-v2",
+  "total_tokens": 56439,
+  "total_wall_clock_s": 1268.2885710839764
+}

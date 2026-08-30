@@ -15,10 +15,13 @@ The correction must apply against the last known-good current code, not an inter
 Return ONLY one or more Search/Replace blocks. No explanation, no Markdown fences, and nothing outside the Search/Replace blocks.
 Use this exact format:
 <<<<<<< SEARCH
-def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbose=True):
+def compute_score(x, y, weight=0.5):
+    return weight * x + (1 - weight) * y
 =======
-def run_fm(splits, k=6, lr=0.0002, epochs=60, bs=8192, patience=4, seed=0, verbose=True):
+def compute_score(x, y, weight=0.7):
+    return weight * x + (1 - weight) * y
 >>>>>>> REPLACE
+This example demonstrates the required syntax only. Your patch must implement the specific mechanism described in the hypothesis below — do not reuse this example's function, parameters, or values unless the hypothesis independently calls for them.
 
 Hard constraints:
 - SEARCH text must be an exact verbatim substring of the current code.
@@ -26,6 +29,8 @@ Hard constraints:
 - Preserve the function signature run_fm(splits, ...) exactly.
 - run_fm must accept return_predictions: bool = False. When it is True, return a test_scores array or list aligned to the test split row order alongside valid and test metrics. Its default must remain False.
 - Keep existing imports unless the repair specifically requires changing them.
+- The diff must implement the hypothesis's actual mechanism, not adjust existing parameters, reformat code, add unused constants, cast dtypes, or add helper functions that are not called from the active code path. A patch that does not change the model's actual computation is invalid regardless of its size or syntax validity.
+- If the hypothesis requires a substantial change (a new loss function, new sampling logic, a new layer), write that logic and wire it into the function that's actually called -- don't leave it unused.
 
 Execution contract: the normal runner invokes run_fm(splits) in an isolated subprocess and receives only validation metrics. Finalization alone invokes run_fm(splits, return_predictions=True), which must return aligned test_scores. Do not alter evaluate.py, change the split names, remove valid/test metric keys, or add code that exposes test scores during normal iteration. Preserve data.load() row order: never reorder, filter, or resort rows in a way that breaks submission row_id-to-(user_id, video_id) alignment; ml_modelling.explib.dataset.verify_row_order_matches_starter_kit() verifies this invariant. Preserve the baseline forward-pass structure, Adam optimizer update, and initialization unless the hypothesis explicitly changes one of them, so an accepted result is attributable to the stated hypothesis.
 

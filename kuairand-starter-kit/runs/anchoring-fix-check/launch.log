@@ -1,0 +1,45 @@
+[2026-08-30T20:26:39+08:00] LLM request starting: role=PLANNER model=fugu prompt_chars=27647
+[2026-08-30T20:26:58+08:00] LLM response received: role=PLANNER model=fugu elapsed_s=18.26
+LLM model: fugu
+[2026-08-30T20:26:58+08:00] LLM request starting: role=CODER model=fugu prompt_chars=9008
+[2026-08-30T20:30:02+08:00] LLM response received: role=CODER model=fugu elapsed_s=183.89
+[2026-08-30T20:30:02+08:00] LLM request starting: role=DEBUGGER model=fugu prompt_chars=7971
+[2026-08-30T20:30:16+08:00] LLM response received: role=DEBUGGER model=fugu elapsed_s=14.32
+[2026-08-30T20:30:48+08:00] LLM request starting: role=PLANNER model=fugu prompt_chars=29815
+[2026-08-30T20:31:04+08:00] LLM response received: role=PLANNER model=fugu elapsed_s=16.74
+[2026-08-30T20:31:04+08:00] LLM request starting: role=CODER model=fugu prompt_chars=9015
+[2026-08-30T20:37:06+08:00] LLM request starting: role=DEBUGGER model=fugu prompt_chars=7922
+[2026-08-30T20:37:23+08:00] LLM response received: role=DEBUGGER model=fugu elapsed_s=16.78
+[2026-08-30T20:38:07+08:00] LLM request starting: role=PLANNER model=fugu prompt_chars=31738
+[2026-08-30T20:38:33+08:00] LLM response received: role=PLANNER model=fugu elapsed_s=25.54
+[2026-08-30T20:38:33+08:00] LLM request starting: role=CODER model=fugu prompt_chars=9121
+[2026-08-30T20:41:35+08:00] LLM response received: role=CODER model=fugu elapsed_s=182.86
+[2026-08-30T20:42:08+08:00] LLM request starting: role=PLANNER model=fugu prompt_chars=33878
+[2026-08-30T20:42:20+08:00] LLM response received: role=PLANNER model=fugu elapsed_s=12.10
+[2026-08-30T20:42:20+08:00] LLM request starting: role=CODER model=fugu prompt_chars=8768
+[2026-08-30T20:44:06+08:00] LLM response received: role=CODER model=fugu elapsed_s=106.11
+[2026-08-30T20:44:06+08:00] LLM request starting: role=DEBUGGER model=fugu prompt_chars=7971
+[2026-08-30T20:44:33+08:00] LLM response received: role=DEBUGGER model=fugu elapsed_s=27.65
+[2026-08-30T20:45:04+08:00] LLM request starting: role=PLANNER model=fugu prompt_chars=35900
+[2026-08-30T20:45:58+08:00] LLM response received: role=PLANNER model=fugu elapsed_s=54.82
+[2026-08-30T20:45:58+08:00] LLM request starting: role=CODER model=fugu prompt_chars=8809
+[2026-08-30T20:52:00+08:00] LLM request starting: role=DEBUGGER model=fugu prompt_chars=7922
+[2026-08-30T20:52:16+08:00] LLM response received: role=DEBUGGER model=fugu elapsed_s=15.99
+[2026-08-30T20:52:50+08:00] LLM request starting: role=PLANNER model=fugu prompt_chars=37964
+[2026-08-30T20:53:45+08:00] LLM response received: role=PLANNER model=fugu elapsed_s=54.27
+[2026-08-30T20:53:45+08:00] LLM request starting: role=CODER model=fugu prompt_chars=9007
+[2026-08-30T20:58:42+08:00] LLM response received: role=CODER model=fugu elapsed_s=297.55
+{
+  "best_validation_metrics": {
+    "GAUC": 0.6674,
+    "nDCG@5": 0.5357,
+    "primary": 0.6016
+  },
+  "consecutive_abandoned": 0,
+  "final_test_metrics": null,
+  "manual_interventions": 0,
+  "stopping_reason": "iteration cap",
+  "total_iterations": 6,
+  "total_tokens": 99325,
+  "total_wall_clock_s": 1956.550848957966
+}

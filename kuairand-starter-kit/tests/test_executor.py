@@ -48,10 +48,18 @@ class ExecutorSmokeTest(unittest.TestCase):
     def test_convergence_uses_best_primary_over_three_intervals(self):
         state = RunState(current_code="")
         state.experiment_history = [
-            {"metrics": {"valid": {"primary": primary}}}
-            for primary in (0.6000, 0.6010, 0.6015, 0.6019)
+            {"status": "accepted" if index == 0 else "rejected", "metrics": {"valid": {"primary": primary}}}
+            for index, primary in enumerate((0.6000, 0.6010, 0.6015, 0.6019))
         ]
         self.assertTrue(check_convergence(state))
+
+    def test_rejection_only_history_cannot_converge(self):
+        state = RunState(current_code="")
+        state.experiment_history = [
+            {"status": "rejected", "metrics": {"valid": {"primary": 0.6013}}}
+            for _ in range(4)
+        ]
+        self.assertFalse(check_convergence(state))
 
     def test_caps_cover_iteration_and_wall_clock_limits(self):
         self.assertTrue(check_caps(RunState(current_code="", iteration_num=50)))

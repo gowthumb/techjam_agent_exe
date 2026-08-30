@@ -54,6 +54,7 @@ def run_loop(
     data_dir: Path,
     runs_dir: Path,
     cache_dir: Path,
+    finalize_on_test: bool = True,
 ) -> dict:
     """Run until convergence, a budget cap, or repeated pre-scoring abandonment."""
     reset_quota_pause_budget()
@@ -92,15 +93,18 @@ def run_loop(
             state.total_wall_clock_s += max(0.0, attempt_elapsed_s - runner_accounted_s)
             consecutive_abandoned = consecutive_abandoned + 1 if attempt_result.status == "abandoned" else 0
             state.save(run_directory / "state.json")
-        final_started_at = monotonic()
-        final_result = score_final_on_test(state.current_code, data_dir, cache_dir)
-        state.total_wall_clock_s += monotonic() - final_started_at
-        if final_result["status"] != "ok":
-            raise RuntimeError(final_result.get("error_trace", "Final test scoring timed out."))
+        final_test_metrics = None
+        if finalize_on_test:
+            final_started_at = monotonic()
+            final_result = score_final_on_test(state.current_code, data_dir, cache_dir)
+            state.total_wall_clock_s += monotonic() - final_started_at
+            if final_result["status"] != "ok":
+                raise RuntimeError(final_result.get("error_trace", "Final test scoring timed out."))
+            final_test_metrics = final_result["metrics"]["test"]
         summary = {
             "stopping_reason": reason,
             "best_validation_metrics": state.best_metrics,
-            "final_test_metrics": final_result["metrics"]["test"],
+            "final_test_metrics": final_test_metrics,
             "total_iterations": state.iteration_num,
             "total_tokens": state.total_tokens,
             "total_wall_clock_s": state.total_wall_clock_s,
@@ -123,11 +127,15 @@ def main() -> int:
     parser.add_argument("--data-dir", type=Path, default=ROOT / "KuaiRand-Pure" / "data")
     parser.add_argument("--runs-dir", type=Path, default=ROOT / "runs")
     parser.add_argument("--cache-dir", type=Path, default=ROOT / ".cache")
+    parser.add_argument("--skip-final-test", action="store_true", help="Stop and persist without reading test metrics.")
     args = parser.parse_args()
-    if args.run_id:
-        state = RunState.load(args.runs_dir / args.run_id / "state.json")
+    state_path = args.runs_dir / args.run_id / "state.json" if args.run_id else None
+    if state_path is not None and state_path.exists():
+        state = RunState.load(state_path)
     else:
         state = _new_state()
+        if args.run_id:
+            state.run_id = args.run_id
     try:
         summary = run_loop(
             state,
@@ -136,6 +144,7 @@ def main() -> int:
             data_dir=args.data_dir,
             runs_dir=args.runs_dir,
             cache_dir=args.cache_dir,
+            finalize_on_test=not args.skip_final_test,
         )
     except LLMError as error:
         print("STOPPED: %s" % error, file=sys.stderr)
