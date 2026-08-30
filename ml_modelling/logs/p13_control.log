@@ -1,0 +1,20 @@
+[13-wt-w0-singletask] long_view is a deterministic threshold on watch time; a regression head on the continuous watch ratio shares the embedding table and trains on strictly more information than the binary head. One-sided (censored) loss for completed plays. KNOWLEDGE_BASE_PLAN.md Phase 1c; README direction #4
+[13-wt-w0-singletask] valid primary 0.6014 (-0.0002 vs baseline) -> neutral  [58s]
+  13-wt-w0-singletask                            v 0.6014 t 0.5948 rv 0.3663 rt 0.3728
+[13-wt-w1-twosided-ranklv] long_view is a deterministic threshold on watch time; a regression head on the continuous watch ratio shares the embedding table and trains on strictly more information than the binary head. One-sided (censored) loss for completed plays. KNOWLEDGE_BASE_PLAN.md Phase 1c; README direction #4
+[13-wt-w1-twosided-ranklv] valid primary 0.6021 (+0.0005 vs baseline) -> neutral  [84s]
+  13-wt-w1-twosided-ranklv                       v 0.6021 t 0.5943 rv 0.3592 rt 0.3645
+[13-wt-w1-randomtarget-ranklv] long_view is a deterministic threshold on watch time; a regression head on the continuous watch ratio shares the embedding table and trains on strictly more information than the binary head. One-sided (censored) loss for completed plays. KNOWLEDGE_BASE_PLAN.md Phase 1c; README direction #4
+[13-wt-w1-randomtarget-ranklv] valid primary 0.6015 (-0.0001 vs baseline) -> neutral  [276s]
+  13-wt-w1-randomtarget-ranklv                   v 0.6015 t 0.5941 rv 0.3598 rt 0.3672
+
+exp_id                         phase    valid    test  d_valid  outcome  s
+--------------------------------------------------------------------------
+13-wt-w1-onesided-ranklv       13      0.6022  0.5942  +0.0006  neutral  0
+13-wt-w1-twosided-ranklv       13      0.6021  0.5943  +0.0005  neutral  84
+13-wt-w1-randomtarget-ranklv   13      0.6015  0.5941  -0.0001  neutral  276
+13-wt-w0.5-onesided-ranklv     13      0.6014  0.5955  -0.0002  neutral  0
+13-wt-w0-singletask            13      0.6014  0.5948  -0.0002  neutral  58
+13-wt-w0.3-onesided-ranklv     13      0.6012  0.5946  -0.0004  neutral  0
+13-wt-w0.5-onesided-rankblend  13      0.5915  0.5836  -0.0101 negative  0
+13-wt-w0.5-onesided-rankwt     13      0.5868  0.5795  -0.0148 negative  0

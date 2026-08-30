@@ -1,0 +1,216 @@
+sequence: mean-pooled positives, dim=16, 92.4% of rows have history
+
+[7-fm-bpr-k16-lr0.0002-seqmean] 684,438 params, lr=0.0002
+[7-fm-bpr-k16-lr0.0002-seqmean] fm under bpr: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.6903 | GAUC 0.6459 nDCG@5 0.5256 primary 0.5858 | 3s
+  ep  2 | loss 0.6833 | GAUC 0.6497 nDCG@5 0.5277 primary 0.5887 | 3s
+  ep  3 | loss 0.6733 | GAUC 0.6551 nDCG@5 0.5292 primary 0.5922 | 3s
+  ep  4 | loss 0.6601 | GAUC 0.6582 nDCG@5 0.5310 primary 0.5946 | 3s
+  ep  5 | loss 0.6451 | GAUC 0.6605 nDCG@5 0.5320 primary 0.5962 | 3s
+  ep  6 | loss 0.6296 | GAUC 0.6629 nDCG@5 0.5326 primary 0.5977 | 3s
+  ep  7 | loss 0.6154 | GAUC 0.6642 nDCG@5 0.5332 primary 0.5987 | 3s
+  ep  8 | loss 0.6032 | GAUC 0.6654 nDCG@5 0.5338 primary 0.5996 | 3s
+  ep  9 | loss 0.5931 | GAUC 0.6661 nDCG@5 0.5345 primary 0.6003 | 3s
+  ep 10 | loss 0.5839 | GAUC 0.6667 nDCG@5 0.5351 primary 0.6009 | 3s
+  ep 11 | loss 0.5769 | GAUC 0.6666 nDCG@5 0.5349 primary 0.6007 | 3s
+  ep 12 | loss 0.5710 | GAUC 0.6664 nDCG@5 0.5350 primary 0.6007 | 3s
+  ep 13 | loss 0.5666 | GAUC 0.6671 nDCG@5 0.5350 primary 0.6011 | 3s
+  ep 14 | loss 0.5626 | GAUC 0.6676 nDCG@5 0.5354 primary 0.6015 | 3s
+  ep 15 | loss 0.5589 | GAUC 0.6679 nDCG@5 0.5354 primary 0.6016 | 3s
+  ep 16 | loss 0.5581 | GAUC 0.6683 nDCG@5 0.5360 primary 0.6021 | 3s
+  ep 17 | loss 0.5547 | GAUC 0.6681 nDCG@5 0.5358 primary 0.6019 | 3s
+  ep 18 | loss 0.5528 | GAUC 0.6680 nDCG@5 0.5359 primary 0.6020 | 3s
+  ep 19 | loss 0.5516 | GAUC 0.6688 nDCG@5 0.5364 primary 0.6026 | 3s
+  ep 20 | loss 0.5499 | GAUC 0.6690 nDCG@5 0.5363 primary 0.6026 | 3s
+  ep 21 | loss 0.5484 | GAUC 0.6691 nDCG@5 0.5367 primary 0.6029 | 3s
+  ep 22 | loss 0.5475 | GAUC 0.6693 nDCG@5 0.5367 primary 0.6030 | 3s
+  ep 23 | loss 0.5456 | GAUC 0.6693 nDCG@5 0.5369 primary 0.6031 | 3s
+  ep 24 | loss 0.5450 | GAUC 0.6695 nDCG@5 0.5367 primary 0.6031 | 3s
+  ep 25 | loss 0.5431 | GAUC 0.6693 nDCG@5 0.5366 primary 0.6030 | 3s
+  ep 26 | loss 0.5424 | GAUC 0.6689 nDCG@5 0.5364 primary 0.6027 | 3s
+  ep 27 | loss 0.5417 | GAUC 0.6692 nDCG@5 0.5368 primary 0.6030 | 3s
+  ep 28 | loss 0.5417 | GAUC 0.6694 nDCG@5 0.5370 primary 0.6032 | 3s
+  ep 29 | loss 0.5395 | GAUC 0.6696 nDCG@5 0.5371 primary 0.6033 | 3s
+  ep 30 | loss 0.5389 | GAUC 0.6693 nDCG@5 0.5369 primary 0.6031 | 3s
+  ep 31 | loss 0.5382 | GAUC 0.6693 nDCG@5 0.5371 primary 0.6032 | 3s
+  ep 32 | loss 0.5370 | GAUC 0.6695 nDCG@5 0.5372 primary 0.6033 | 3s
+  ep 33 | loss 0.5367 | GAUC 0.6693 nDCG@5 0.5370 primary 0.6031 | 3s
+  ep 34 | loss 0.5356 | GAUC 0.6698 nDCG@5 0.5373 primary 0.6036 | 3s
+  ep 35 | loss 0.5345 | GAUC 0.6693 nDCG@5 0.5370 primary 0.6031 | 3s
+  ep 36 | loss 0.5338 | GAUC 0.6697 nDCG@5 0.5369 primary 0.6033 | 3s
+  ep 37 | loss 0.5339 | GAUC 0.6703 nDCG@5 0.5373 primary 0.6038 | 3s
+  ep 38 | loss 0.5329 | GAUC 0.6700 nDCG@5 0.5372 primary 0.6036 | 3s
+  ep 39 | loss 0.5315 | GAUC 0.6703 nDCG@5 0.5373 primary 0.6038 | 3s
+  ep 40 | loss 0.5310 | GAUC 0.6701 nDCG@5 0.5373 primary 0.6037 | 3s
+  ep 41 | loss 0.5309 | GAUC 0.6701 nDCG@5 0.5373 primary 0.6037 | 3s
+  ep 42 | loss 0.5295 | GAUC 0.6700 nDCG@5 0.5369 primary 0.6034 | 3s
+  ep 43 | loss 0.5280 | GAUC 0.6699 nDCG@5 0.5370 primary 0.6035 | 3s
+  ep 44 | loss 0.5278 | GAUC 0.6699 nDCG@5 0.5372 primary 0.6035 | 3s
+  ep 45 | loss 0.5265 | GAUC 0.6699 nDCG@5 0.5372 primary 0.6036 | 3s
+  early stop at epoch 45
+[7-fm-bpr-k16-lr0.0002-seqmean] valid primary 0.6038 (+0.0022 vs baseline) -> positive  [119s]
+
+[7-deepfm-bpr-k16-lr0.0002-seqmean] 705,158 params, lr=0.0002
+[7-deepfm-bpr-k16-lr0.0002-seqmean] deepfm under bpr: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.6895 | GAUC 0.6457 nDCG@5 0.5258 primary 0.5857 | 4s
+  ep  2 | loss 0.6724 | GAUC 0.6508 nDCG@5 0.5281 primary 0.5895 | 3s
+  ep  3 | loss 0.6265 | GAUC 0.6610 nDCG@5 0.5313 primary 0.5962 | 4s
+  ep  4 | loss 0.5789 | GAUC 0.6667 nDCG@5 0.5350 primary 0.6009 | 4s
+  ep  5 | loss 0.5609 | GAUC 0.6687 nDCG@5 0.5362 primary 0.6024 | 4s
+  ep  6 | loss 0.5543 | GAUC 0.6697 nDCG@5 0.5362 primary 0.6030 | 4s
+  ep  7 | loss 0.5493 | GAUC 0.6698 nDCG@5 0.5367 primary 0.6032 | 4s
+  ep  8 | loss 0.5457 | GAUC 0.6703 nDCG@5 0.5371 primary 0.6037 | 4s
+  ep  9 | loss 0.5418 | GAUC 0.6705 nDCG@5 0.5372 primary 0.6039 | 3s
+  ep 10 | loss 0.5369 | GAUC 0.6694 nDCG@5 0.5364 primary 0.6029 | 4s
+  ep 11 | loss 0.5329 | GAUC 0.6697 nDCG@5 0.5363 primary 0.6030 | 4s
+  ep 12 | loss 0.5290 | GAUC 0.6678 nDCG@5 0.5357 primary 0.6018 | 3s
+  ep 13 | loss 0.5264 | GAUC 0.6664 nDCG@5 0.5353 primary 0.6009 | 3s
+  ep 14 | loss 0.5233 | GAUC 0.6651 nDCG@5 0.5346 primary 0.5999 | 4s
+  ep 15 | loss 0.5197 | GAUC 0.6618 nDCG@5 0.5333 primary 0.5975 | 3s
+  early stop at epoch 15
+[7-deepfm-bpr-k16-lr0.0002-seqmean] valid primary 0.6039 (+0.0023 vs baseline) -> positive  [55s]
+
+[7-fm-bpr-k16-lr0.0002-seqmean-seed1] 684,438 params, lr=0.0002
+[7-fm-bpr-k16-lr0.0002-seqmean-seed1] fm under bpr: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.6904 | GAUC 0.6462 nDCG@5 0.5254 primary 0.5858 | 3s
+  ep  2 | loss 0.6836 | GAUC 0.6520 nDCG@5 0.5276 primary 0.5898 | 3s
+  ep  3 | loss 0.6736 | GAUC 0.6563 nDCG@5 0.5299 primary 0.5931 | 3s
+  ep  4 | loss 0.6601 | GAUC 0.6593 nDCG@5 0.5308 primary 0.5951 | 3s
+  ep  5 | loss 0.6448 | GAUC 0.6611 nDCG@5 0.5319 primary 0.5965 | 3s
+  ep  6 | loss 0.6297 | GAUC 0.6624 nDCG@5 0.5325 primary 0.5974 | 3s
+  ep  7 | loss 0.6149 | GAUC 0.6644 nDCG@5 0.5333 primary 0.5989 | 3s
+  ep  8 | loss 0.6020 | GAUC 0.6652 nDCG@5 0.5338 primary 0.5995 | 3s
+  ep  9 | loss 0.5917 | GAUC 0.6662 nDCG@5 0.5343 primary 0.6003 | 3s
+  ep 10 | loss 0.5838 | GAUC 0.6668 nDCG@5 0.5349 primary 0.6009 | 3s
+  ep 11 | loss 0.5762 | GAUC 0.6675 nDCG@5 0.5352 primary 0.6014 | 3s
+  ep 12 | loss 0.5710 | GAUC 0.6678 nDCG@5 0.5356 primary 0.6017 | 3s
+  ep 13 | loss 0.5666 | GAUC 0.6681 nDCG@5 0.5357 primary 0.6019 | 3s
+  ep 14 | loss 0.5623 | GAUC 0.6684 nDCG@5 0.5360 primary 0.6022 | 3s
+  ep 15 | loss 0.5598 | GAUC 0.6692 nDCG@5 0.5363 primary 0.6027 | 3s
+  ep 16 | loss 0.5564 | GAUC 0.6687 nDCG@5 0.5363 primary 0.6025 | 3s
+  ep 17 | loss 0.5539 | GAUC 0.6688 nDCG@5 0.5363 primary 0.6025 | 3s
+  ep 18 | loss 0.5526 | GAUC 0.6687 nDCG@5 0.5363 primary 0.6025 | 3s
+  ep 19 | loss 0.5516 | GAUC 0.6690 nDCG@5 0.5365 primary 0.6027 | 3s
+  ep 20 | loss 0.5489 | GAUC 0.6694 nDCG@5 0.5367 primary 0.6030 | 3s
+  ep 21 | loss 0.5478 | GAUC 0.6696 nDCG@5 0.5367 primary 0.6032 | 3s
+  ep 22 | loss 0.5463 | GAUC 0.6701 nDCG@5 0.5370 primary 0.6035 | 3s
+  ep 23 | loss 0.5466 | GAUC 0.6695 nDCG@5 0.5369 primary 0.6032 | 3s
+  ep 24 | loss 0.5441 | GAUC 0.6696 nDCG@5 0.5367 primary 0.6031 | 3s
+  ep 25 | loss 0.5430 | GAUC 0.6698 nDCG@5 0.5370 primary 0.6034 | 3s
+  ep 26 | loss 0.5423 | GAUC 0.6697 nDCG@5 0.5371 primary 0.6034 | 3s
+  ep 27 | loss 0.5406 | GAUC 0.6700 nDCG@5 0.5371 primary 0.6036 | 3s
+  ep 28 | loss 0.5400 | GAUC 0.6697 nDCG@5 0.5370 primary 0.6033 | 3s
+  ep 29 | loss 0.5391 | GAUC 0.6698 nDCG@5 0.5369 primary 0.6033 | 3s
+  ep 30 | loss 0.5379 | GAUC 0.6694 nDCG@5 0.5367 primary 0.6031 | 3s
+  ep 31 | loss 0.5379 | GAUC 0.6697 nDCG@5 0.5371 primary 0.6034 | 3s
+  ep 32 | loss 0.5369 | GAUC 0.6695 nDCG@5 0.5370 primary 0.6033 | 3s
+  ep 33 | loss 0.5366 | GAUC 0.6699 nDCG@5 0.5368 primary 0.6034 | 3s
+  early stop at epoch 33
+[7-fm-bpr-k16-lr0.0002-seqmean-seed1] valid primary 0.6036 (+0.0020 vs baseline) -> positive  [88s]
+
+[7-deepfm-bpr-k16-lr0.0002-seqmean-seed1] 705,158 params, lr=0.0002
+[7-deepfm-bpr-k16-lr0.0002-seqmean-seed1] deepfm under bpr: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.6899 | GAUC 0.6476 nDCG@5 0.5259 primary 0.5868 | 4s
+  ep  2 | loss 0.6751 | GAUC 0.6565 nDCG@5 0.5299 primary 0.5932 | 3s
+  ep  3 | loss 0.6327 | GAUC 0.6615 nDCG@5 0.5322 primary 0.5968 | 4s
+  ep  4 | loss 0.5837 | GAUC 0.6656 nDCG@5 0.5342 primary 0.5999 | 3s
+  ep  5 | loss 0.5614 | GAUC 0.6681 nDCG@5 0.5356 primary 0.6019 | 4s
+  ep  6 | loss 0.5550 | GAUC 0.6695 nDCG@5 0.5364 primary 0.6030 | 4s
+  ep  7 | loss 0.5485 | GAUC 0.6696 nDCG@5 0.5365 primary 0.6031 | 3s
+  ep  8 | loss 0.5442 | GAUC 0.6703 nDCG@5 0.5368 primary 0.6035 | 4s
+  ep  9 | loss 0.5401 | GAUC 0.6694 nDCG@5 0.5362 primary 0.6028 | 3s
+  ep 10 | loss 0.5370 | GAUC 0.6693 nDCG@5 0.5364 primary 0.6028 | 3s
+  ep 11 | loss 0.5329 | GAUC 0.6693 nDCG@5 0.5366 primary 0.6029 | 4s
+  ep 12 | loss 0.5303 | GAUC 0.6683 nDCG@5 0.5357 primary 0.6020 | 3s
+  ep 13 | loss 0.5277 | GAUC 0.6664 nDCG@5 0.5356 primary 0.6010 | 3s
+  ep 14 | loss 0.5242 | GAUC 0.6643 nDCG@5 0.5348 primary 0.5996 | 4s
+  early stop at epoch 14
+[7-deepfm-bpr-k16-lr0.0002-seqmean-seed1] valid primary 0.6035 (+0.0019 vs baseline) -> positive  [50s]
+
+[7-fm-bpr-k16-lr0.0002-seqmean-seed2] 684,438 params, lr=0.0002
+[7-fm-bpr-k16-lr0.0002-seqmean-seed2] fm under bpr: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.6905 | GAUC 0.6450 nDCG@5 0.5252 primary 0.5851 | 3s
+  ep  2 | loss 0.6838 | GAUC 0.6492 nDCG@5 0.5270 primary 0.5881 | 3s
+  ep  3 | loss 0.6745 | GAUC 0.6548 nDCG@5 0.5293 primary 0.5921 | 3s
+  ep  4 | loss 0.6618 | GAUC 0.6581 nDCG@5 0.5310 primary 0.5945 | 2s
+  ep  5 | loss 0.6469 | GAUC 0.6601 nDCG@5 0.5314 primary 0.5958 | 2s
+  ep  6 | loss 0.6319 | GAUC 0.6620 nDCG@5 0.5321 primary 0.5970 | 3s
+  ep  7 | loss 0.6171 | GAUC 0.6639 nDCG@5 0.5330 primary 0.5985 | 3s
+  ep  8 | loss 0.6051 | GAUC 0.6652 nDCG@5 0.5336 primary 0.5994 | 2s
+  ep  9 | loss 0.5939 | GAUC 0.6656 nDCG@5 0.5342 primary 0.5999 | 3s
+  ep 10 | loss 0.5855 | GAUC 0.6666 nDCG@5 0.5345 primary 0.6005 | 3s
+  ep 11 | loss 0.5776 | GAUC 0.6670 nDCG@5 0.5346 primary 0.6008 | 3s
+  ep 12 | loss 0.5721 | GAUC 0.6678 nDCG@5 0.5351 primary 0.6014 | 3s
+  ep 13 | loss 0.5671 | GAUC 0.6680 nDCG@5 0.5351 primary 0.6016 | 3s
+  ep 14 | loss 0.5637 | GAUC 0.6686 nDCG@5 0.5354 primary 0.6020 | 3s
+  ep 15 | loss 0.5596 | GAUC 0.6690 nDCG@5 0.5354 primary 0.6022 | 3s
+  ep 16 | loss 0.5573 | GAUC 0.6684 nDCG@5 0.5353 primary 0.6018 | 3s
+  ep 17 | loss 0.5551 | GAUC 0.6683 nDCG@5 0.5355 primary 0.6019 | 3s
+  ep 18 | loss 0.5527 | GAUC 0.6679 nDCG@5 0.5357 primary 0.6018 | 3s
+  ep 19 | loss 0.5505 | GAUC 0.6686 nDCG@5 0.5361 primary 0.6023 | 3s
+  ep 20 | loss 0.5484 | GAUC 0.6690 nDCG@5 0.5365 primary 0.6027 | 3s
+  ep 21 | loss 0.5476 | GAUC 0.6694 nDCG@5 0.5364 primary 0.6029 | 3s
+  ep 22 | loss 0.5458 | GAUC 0.6698 nDCG@5 0.5369 primary 0.6033 | 3s
+  ep 23 | loss 0.5453 | GAUC 0.6701 nDCG@5 0.5370 primary 0.6036 | 3s
+  ep 24 | loss 0.5427 | GAUC 0.6704 nDCG@5 0.5371 primary 0.6037 | 3s
+  ep 25 | loss 0.5422 | GAUC 0.6702 nDCG@5 0.5369 primary 0.6035 | 3s
+  ep 26 | loss 0.5412 | GAUC 0.6702 nDCG@5 0.5369 primary 0.6035 | 3s
+  ep 27 | loss 0.5400 | GAUC 0.6705 nDCG@5 0.5370 primary 0.6037 | 3s
+  ep 28 | loss 0.5397 | GAUC 0.6704 nDCG@5 0.5367 primary 0.6036 | 3s
+  ep 29 | loss 0.5382 | GAUC 0.6705 nDCG@5 0.5366 primary 0.6035 | 3s
+  ep 30 | loss 0.5373 | GAUC 0.6703 nDCG@5 0.5368 primary 0.6036 | 3s
+  early stop at epoch 30
+[7-fm-bpr-k16-lr0.0002-seqmean-seed2] valid primary 0.6037 (+0.0021 vs baseline) -> positive  [79s]
+
+[7-deepfm-bpr-k16-lr0.0002-seqmean-seed2] 705,158 params, lr=0.0002
+[7-deepfm-bpr-k16-lr0.0002-seqmean-seed2] deepfm under bpr: the shortlist architectures were never tried, and the one GBDT pass ran under a pointwise/lambdarank framing rather than the pairwise loss that wins on this metric. Training both losses isolates architecture from loss.
+  ep  1 | loss 0.6898 | GAUC 0.6463 nDCG@5 0.5260 primary 0.5862 | 3s
+  ep  2 | loss 0.6733 | GAUC 0.6551 nDCG@5 0.5295 primary 0.5923 | 4s
+  ep  3 | loss 0.6274 | GAUC 0.6632 nDCG@5 0.5328 primary 0.5980 | 3s
+  ep  4 | loss 0.5808 | GAUC 0.6658 nDCG@5 0.5348 primary 0.6003 | 4s
+  ep  5 | loss 0.5608 | GAUC 0.6684 nDCG@5 0.5358 primary 0.6021 | 4s
+  ep  6 | loss 0.5541 | GAUC 0.6691 nDCG@5 0.5362 primary 0.6027 | 3s
+  ep  7 | loss 0.5479 | GAUC 0.6698 nDCG@5 0.5366 primary 0.6032 | 4s
+  ep  8 | loss 0.5444 | GAUC 0.6693 nDCG@5 0.5363 primary 0.6028 | 3s
+  ep  9 | loss 0.5395 | GAUC 0.6703 nDCG@5 0.5365 primary 0.6034 | 4s
+  ep 10 | loss 0.5367 | GAUC 0.6699 nDCG@5 0.5363 primary 0.6031 | 4s
+  ep 11 | loss 0.5325 | GAUC 0.6691 nDCG@5 0.5361 primary 0.6026 | 4s
+  ep 12 | loss 0.5301 | GAUC 0.6688 nDCG@5 0.5359 primary 0.6024 | 4s
+  ep 13 | loss 0.5275 | GAUC 0.6675 nDCG@5 0.5358 primary 0.6017 | 3s
+  ep 14 | loss 0.5258 | GAUC 0.6665 nDCG@5 0.5353 primary 0.6009 | 3s
+  ep 15 | loss 0.5225 | GAUC 0.6634 nDCG@5 0.5337 primary 0.5986 | 4s
+  early stop at epoch 15
+[7-deepfm-bpr-k16-lr0.0002-seqmean-seed2] valid primary 0.6034 (+0.0018 vs baseline) -> positive  [54s]
+
+exp_id                                   phase    valid    test  d_valid  outcome  s
+------------------------------------------------------------------------------------
+7-autoint-bpr-k16-lr0.0002-seed2         7       0.6043  0.5979  +0.0027 positive  115
+7-fm-bpr-k16-lr0.0002-seed2              7       0.6041  0.5977  +0.0025 positive  53
+7-fm-bpr-k16-lr0.0002-seed4              7       0.6041  0.5982  +0.0025 positive  44
+7-autoint-bpr-k16-lr0.0002-seed3         7       0.6041  0.5979  +0.0025 positive  112
+7-autoint-bpr-k16-lr0.0002               7       0.6041  0.5981  +0.0025 positive  127
+7-fm-bpr-k16-lr0.0002-seed3              7       0.6041  0.5980  +0.0024 positive  45
+7-autoint-bpr-k16-lr0.0002-seed4         7       0.6039  0.5975  +0.0023 positive  66
+7-deepfm-bpr-k16-lr0.0002                7       0.6039  0.5974  +0.0023 positive  36
+7-autoint-bpr-k16-lr0.0002-seed1         7       0.6039  0.5977  +0.0023 positive  114
+7-deepfm-bpr-k16-lr0.0002-seqmean        7       0.6039  0.5970  +0.0023 positive  55
+7-fm-bpr-k16-MISTUNED-lr0.002            7       0.6038  0.5949  +0.0022 positive  11
+7-fm-bpr-k16-lr0.0002-seed1              7       0.6038  0.5984  +0.0022 positive  52
+7-fm-bpr-k16-lr0.0002-seqmean            7       0.6038  0.5971  +0.0022 positive  119
+7-fm-bpr-k16-lr0.0002-seqmean-seed2      7       0.6037  0.5977  +0.0021 positive  79
+7-fm-bpr-k16-lr0.0002                    7       0.6037  0.5976  +0.0021 positive  60
+7-deepfm-pointwise-k16                   7       0.6036  0.5981  +0.0020 positive  20
+7-fm-bpr-k16-lr0.0002-seqmean-seed1      7       0.6036  0.5980  +0.0020 positive  88
+7-deepfm-bpr-k16-lr0.0002-seqmean-seed1  7       0.6035  0.5980  +0.0019 positive  50
+7-deepfm-bpr-k16-lr0.0002-seqmean-seed2  7       0.6034  0.5977  +0.0018 positive  54
+7-deepfm-bpr-k16-lr0.0002-seed1          7       0.6033  0.5979  +0.0017 positive  36
+7-ffm-bpr-k16-lr0.0002                   7       0.6032  0.5976  +0.0016  neutral  300
+7-deepfm-bpr-k16-lr0.0002-seed3          7       0.6032  0.5978  +0.0016  neutral  35
+7-autoint-bpr-k16-MISTUNED-lr0.002       7       0.6030  0.5954  +0.0014  neutral  26
+7-deepfm-bpr-k16-lr0.0002-seed4          7       0.6029  0.5981  +0.0013  neutral  36
+7-autoint-pointwise-k16                  7       0.6028  0.5966  +0.0012  neutral  41
+7-deepfm-bpr-k16-lr0.0002-seed2          7       0.6028  0.5972  +0.0012  neutral  41
+7-ffm-pointwise-k16                      7       0.6027  0.5958  +0.0011  neutral  139
+7-fm-pointwise-k16                       7       0.6025  0.5955  +0.0009  neutral  19
+7-ffm-bpr-k16-MISTUNED-lr0.002           7       0.6020  0.5951  +0.0004  neutral  69
+7-deepfm-bpr-k16-MISTUNED-lr0.002        7       0.6020  0.5970  +0.0004  neutral  13

@@ -1,0 +1,39 @@
+  training bpr ...
+  training pointwise ...
+  training ssm ...
+  training wt ...
+  training esmm ...
+
+combo                                     valid     test    r_val   r_test
+bpr+pointwise+ssm+wt+esmm                0.6040   0.5981   0.3685   0.3772
+bpr                                      0.6031   0.5979   0.3742   0.3864
+pointwise                                0.6022   0.5945   0.3644   0.3698
+ssm                                      0.6036   0.5986   0.3759   0.3892
+wt                                       0.6022   0.5942   0.3594   0.3647
+esmm                                     0.6025   0.5954   0.3618   0.3665
+bpr+ssm                                  0.6034   0.5982   0.3753   0.3882
+bpr+ssm+pointwise                        0.6041   0.5985   0.3730   0.3838
+
+best by valid (rand_valid veto applied): bpr+ssm+pointwise  valid 0.6041  test 0.5985
+[16-ensemble-bpr+ssm+pointwise] ensemble across DIFFERENT training objectives (pointwise/BPR/SSM/watch-time/ESMM), not seeds of one -- Phase 6 showed same-family seed-averaging pays ~0. Rank-average, select on valid, veto on rand_valid. KNOWLEDGE_BASE_PLAN.md Phase 1d
+[16-ensemble-bpr+ssm+pointwise] valid primary 0.6041 (+0.0024 vs baseline) -> positive  [2s]
+Traceback (most recent call last):
+  File "C:\Users\rombo\Desktop\Tiktok_hackathon\techjam_agent_exe\ml_modelling\experiments\p16_ensemble_final.py", line 205, in <module>
+    main()
+  File "C:\Users\rombo\Desktop\Tiktok_hackathon\techjam_agent_exe\ml_modelling\experiments\p16_ensemble_final.py", line 180, in main
+    json.dump(results, open(os.path.join(ROOT, 'phase16_ensemble.json'), 'w'), indent=1)
+  File "C:\Program Files\Python312\Lib\json\__init__.py", line 179, in dump
+    for chunk in iterable:
+                 ^^^^^^^^
+  File "C:\Program Files\Python312\Lib\json\encoder.py", line 432, in _iterencode
+    yield from _iterencode_dict(o, _current_indent_level)
+  File "C:\Program Files\Python312\Lib\json\encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "C:\Program Files\Python312\Lib\json\encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "C:\Program Files\Python312\Lib\json\encoder.py", line 439, in _iterencode
+    o = _default(o)
+        ^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\json\encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type float32 is not JSON serializable

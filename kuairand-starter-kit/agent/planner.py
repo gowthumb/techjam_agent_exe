@@ -63,7 +63,7 @@ Hard constraints:
 
 
 def propose_hypothesis(
-    state: RunState, knowledge_base_path: str = "knowledge_base/hypotheses.md"
+    state: RunState, knowledge_base_path: str = "knowledge_base/knowledge_base.yaml"
 ) -> PlannerResult:
     """Ask the Planner for one structured hypothesis using bounded run context."""
     path = Path(knowledge_base_path)

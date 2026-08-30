@@ -9,7 +9,9 @@ from agent.llm_client import resolve_model
 
 class ModelRoutingTest(unittest.TestCase):
     def test_role_specific_model_overrides_shared_model(self):
-        with patch.dict(os.environ, {"LLM_MODEL": "shared", "CODER_MODEL": "coder"}, clear=False):
+        with patch.dict(os.environ, {"CODER_MODEL": "coder"}, clear=False), patch.object(
+            llm_client, "_load_configuration", return_value=("key", "url", "shared")
+        ):
             self.assertEqual(resolve_model("CODER"), "coder")
 
     def test_role_without_override_uses_shared_model(self):

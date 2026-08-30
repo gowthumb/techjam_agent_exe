@@ -1,0 +1,18 @@
+click rate 0.463, long_view rate 0.337, P(lv|click) 0.723, P(lv|noclick) 0.0026
+[15-esmm-w0.3-gate] P(long_view) = P(click) * P(long_view|click); is_click=0 rows are long_view=0 by construction so the funnel is real. Conversion head supervised only through the long_view label (ESMM). KNOWLEDGE_BASE_PLAN.md Phase 1c; primer A.2/A.3
+[15-esmm-w0.3-gate] valid primary 0.6025 (+0.0009 vs baseline) -> neutral  [85s]
+  15-esmm-w0.3-gate                        v 0.6025 t 0.5954 rv 0.3618 rt 0.3665
+[15-esmm-w1-gate] P(long_view) = P(click) * P(long_view|click); is_click=0 rows are long_view=0 by construction so the funnel is real. Conversion head supervised only through the long_view label (ESMM). KNOWLEDGE_BASE_PLAN.md Phase 1c; primer A.2/A.3
+[15-esmm-w1-gate] valid primary 0.6016 (-0.0001 vs baseline) -> neutral  [82s]
+  15-esmm-w1-gate                          v 0.6016 t 0.5944 rv 0.3589 rt 0.3635
+[15-esmm-w1-nogate] P(long_view) = P(click) * P(long_view|click); is_click=0 rows are long_view=0 by construction so the funnel is real. Conversion head supervised only through the long_view label (ESMM). KNOWLEDGE_BASE_PLAN.md Phase 1c; primer A.2/A.3
+[15-esmm-w1-nogate] valid primary 0.6013 (-0.0003 vs baseline) -> neutral  [121s]
+  15-esmm-w1-nogate                        v 0.6013 t 0.5930 rv 0.3644 rt 0.3715
+
+main best: w_click=0.3 valid 0.6025
+
+exp_id             phase    valid    test  d_valid  outcome  s
+--------------------------------------------------------------
+15-esmm-w0.3-gate  15      0.6025  0.5954  +0.0009  neutral  85
+15-esmm-w1-gate    15      0.6016  0.5944  -0.0001  neutral  82
+15-esmm-w1-nogate  15      0.6013  0.5930  -0.0003  neutral  121

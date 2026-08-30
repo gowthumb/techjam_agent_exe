@@ -1,0 +1,56 @@
+loading 1k ...
+  per-field vocab / share of rows unseen in train:
+    user_id      vocab=      983  unseen=0.3%
+    video_id     vocab=2,119,510  unseen=46.0%
+    author_id    vocab=  805,027  unseen=13.3%
+    tab          vocab=       14  unseen=0.0%
+    dur_bucket   vocab=       10  unseen=0.0%
+  11,713,045 rows, dim=2925549, loaded in 57s
+  split rows: {'train': 5055984, 'valid': 2524980, 'test': 4132081}
+[5-1k-bpr-lr0.001-seed0] BPR peaked at lr=0.0002 on Pure. Gradient scale per step depends on batch composition, which changes with more users per batch, so the optimum may move at scale
+  983 training users with both classes (5055984 rows)
+  epoch  1 | loss 0.6460 | valid GAUC 0.6555 nDCG@5 0.5758 primary 0.6156 | 14.1s
+  epoch  2 | loss 0.5611 | valid GAUC 0.6652 nDCG@5 0.5765 primary 0.6209 | 14.5s
+  epoch  3 | loss 0.5279 | valid GAUC 0.6682 nDCG@5 0.5809 primary 0.6246 | 14.7s
+  epoch  4 | loss 0.5019 | valid GAUC 0.6691 nDCG@5 0.5787 primary 0.6239 | 14.4s
+  epoch  5 | loss 0.4758 | valid GAUC 0.6691 nDCG@5 0.5833 primary 0.6262 | 14.3s
+  epoch  6 | loss 0.4507 | valid GAUC 0.6690 nDCG@5 0.5857 primary 0.6274 | 14.5s
+  epoch  7 | loss 0.4266 | valid GAUC 0.6678 nDCG@5 0.5723 primary 0.6200 | 14.5s
+  epoch  8 | loss 0.4047 | valid GAUC 0.6669 nDCG@5 0.5687 primary 0.6178 | 14.4s
+  epoch  9 | loss 0.3843 | valid GAUC 0.6660 nDCG@5 0.5625 primary 0.6143 | 14.3s
+  epoch 10 | loss 0.3658 | valid GAUC 0.6648 nDCG@5 0.5519 primary 0.6083 | 14.3s
+  epoch 11 | loss 0.3488 | valid GAUC 0.6639 nDCG@5 0.5512 primary 0.6076 | 14.3s
+  epoch 12 | loss 0.3336 | valid GAUC 0.6628 nDCG@5 0.5460 primary 0.6044 | 13.9s
+  early stop at epoch 12
+[5-1k-bpr-lr0.001-seed0] valid primary 0.6274 (no comparable baseline) -> unknown  [190s]
+[5-1k-bpr-lr0.005-seed0] BPR peaked at lr=0.0002 on Pure. Gradient scale per step depends on batch composition, which changes with more users per batch, so the optimum may move at scale
+  983 training users with both classes (5055984 rows)
+  epoch  1 | loss 0.5803 | valid GAUC 0.6666 nDCG@5 0.5644 primary 0.6155 | 14.5s
+  epoch  2 | loss 0.5032 | valid GAUC 0.6700 nDCG@5 0.5741 primary 0.6220 | 14.7s
+  epoch  3 | loss 0.4488 | valid GAUC 0.6666 nDCG@5 0.5523 primary 0.6095 | 14.4s
+  epoch  4 | loss 0.4030 | valid GAUC 0.6632 nDCG@5 0.5497 primary 0.6065 | 14.2s
+  epoch  5 | loss 0.3630 | valid GAUC 0.6591 nDCG@5 0.5325 primary 0.5958 | 14.6s
+  epoch  6 | loss 0.3283 | valid GAUC 0.6565 nDCG@5 0.5209 primary 0.5887 | 14.6s
+  epoch  7 | loss 0.2972 | valid GAUC 0.6531 nDCG@5 0.5170 primary 0.5850 | 14.8s
+  epoch  8 | loss 0.2697 | valid GAUC 0.6506 nDCG@5 0.5121 primary 0.5813 | 14.6s
+  early stop at epoch 8
+[5-1k-bpr-lr0.005-seed0] valid primary 0.6220 (no comparable baseline) -> unknown  [134s]
+[5-1k-bpr-lr0.02-seed0] BPR peaked at lr=0.0002 on Pure. Gradient scale per step depends on batch composition, which changes with more users per batch, so the optimum may move at scale
+  983 training users with both classes (5055984 rows)
+  epoch  1 | loss 0.5568 | valid GAUC 0.6707 nDCG@5 0.5779 primary 0.6243 | 14.3s
+  epoch  2 | loss 0.4565 | valid GAUC 0.6632 nDCG@5 0.5396 primary 0.6014 | 14.7s
+  epoch  3 | loss 0.3521 | valid GAUC 0.6548 nDCG@5 0.5287 primary 0.5918 | 14.4s
+  epoch  4 | loss 0.2671 | valid GAUC 0.6485 nDCG@5 0.5267 primary 0.5876 | 14.6s
+  epoch  5 | loss 0.2090 | valid GAUC 0.6448 nDCG@5 0.5202 primary 0.5825 | 14.6s
+  epoch  6 | loss 0.1715 | valid GAUC 0.6431 nDCG@5 0.5111 primary 0.5771 | 15.0s
+  epoch  7 | loss 0.1460 | valid GAUC 0.6414 nDCG@5 0.5023 primary 0.5718 | 14.2s
+  early stop at epoch 7
+[5-1k-bpr-lr0.02-seed0] valid primary 0.6243 (no comparable baseline) -> unknown  [120s]
+
+exp_id                  phase    valid    test  d_valid  outcome  s
+-------------------------------------------------------------------
+5-1k-baseline-seed0     5       0.6438  0.6405        -  unknown  219
+5-1k-kbpick-seed0       5       0.6279  0.6294        -  unknown  313
+5-1k-bpr-lr0.001-seed0  5       0.6274  0.6138        -  unknown  190
+5-1k-bpr-lr0.02-seed0   5       0.6243  0.6203        -  unknown  120
+5-1k-bpr-lr0.005-seed0  5       0.6220  0.6084        -  unknown  134

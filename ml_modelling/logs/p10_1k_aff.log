@@ -1,0 +1,24 @@
+loading 1k ...
+  per-field vocab / share of rows unseen in train:
+    user_id      vocab=      983  unseen=0.3%
+    video_id     vocab=2,119,510  unseen=46.0%
+    author_id    vocab=  805,027  unseen=13.3%
+    tab          vocab=       14  unseen=0.0%
+    dur_bucket   vocab=       10  unseen=0.0%
+  dim=2925549
+building causal (user,author) affinity (date-resolution ordering; minimal load has no time_ms — ties resolve in file order) ...
+  train: warm rows 30.0%
+  valid: warm rows 33.7%
+  test: warm rows 26.5%
+[10-1k-pointwise-aff-user_author-seed0] (user, author) affinity was a Pure dead end at 2.6% warm coverage; on 1K it is 26.5% warm and the author is the item-side signal that survives cold-start (73.9% of test rows author-warm), so the feature has the coverage it lacked
+[10-1k-pointwise-aff-user_author-seed0] valid primary 0.6358 (no comparable baseline) -> unknown  [133s]
+
+exp_id                                 phase    valid    test  d_valid  outcome  s
+----------------------------------------------------------------------------------
+10-1k-pointwise-lr0.0005-ep60-seed0    10      0.6447  0.6419        -  unknown  239
+10-1k-pointwise-noise0.2-seed0         10      0.6431  0.6402        -  unknown  322
+10-1k-pointwise-noise0.1-seed0         10      0.6426  0.6351        -  unknown  239
+10-1k-pointwise-noise0.05-seed0        10      0.6419  0.6380        -  unknown  181
+10-1k-pointwise-lr0.0002-ep60-seed0    10      0.6416  0.6379        -  unknown  363
+10-1k-pointwise-k32-seed0              10      0.6409  0.6352        -  unknown  202
+10-1k-pointwise-aff-user_author-seed0  10      0.6358  0.6400        -  unknown  133

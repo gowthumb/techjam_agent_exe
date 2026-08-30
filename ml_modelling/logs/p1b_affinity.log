@@ -1,0 +1,171 @@
+building affinity features ['video'] (mode=causal) ...
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket', 'aff_video'] dim=40278
+
+[1B-pointwise-aff-video-causal] Affinity features keyed on (user x item-attribute) vary within a user, so unlike pure user-side features they can change the within-user order; causal train-only counters keep them leak-free
+[1B-pointwise-aff-video-causal] valid primary 0.6012 (-0.0004 vs baseline) -> neutral  [34s]
+
+exp_id                         phase    valid    test  d_valid  outcome  s
+--------------------------------------------------------------------------
+1A-bpr-lr0.0002                1A      0.6031  0.5979  +0.0015  neutral  60
+1A-bpr-lr0.001                 1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001                1A      0.6025  0.5975  +0.0009  neutral  84
+1A-bpr-lr0.0005                1A      0.6024  0.5973  +0.0008  neutral  32
+1A-control-pointwise           1A      0.6022  0.5945  +0.0006  neutral  33
+1B-pointwise-aff-video-causal  1B      0.6012  0.5947  -0.0004  neutral  34
+1A-bpr-lr0.005                 1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.001            1A      0.5999  0.5924  -0.0017 negative  16
+1A-hybrid-lam1                 1A      0.5998  0.5929  -0.0018 negative  32
+1A-hybrid-lam0.3               1A      0.5993  0.5923  -0.0024 negative  32
+1A-bpr-lr0.02                  1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005            1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02             1A      0.5867  0.5790  -0.0149 negative  14
+building affinity features ['author'] (mode=causal) ...
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket', 'aff_author'] dim=40278
+
+[1B-pointwise-aff-author-causal] Affinity features keyed on (user x item-attribute) vary within a user, so unlike pure user-side features they can change the within-user order; causal train-only counters keep them leak-free
+[1B-pointwise-aff-author-causal] valid primary 0.6017 (+0.0001 vs baseline) -> neutral  [34s]
+
+exp_id                          phase    valid    test  d_valid  outcome  s
+---------------------------------------------------------------------------
+1A-bpr-lr0.0002                 1A      0.6031  0.5979  +0.0015  neutral  60
+1A-bpr-lr0.001                  1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001                 1A      0.6025  0.5975  +0.0009  neutral  84
+1A-bpr-lr0.0005                 1A      0.6024  0.5973  +0.0008  neutral  32
+1A-control-pointwise            1A      0.6022  0.5945  +0.0006  neutral  33
+1B-pointwise-aff-author-causal  1B      0.6017  0.5943  +0.0001  neutral  34
+1B-pointwise-aff-video-causal   1B      0.6012  0.5947  -0.0004  neutral  34
+1A-listwise-lr0.0001            1A      0.6002  0.5932  -0.0014  neutral  85
+1A-bpr-lr0.005                  1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.001             1A      0.5999  0.5924  -0.0017 negative  16
+1A-hybrid-lam1                  1A      0.5998  0.5929  -0.0018 negative  32
+1A-hybrid-lam0.3                1A      0.5993  0.5923  -0.0024 negative  32
+1A-bpr-lr0.02                   1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005             1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02              1A      0.5867  0.5790  -0.0149 negative  14
+building affinity features ['user_tab'] (mode=causal) ...
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket', 'aff_user_tab'] dim=40278
+
+[1B-pointwise-aff-user_tab-causal] Affinity features keyed on (user x item-attribute) vary within a user, so unlike pure user-side features they can change the within-user order; causal train-only counters keep them leak-free
+[1B-pointwise-aff-user_tab-causal] valid primary 0.6010 (-0.0006 vs baseline) -> neutral  [30s]
+
+exp_id                            phase    valid    test  d_valid  outcome  s
+-----------------------------------------------------------------------------
+1A-bpr-lr0.0002                   1A      0.6031  0.5979  +0.0015  neutral  60
+1A-bpr-lr0.001                    1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001                   1A      0.6025  0.5975  +0.0009  neutral  84
+1A-bpr-lr0.0005                   1A      0.6024  0.5973  +0.0008  neutral  32
+1A-control-pointwise              1A      0.6022  0.5945  +0.0006  neutral  33
+1B-pointwise-aff-author-causal    1B      0.6017  0.5943  +0.0001  neutral  34
+1B-pointwise-aff-video-causal     1B      0.6012  0.5947  -0.0004  neutral  34
+1B-pointwise-aff-user_tab-causal  1B      0.6010  0.5939  -0.0006  neutral  30
+1A-listwise-lr0.0001              1A      0.6002  0.5932  -0.0014  neutral  85
+1A-bpr-lr0.005                    1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.001               1A      0.5999  0.5924  -0.0017 negative  16
+1A-hybrid-lam1                    1A      0.5998  0.5929  -0.0018 negative  32
+1A-hybrid-lam0.3                  1A      0.5993  0.5923  -0.0024 negative  32
+1A-bpr-lr0.02                     1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005               1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02                1A      0.5867  0.5790  -0.0149 negative  14
+building affinity features ['user_dur'] (mode=causal) ...
+Traceback (most recent call last):
+  File "C:\Users\rombo\Desktop\Tiktok_hackathon\techjam_agent_exe\ml_modelling\experiments\sweep.py", line 156, in <module>
+    main()
+  File "C:\Users\rombo\Desktop\Tiktok_hackathon\techjam_agent_exe\ml_modelling\experiments\sweep.py", line 98, in main
+    extra, _, _ = HI.build_affinity_fields(logs, masks, specs, mode=a.affinity_mode,
+    ^^^^^^^^
+ValueError: too many values to unpack (expected 2)
+building affinity features ['user_tag'] (mode=causal) ...
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket', 'aff_user_tag'] dim=40277
+
+[1B-pointwise-aff-user_tag-causal] Affinity features keyed on (user x item-attribute) vary within a user, so unlike pure user-side features they can change the within-user order; causal train-only counters keep them leak-free
+[1B-pointwise-aff-user_tag-causal] valid primary 0.5992 (-0.0024 vs baseline) -> negative  [38s]
+
+exp_id                            phase    valid    test  d_valid  outcome  s
+-----------------------------------------------------------------------------
+1A-bpr-lr0.0002                   1A      0.6031  0.5979  +0.0015  neutral  60
+1A-bpr-lr0.001                    1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001                   1A      0.6025  0.5975  +0.0009  neutral  84
+1A-bpr-lr0.0005                   1A      0.6024  0.5973  +0.0008  neutral  32
+1A-control-pointwise              1A      0.6022  0.5945  +0.0006  neutral  33
+1C-control-singletask             1C      0.6022  0.5945  +0.0006  neutral  44
+1B-pointwise-aff-author-causal    1B      0.6017  0.5943  +0.0001  neutral  34
+1B-pointwise-aff-video-causal     1B      0.6012  0.5947  -0.0004  neutral  34
+1B-pointwise-aff-user_tab-causal  1B      0.6010  0.5939  -0.0006  neutral  30
+1A-listwise-lr0.0001              1A      0.6002  0.5932  -0.0014  neutral  85
+1A-bpr-lr0.005                    1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.0002              1A      0.6000  0.5931  -0.0016 negative  59
+1A-listwise-lr0.001               1A      0.5999  0.5924  -0.0017 negative  16
+1A-hybrid-lam1                    1A      0.5998  0.5929  -0.0018 negative  32
+1A-listwise-lr0.0005              1A      0.5995  0.5928  -0.0021 negative  35
+1A-hybrid-lam0.3                  1A      0.5993  0.5923  -0.0024 negative  32
+1B-pointwise-aff-user_tag-causal  1B      0.5992  0.5916  -0.0024 negative  38
+1A-bpr-lr0.02                     1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005               1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02                1A      0.5867  0.5790  -0.0149 negative  14
+building affinity features ['video', 'author', 'user_tab', 'user_dur', 'user_tag'] (mode=causal) ...
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket', 'aff_video', 'aff_author', 'aff_user_tab', 'aff_user_dur', 'aff_user_tag'] dim=40348
+
+[1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal] Affinity features keyed on (user x item-attribute) vary within a user, so unlike pure user-side features they can change the within-user order; causal train-only counters keep them leak-free
+[1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal] valid primary 0.6009 (-0.0007 vs baseline) -> neutral  [54s]
+
+exp_id                                                           phase    valid    test  d_valid  outcome  s
+------------------------------------------------------------------------------------------------------------
+1A-bpr-lr0.0002                                                  1A      0.6031  0.5979  +0.0015  neutral  60
+1A-bpr-lr0.001                                                   1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001                                                  1A      0.6025  0.5975  +0.0009  neutral  84
+1A-bpr-lr0.0005                                                  1A      0.6024  0.5973  +0.0008  neutral  32
+1A-control-pointwise                                             1A      0.6022  0.5945  +0.0006  neutral  33
+1C-control-singletask                                            1C      0.6022  0.5945  +0.0006  neutral  44
+1C-aux-is_like-w0.3                                              1C      0.6021  0.5959  +0.0005  neutral  46
+1B-pointwise-aff-author-causal                                   1B      0.6017  0.5943  +0.0001  neutral  34
+1B-pointwise-aff-video-causal                                    1B      0.6012  0.5947  -0.0004  neutral  34
+1C-aux-is_click-w0.3                                             1C      0.6011  0.5935  -0.0005  neutral  40
+1B-pointwise-aff-user_tab-causal                                 1B      0.6010  0.5939  -0.0006  neutral  30
+1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal  1B      0.6009  0.5926  -0.0007  neutral  54
+1A-listwise-lr0.0001                                             1A      0.6002  0.5932  -0.0014  neutral  85
+1A-bpr-lr0.005                                                   1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.0002                                             1A      0.6000  0.5931  -0.0016 negative  59
+1A-listwise-lr0.001                                              1A      0.5999  0.5924  -0.0017 negative  16
+1F-lgbm-lambdarank-base-lv63                                     1F      0.5998  0.5939  -0.0018 negative  45
+1A-hybrid-lam1                                                   1A      0.5998  0.5929  -0.0018 negative  32
+1A-listwise-lr0.0005                                             1A      0.5995  0.5928  -0.0021 negative  35
+1A-hybrid-lam0.3                                                 1A      0.5993  0.5923  -0.0024 negative  32
+1B-pointwise-aff-user_tag-causal                                 1B      0.5992  0.5916  -0.0024 negative  38
+1A-bpr-lr0.02                                                    1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005                                              1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02                                               1A      0.5867  0.5790  -0.0149 negative  14
+building affinity features ['user_author', 'user_music'] (mode=causal) ...
+fields=['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket', 'aff_user_author', 'aff_user_music'] dim=40274
+
+[1B-pointwise-aff-user_author+user_music-causal] NEGATIVE CONTROL: keys with <7% warm coverage should be inert regardless of how sensible they look
+[1B-pointwise-aff-user_author+user_music-causal] valid primary 0.6016 (-0.0000 vs baseline) -> neutral  [60s]
+
+exp_id                                                           phase    valid    test  d_valid  outcome  s
+------------------------------------------------------------------------------------------------------------
+1A-bpr-lr0.0002                                                  1A      0.6031  0.5979  +0.0015  neutral  60
+1A-bpr-lr0.001                                                   1A      0.6029  0.5965  +0.0013  neutral  16
+1A-bpr-lr0.0001                                                  1A      0.6025  0.5975  +0.0009  neutral  84
+1C-aux-is_follow-w0.3                                            1C      0.6025  0.5965  +0.0009  neutral  46
+1A-bpr-lr0.0005                                                  1A      0.6024  0.5973  +0.0008  neutral  32
+1A-control-pointwise                                             1A      0.6022  0.5945  +0.0006  neutral  33
+1C-control-singletask                                            1C      0.6022  0.5945  +0.0006  neutral  44
+1C-aux-is_like-w0.3                                              1C      0.6021  0.5959  +0.0005  neutral  46
+1B-pointwise-aff-author-causal                                   1B      0.6017  0.5943  +0.0001  neutral  34
+1B-pointwise-aff-user_author+user_music-causal                   1B      0.6016  0.5952  -0.0000  neutral  60
+1B-pointwise-aff-video-causal                                    1B      0.6012  0.5947  -0.0004  neutral  34
+1C-aux-is_click-w0.3                                             1C      0.6011  0.5935  -0.0005  neutral  40
+1B-pointwise-aff-user_tab-causal                                 1B      0.6010  0.5939  -0.0006  neutral  30
+1B-pointwise-aff-video+author+user_tab+user_dur+user_tag-causal  1B      0.6009  0.5926  -0.0007  neutral  54
+1A-listwise-lr0.0001                                             1A      0.6002  0.5932  -0.0014  neutral  85
+1A-bpr-lr0.005                                                   1A      0.6000  0.5945  -0.0016 negative  12
+1A-listwise-lr0.0002                                             1A      0.6000  0.5931  -0.0016 negative  59
+1A-listwise-lr0.001                                              1A      0.5999  0.5924  -0.0017 negative  16
+1F-lgbm-lambdarank-base-lv63                                     1F      0.5998  0.5939  -0.0018 negative  45
+1A-hybrid-lam1                                                   1A      0.5998  0.5929  -0.0018 negative  32
+1A-listwise-lr0.0005                                             1A      0.5995  0.5928  -0.0021 negative  35
+1A-hybrid-lam0.3                                                 1A      0.5993  0.5923  -0.0024 negative  32
+1B-pointwise-aff-user_tag-causal                                 1B      0.5992  0.5916  -0.0024 negative  38
+1F-lgbm-lambdarank-base+aff-lv63                                 1F      0.5986  0.5917  -0.0030 negative  20
+1A-bpr-lr0.02                                                    1A      0.5973  0.5882  -0.0043 negative  10
+1A-listwise-lr0.005                                              1A      0.5957  0.5885  -0.0059 negative  16
+1A-listwise-lr0.02                                               1A      0.5867  0.5790  -0.0149 negative  14

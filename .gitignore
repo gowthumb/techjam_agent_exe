@@ -1,0 +1,21 @@
+.env
+.env.*
+!.env.example
+
+# Python-generated artifacts and local caches
+__pycache__/
+*.pyc
+.cache/
+venv/
+.venv/
+
+# Local experiment artifacts
+ml_modelling/cache/
+submission*.csv
+.ipynb_checkpoints/
+
+# Large local datasets
+kuairand-starter-kit/KuaiRand-1K/
+kuairand-starter-kit/KuaiRand-1K.tar.gz
+kuairand-starter-kit/KuaiRand-27K/
+kuairand-starter-kit/KuaiRand-27K.tar.gz

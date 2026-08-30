@@ -1,0 +1,21 @@
+video_age warm coverage on test: 100.0%  (regime split: 0.18 short)
+[14-bpr-regime-rep-seed0] long_view bifurcates at duration 18s and video freshness varies within a user list; a regime field and an age bucket are interactions the baseline five fields cannot represent. KNOWLEDGE_BASE_PLAN.md Phase 1b; README directions #4/#6
+[14-bpr-regime-rep-seed0] valid primary 0.6040 (+0.0024 vs baseline) -> positive  [167s]
+  14-bpr-regime-rep-seed0                      v 0.6040 t 0.5984 rv 0.3716 rt 0.3806
+[14-bpr-regime-seed1] long_view bifurcates at duration 18s and video freshness varies within a user list; a regime field and an age bucket are interactions the baseline five fields cannot represent. KNOWLEDGE_BASE_PLAN.md Phase 1b; README directions #4/#6
+[14-bpr-regime-seed1] valid primary 0.6035 (+0.0019 vs baseline) -> positive  [10768s]
+  14-bpr-regime-seed1                          v 0.6035 t 0.5978 rv 0.3742 rt 0.3854
+[14-bpr-regime-seed2] long_view bifurcates at duration 18s and video freshness varies within a user list; a regime field and an age bucket are interactions the baseline five fields cannot represent. KNOWLEDGE_BASE_PLAN.md Phase 1b; README directions #4/#6
+[14-bpr-regime-seed2] valid primary 0.6038 (+0.0022 vs baseline) -> positive  [14035s]
+  14-bpr-regime-seed2                          v 0.6038 t 0.5983 rv 0.3730 rt 0.3840
+
+exp_id                   phase    valid    test  d_valid  outcome  s
+--------------------------------------------------------------------
+14-bpr-regime-shuffled   14      0.6040  0.5978  +0.0024 positive  231
+14-bpr-regime            14      0.6040  0.5984  +0.0024 positive  162
+14-bpr-regime-rep-seed0  14      0.6040  0.5984  +0.0024 positive  167
+14-bpr-regime-seed2      14      0.6038  0.5983  +0.0022 positive  14035
+14-bpr-durbuckets20      14      0.6036  0.5980  +0.0020 positive  134
+14-bpr-regime-seed1      14      0.6035  0.5978  +0.0019 positive  10768
+14-bpr-videoage          14      0.5983  0.5946  -0.0033 negative  156
+14-bpr-regime+age        14      0.5979  0.5945  -0.0037 negative  59

@@ -1,0 +1,52 @@
+  skip 12-ssm-lr0.0003-t1-n8-k16-rep-seed0 (already logged)
+  skip 12-bpr-ref-k16-rep-seed0 (already logged)
+  skip 12-ssm-lr0.0003-t1-n8-k16-seed1 (already logged)
+[12-bpr-ref-k16-seed1] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-bpr-ref-k16-seed1] valid primary 0.6033 (+0.0017 vs baseline) -> positive  [94s]
+  12-bpr-ref-k16-seed1                 v 0.6033  t 0.5979  rv 0.3770  rt 0.3900  [ep21/27]
+[12-ssm-lr0.0003-t1-n8-k16-seed2] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-ssm-lr0.0003-t1-n8-k16-seed2] valid primary 0.6041 (+0.0025 vs baseline) -> positive  [174s]
+  12-ssm-lr0.0003-t1-n8-k16-seed2      v 0.6041  t 0.5983  rv 0.3742  rt 0.3853  [ep4/10]
+[12-bpr-ref-k16-seed2] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-bpr-ref-k16-seed2] valid primary 0.6044 (+0.0028 vs baseline) -> positive  [171s]
+  12-bpr-ref-k16-seed2                 v 0.6044  t 0.5979  rv 0.3720  rt 0.3816  [ep34/40]
+[12-ssm-lr0.0003-t1-n8-k16-seed3] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-ssm-lr0.0003-t1-n8-k16-seed3] valid primary 0.6043 (+0.0027 vs baseline) -> positive  [183s]
+  12-ssm-lr0.0003-t1-n8-k16-seed3      v 0.6043  t 0.5989  rv 0.3738  rt 0.3851  [ep4/10]
+[12-bpr-ref-k16-seed3] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-bpr-ref-k16-seed3] valid primary 0.6042 (+0.0026 vs baseline) -> positive  [10771s]
+  12-bpr-ref-k16-seed3                 v 0.6042  t 0.5983  rv 0.3757  rt 0.3876  [ep24/30]
+[12-ssm-lr0.0003-t1-n8-k16-seed4] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-ssm-lr0.0003-t1-n8-k16-seed4] valid primary 0.6041 (+0.0025 vs baseline) -> positive  [14101s]
+  12-ssm-lr0.0003-t1-n8-k16-seed4      v 0.6041  t 0.5978  rv 0.3708  rt 0.3806  [ep5/11]
+[12-bpr-ref-k16-seed4] sampled softmax / InfoNCE contrasts one positive against a few sampled negatives -- a smooth surrogate for top-k order, unlike the retired uniform-target listwise. Ranking losses need a smaller lr here, so lr is swept before the loss is judged (KNOWLEDGE_BASE_PLAN.md Phase 1a; KB prior "change the loss, not the capacity")
+[12-bpr-ref-k16-seed4] valid primary 0.6042 (+0.0026 vs baseline) -> positive  [118s]
+  12-bpr-ref-k16-seed4                 v 0.6042  t 0.5980  rv 0.3755  rt 0.3865  [ep26/32]
+
+exp_id                               phase    valid    test  d_valid  outcome  s
+--------------------------------------------------------------------------------
+12-bpr-ref-k16-seed2                 12      0.6044  0.5980  +0.0028 positive  171
+12-ssm-lr0.0005-t2-n4-k8             12      0.6043  0.5978  +0.0027 positive  54
+12-ssm-lr0.0003-t1-n8-k16-seed3      12      0.6043  0.5989  +0.0027 positive  183
+12-bpr-ref-k16-seed3                 12      0.6042  0.5983  +0.0026 positive  10771
+12-bpr-ref-k16-seed4                 12      0.6042  0.5980  +0.0026 positive  118
+12-ssm-lr0.0003-t1-n8-k16-seed1      12      0.6042  0.5983  +0.0026 positive  161
+12-ssm-lr0.0003-t1-n8-k16-seed2      12      0.6041  0.5983  +0.0025 positive  174
+12-ssm-lr0.0003-t1-n8-k16-seed4      12      0.6041  0.5978  +0.0025 positive  14101
+12-ssm-lr0.0003-t2-n8-k16            12      0.6040  0.5987  +0.0024 positive  152
+12-ssm-lr0.0003-t2-n8-k16-rep-seed0  12      0.6040  0.5987  +0.0024 positive  302
+12-ssm-lr0.0005-t1-n4-k8             12      0.6040  0.5980  +0.0024 positive  40
+12-ssm-lr0.001-t1-n4-k8              12      0.6039  0.5977  +0.0023 positive  124
+12-ssm-lr0.0005-t0.5-n4-k8           12      0.6036  0.5975  +0.0020 positive  41
+12-ssm-lr0.001-t2-n4-k8              12      0.6036  0.5981  +0.0020 positive  41
+12-ssm-lr0.0005-t2-n8-k16            12      0.6036  0.5985  +0.0020 positive  104
+12-ssm-lr0.0003-t1-n8-k16            12      0.6036  0.5986  +0.0020 positive  115
+12-ssm-lr0.0003-t1-n8-k16-rep-seed0  12      0.6036  0.5986  +0.0020 positive  161
+12-ssm-global-lr0.0005-t2-n4-k8      12      0.6035  0.5962  +0.0019 positive  124
+12-bpr-ppp4-lr0.0002-k16             12      0.6034  0.5980  +0.0018 positive  376
+12-ssm-lr0.0005-t1-n8-k16            12      0.6034  0.5986  +0.0018 positive  104
+12-bpr-ppp2-lr0.0002-k16             12      0.6033  0.5975  +0.0017 positive  137
+12-bpr-ref-k16-seed1                 12      0.6033  0.5979  +0.0017 positive  94
+12-ssm-lr0.001-t0.5-n4-k8            12      0.6032  0.5970  +0.0016  neutral  32
+12-bpr-ref-k16-rep-seed0             12      0.6031  0.5979  +0.0015  neutral  115
+12-ssm-lr0.0005-t1-n16-k16           12      0.6030  0.5968  +0.0014  neutral  198

@@ -16,7 +16,7 @@ class ExecutorSmokeTest(unittest.TestCase):
         state = RunState(current_code="value = 1\n", best_metrics={"GAUC": 0.6, "nDCG@5": 0.5, "primary": 0.55})
         with tempfile.TemporaryDirectory() as temporary_directory, patch(
             "agent.executor.runner.run", return_value={"status": "ok", "metrics": VALID_METRICS}
-        ):
+        ), patch("agent.executor.resolve_model", return_value="test-model"):
             result = run_candidate(state, DIFF, runs_dir=Path(temporary_directory), tokens_used=13)
         self.assertEqual(result.status, "accepted")
         self.assertEqual(state.iteration_num, 1)
@@ -27,7 +27,9 @@ class ExecutorSmokeTest(unittest.TestCase):
     def test_patch_failure_does_not_execute_or_increment_iteration(self):
         state = RunState(current_code="value = 1\n")
         invalid_diff = "<<<<<<< SEARCH\nmissing\n=======\nreplacement\n>>>>>>> REPLACE"
-        with tempfile.TemporaryDirectory() as temporary_directory, patch("agent.executor.runner.run") as run:
+        with tempfile.TemporaryDirectory() as temporary_directory, patch("agent.executor.runner.run") as run, patch(
+            "agent.executor.resolve_model", return_value="test-model"
+        ):
             result = run_candidate(state, invalid_diff, runs_dir=Path(temporary_directory))
         self.assertEqual(result.status, "error")
         self.assertEqual(state.iteration_num, 0)
@@ -37,7 +39,7 @@ class ExecutorSmokeTest(unittest.TestCase):
         state = RunState(current_code="value = 1\n")
         with tempfile.TemporaryDirectory() as temporary_directory, patch(
             "agent.executor.runner.run", return_value={"status": "error", "error_trace": "RuntimeError: broken"}
-        ):
+        ), patch("agent.executor.resolve_model", return_value="test-model"):
             result = run_candidate(state, DIFF, runs_dir=Path(temporary_directory))
         self.assertEqual(result.status, "error")
         self.assertEqual(state.iteration_num, 0)

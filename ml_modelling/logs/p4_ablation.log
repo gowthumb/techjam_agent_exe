@@ -1,0 +1,25 @@
+seeded cache with 65 runs from experiments.jsonl
+
+[blind restart 0] best 0.6043 | beat baseline @ iter 3 | converged @ 6 | 12/15 below baseline | 0 broken | 1360s search cost (1240s real)
+[kb    restart 0] best 0.6042 | beat baseline @ iter 1 | converged @ 4 | 0/15 below baseline | 0 broken | 946s search cost (714s real)
+[blind restart 1] best 0.6032 | beat baseline @ iter 3 | converged @ 6 | 13/15 below baseline | 0 broken | 2864s search cost (2765s real)
+[kb    restart 1] best 0.6042 | beat baseline @ iter 1 | converged @ 4 | 1/15 below baseline | 0 broken | 1341s search cost (1130s real)
+[blind restart 2] best 0.6041 | beat baseline @ iter 14 | converged @ 4 | 13/15 below baseline | 0 broken | 1592s search cost (1514s real)
+[kb    restart 2] best 0.6042 | beat baseline @ iter 1 | converged @ 4 | 0/15 below baseline | 0 broken | 962s search cost (455s real)
+
+==============================================================================
+PHASE 4 — KB ABLATION  (15 iterations x 3 restarts)
+==============================================================================
+metric                                        blind          with KB
+--------------------------------------------------------------------
+best valid reached (mean)                    0.6039           0.6042
+best valid reached (worst restart)           0.6032           0.6042
+best test reached (mean)                     0.5975           0.5983
+restarts never beating baseline                   0                0
+trials at/below baseline (mean)               12.67             0.33
+broken trials, below popularity                 0.0              0.0
+search wall-clock, seconds (mean)              1938             1083
+iterations to beat baseline              [3, 3, 14]        [1, 1, 1]
+
+cache: 19 hits, 71 fresh runs
+wrote C:\Users\rombo\Desktop\Tiktok_hackathon\techjam_agent_exe\ml_modelling\phase4_ablation.json
