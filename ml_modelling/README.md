@@ -7,6 +7,13 @@ Exploration behind the Knowledge Base for KuaiRand-Pure, per `KNOWLEDGE_BASE_PLA
 the integration contract. Everything in *this* folder is the empirical work that
 earned the right to write it: the code, the 300-run experiment log, the tools.
 
+**Before running anything on a benchmark you haven't run before — Pure, 1K, 27K,
+or a future one — read [`HARDWARE_AWARENESS.md`](HARDWARE_AWARENESS.md) first.**
+It's the operational counterpart to the KB: not what config to try, but what
+machine decisions to make before trying it (CPU vs GPU, dense vs sparse Adam,
+whether a feature matrix is safe to build in memory), grounded in what was
+actually measured getting Pure/1K/27K running, not assumed.
+
 ## Layout
 
 | Path | What it is |
