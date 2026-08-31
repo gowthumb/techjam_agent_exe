@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from time import monotonic
@@ -15,6 +16,7 @@ sys.path.insert(0, str(ROOT))
 
 from agent.attempt import attempt_hypothesis
 from agent.llm_client import LLMError, reset_quota_pause_budget
+from agent.one_k_policy import failed_mechanism_count, paired_seed_result, plateau_reached, validated_target_reached
 from agent.planner import propose_hypothesis
 from agent.runner import score_final_on_test
 from agent.state import RunState
@@ -26,20 +28,43 @@ def _run_directory(runs_dir: Path, state: RunState) -> Path:
     return directory
 
 
-def _new_state() -> RunState:
-    state = RunState.from_baseline(ROOT / "baseline.py")
+def _new_state(dataset: str = "pure") -> RunState:
+    state = RunState.from_baseline(ROOT / ("baseline_1k.py" if dataset == "1k" else "baseline.py"))
     scores = json.loads((ROOT / "baseline_scores.json").read_text(encoding="utf-8"))
-    state.best_metrics = scores["scores"]["fm_official"]["valid"]
+    state.best_metrics = scores["scores"]["fm_official"]["valid"] if dataset == "pure" else {"primary": 0.6439}
     return state
 
 
-def _stopping_reason(state: RunState, max_iterations: int, max_wallclock_s: float, consecutive_abandoned: int) -> Optional[str]:
+def _one_k_stopping_reason(state: RunState) -> Optional[str]:
+    baseline_path = ROOT / "runs" / "1k-baseline-distribution.json"
+    if not baseline_path.exists():
+        return None
+    baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
+    for entry in reversed(state.experiment_history):
+        paired = (entry.get("metrics") or {}).get("paired_seed")
+        if entry.get("status") == "accepted" and paired:
+            evidence = paired_seed_result(paired["candidate_primary"], baseline["valid_primary"][:3])
+            if validated_target_reached(paired["candidate_primary"], baseline["mu_b"], baseline["sigma_b"], evidence):
+                return "validated target reached"
+            break
+    knowledge_base = (ROOT / "knowledge_base" / "knowledge_base.yaml").read_text(encoding="utf-8")
+    untested = re.findall(r"^\s*- name: ([^\n]+)(.*?)(?=^\s*- name:|^#|\Z)", knowledge_base, re.MULTILINE | re.DOTALL)
+    history = " ".join(entry.get("hypothesis", "") for entry in state.experiment_history).lower().replace("_", " ").replace("-", " ")
+    has_remaining_kb_direction = any("status: untested" in body and name.lower().replace("_", " ").replace("-", " ") not in history for name, body in untested)
+    if plateau_reached(failed_mechanism_count(state.experiment_history), has_remaining_kb_direction):
+        return "plateau"
+    return None
+
+
+def _stopping_reason(state: RunState, max_iterations: int, max_wallclock_s: float, consecutive_abandoned: int, dataset: str = "pure") -> Optional[str]:
     if state.iteration_num >= max_iterations:
         return "iteration cap"
     if state.total_wall_clock_s >= max_wallclock_s:
         return "wallclock cap"
     if consecutive_abandoned >= 5:
         return "abandonment safety valve"
+    if dataset == "1k":
+        return _one_k_stopping_reason(state)
     from agent.executor import check_convergence
     if check_convergence(state):
         return "converged"
@@ -55,6 +80,7 @@ def run_loop(
     runs_dir: Path,
     cache_dir: Path,
     finalize_on_test: bool = True,
+    dataset: str = "pure",
 ) -> dict:
     """Run until convergence, a budget cap, or repeated pre-scoring abandonment."""
     reset_quota_pause_budget()
@@ -63,12 +89,12 @@ def run_loop(
     run_directory = _run_directory(runs_dir, state)
     try:
         while reason is None:
-            reason = _stopping_reason(state, max_iterations, max_wallclock_hours * 3600, consecutive_abandoned)
+            reason = _stopping_reason(state, max_iterations, max_wallclock_hours * 3600, consecutive_abandoned, dataset)
             if reason is not None:
                 break
             pass_started_at = monotonic()
             try:
-                planner_result = propose_hypothesis(state)
+                planner_result = propose_hypothesis(state, dataset=dataset)
             except Exception:
                 state.total_wall_clock_s += monotonic() - pass_started_at
                 state.save(run_directory / "state.json")
@@ -83,6 +109,7 @@ def run_loop(
                     data_dir=data_dir,
                     cache_dir=cache_dir,
                     runs_dir=runs_dir,
+                    dataset=dataset,
                 )
             except Exception:
                 state.total_wall_clock_s += max(0.0, monotonic() - pass_started_at - (state.total_wall_clock_s - accounted_before_attempt))
@@ -125,6 +152,7 @@ def main() -> int:
     parser.add_argument("--max-iterations", type=int, default=50)
     parser.add_argument("--max-wallclock-hours", type=float, default=6)
     parser.add_argument("--data-dir", type=Path, default=ROOT / "KuaiRand-Pure" / "data")
+    parser.add_argument("--dataset", choices=("pure", "1k"), default="pure")
     parser.add_argument("--runs-dir", type=Path, default=ROOT / "runs")
     parser.add_argument("--cache-dir", type=Path, default=ROOT / ".cache")
     parser.add_argument("--skip-final-test", action="store_true", help="Stop and persist without reading test metrics.")
@@ -133,7 +161,7 @@ def main() -> int:
     if state_path is not None and state_path.exists():
         state = RunState.load(state_path)
     else:
-        state = _new_state()
+        state = _new_state(args.dataset)
         if args.run_id:
             state.run_id = args.run_id
     try:
@@ -145,6 +173,7 @@ def main() -> int:
             runs_dir=args.runs_dir,
             cache_dir=args.cache_dir,
             finalize_on_test=not args.skip_final_test,
+            dataset=args.dataset,
         )
     except LLMError as error:
         print("STOPPED: %s" % error, file=sys.stderr)

@@ -1,0 +1,12 @@
+{
+  "best_validation_metrics": {
+    "primary": 0.6439
+  },
+  "consecutive_abandoned": 0,
+  "final_test_metrics": null,
+  "manual_interventions": 0,
+  "stopping_reason": "iteration cap",
+  "total_iterations": 0,
+  "total_tokens": 0,
+  "total_wall_clock_s": 0.0
+}

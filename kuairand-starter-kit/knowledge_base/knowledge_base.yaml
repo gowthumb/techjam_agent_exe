@@ -514,6 +514,29 @@ candidate_models:
                 12-ssm-lr0.0003-t1-n8-k16-seed2, 12-ssm-lr0.0003-t1-n8-k16-seed3,
                 12-ssm-lr0.0003-t1-n8-k16-seed4]
 
+  - name: field_aware_fm
+    status: untested
+    hypothesis: >
+      Replace the current FM's shared interaction embedding with field-aware
+      pairwise embeddings. For the 5 fields
+      (user_id, video_id, author_id, tab, dur_bucket), give each feature
+      value F-1=4 separate k-dim embedding vectors, one per field it can
+      pair with. Interaction term becomes the sum over all
+      C(5,2)=10 field pairs (f1,f2) of dot(V[x_f1, f2], V[x_f2, f1])
+      instead of the single global sum-of-squares trick. Keep k, lr,
+      epochs, Adam optimizer, and early stopping identical to the current
+      best config (pos_weight=4.0) so any change is attributable to the
+      interaction structure alone. Exact-match control: a degenerate
+      single-shared-embedding variant that should reproduce the current
+      FM's numbers bit-for-bit, proving the field-aware code path is
+      correct before trusting any improvement.
+    rationale: >
+      DeepFM/xDeepFM literature shows field-specific interaction weights
+      consistently beat a single shared embedding on CTR-style ranking.
+      Not yet tried in this run's history — every prior structural
+      hypothesis (focal-BPR, macro-balanced BPR) was abandoned as
+      trivial/broken before actually changing the interaction mechanism.
+
   - name: fm_listwise
     category: fm_family
     library: starter_kit
@@ -1001,6 +1024,16 @@ scale_transfer:
     facts_files: [phase5_facts_pure.json, phase5_facts_1k.json]
 
   post_phase20_update:
+    note: >
+      field_aware_fm (see candidate_models) has not been tested at 1K
+      scale. All confirmed 1K non-transfer findings so far (SSM,
+      user-tab/duration affinity, GBDT) are loss/feature-level changes to
+      the same shared-embedding FM interaction structure — none of them
+      changed the interaction mechanism itself. Field-aware pairwise
+      embeddings are architecturally distinct from every direction tested
+      and rejected so far and remain a live candidate worth trying before
+      ruling out structural improvements at this scale.
+
     kuairand_27k:
       regime: >-
         Confirmed as an even more extreme 1K-like item-cold-start regime: 322.3M

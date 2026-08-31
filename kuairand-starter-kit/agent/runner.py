@@ -21,17 +21,27 @@ _CHILD_PROGRAM = textwrap.dedent(
     import sys
     import traceback
 
-    candidate_path, data_dir, cache_dir, result_kind, scores_path = sys.argv[1:]
+    candidate_path, data_dir, cache_dir, result_kind, scores_path, seed, epochs, seeded_onek = sys.argv[1:]
     try:
         from agent.data_cache import load_and_encode
         spec = importlib.util.spec_from_file_location("candidate_model", candidate_path)
         candidate = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(candidate)
-        splits, encoded, field_dims = load_and_encode(data_dir, cache_dir)
-        original_encode = getattr(candidate, "encode", None)
-        candidate.encode = lambda requested_splits: (encoded, field_dims) if requested_splits is splits else original_encode(requested_splits)
+        is_onek = getattr(candidate, "DATASET", "pure") == "1k"
+        if not is_onek:
+            splits, encoded, field_dims = load_and_encode(data_dir, cache_dir)
+            original_encode = getattr(candidate, "encode", None)
+            candidate.encode = lambda requested_splits: (encoded, field_dims) if requested_splits is splits else original_encode(requested_splits)
         with contextlib.redirect_stdout(sys.stderr):
-            results = candidate.run_fm(splits, return_predictions=True) if result_kind == "final" else candidate.run_fm(splits)
+            if is_onek:
+                if result_kind == "final":
+                    results = candidate.run_fm("1k", return_predictions=True)
+                elif seeded_onek == "1":
+                    results = candidate.run_fm("1k", seed=int(seed), epochs=int(epochs))
+                else:
+                    results = candidate.run_fm("1k")
+            else:
+                results = candidate.run_fm(splits, return_predictions=True) if result_kind == "final" else candidate.run_fm(splits)
         if not isinstance(results, dict):
             raise TypeError("candidate.run_fm(splits) must return a dictionary")
         if result_kind == "validation":
@@ -53,7 +63,8 @@ _CHILD_PROGRAM = textwrap.dedent(
 
 
 def _run_subprocess(
-    code: str, data_dir: Path | str, cache_dir: Optional[Path | str], timeout_s: float, result_kind: str
+    code: str, data_dir: Path | str, cache_dir: Optional[Path | str], timeout_s: float, result_kind: str,
+    seed: int = 0, epochs: int = 40, seeded_onek: bool = False,
 ) -> Dict[str, Any]:
     cache_path = Path(cache_dir) if cache_dir is not None else _ROOT / ".cache"
     with tempfile.TemporaryDirectory(prefix="candidate-") as temporary_directory:
@@ -62,7 +73,7 @@ def _run_subprocess(
         candidate_path.write_text(code, encoding="utf-8")
         try:
             completed = subprocess.run(
-                [sys.executable, "-c", _CHILD_PROGRAM, str(candidate_path), str(data_dir), str(cache_path), result_kind, str(scores_path)],
+                [sys.executable, "-c", _CHILD_PROGRAM, str(candidate_path), str(data_dir), str(cache_path), result_kind, str(scores_path), str(seed), str(epochs), "1" if seeded_onek else "0"],
                 cwd=_ROOT,
                 capture_output=True,
                 text=True,
@@ -98,6 +109,21 @@ def run(
 ) -> Dict[str, Any]:
     """Execute a candidate and expose only validation metrics to the orchestrator."""
     return _run_subprocess(code, data_dir, cache_dir, timeout_s, "validation")
+
+
+def run_onek_paired(
+    code: str, data_dir: Path | str, cache_dir: Optional[Path | str] = None, timeout_s: float = 300,
+) -> Dict[str, Any]:
+    """Evaluate a 1K candidate on matched seeds with half-length per-seed training."""
+    per_seed = []
+    for seed in (0, 1, 2):
+        result = _run_subprocess(code, data_dir, cache_dir, timeout_s, "validation", seed=seed, epochs=20, seeded_onek=True)
+        if result["status"] != "ok":
+            return result
+        per_seed.append(result["metrics"]["valid"])
+    metric_names = per_seed[0]
+    mean_metrics = {name: sum(metrics[name] for metrics in per_seed) / len(per_seed) for name in metric_names}
+    return {"status": "ok", "metrics": {"valid": mean_metrics}, "per_seed_valid": per_seed}
 
 
 def score_final_on_test(

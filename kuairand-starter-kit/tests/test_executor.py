@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -44,6 +45,21 @@ class ExecutorSmokeTest(unittest.TestCase):
         self.assertEqual(result.status, "error")
         self.assertEqual(state.iteration_num, 0)
         self.assertEqual(state.retry_count, 1)
+
+    def test_onek_acceptance_requires_paired_statistical_win(self):
+        state = RunState(current_code="value = 1\n", best_metrics={"primary": 0.6439})
+        paired_metrics = [
+            {"GAUC": 0.7, "nDCG@5": 0.6, "primary": value}
+            for value in (0.6460, 0.6462, 0.6459)
+        ]
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            baseline_path = root / "baseline.json"
+            baseline_path.write_text(json.dumps({"valid_primary": [0.6440, 0.6441, 0.6439]}), encoding="utf-8")
+            with patch("agent.executor.runner.run_onek_paired", return_value={"status": "ok", "metrics": {"valid": paired_metrics[0]}, "per_seed_valid": paired_metrics}), patch("agent.executor.resolve_model", return_value="test-model"):
+                result = run_candidate(state, DIFF, runs_dir=root, dataset="1k", baseline_distribution_path=baseline_path)
+        self.assertEqual(result.status, "accepted")
+        self.assertTrue(result.metrics["paired_seed"]["accepted"])
 
     def test_convergence_uses_best_primary_over_three_intervals(self):
         state = RunState(current_code="")

@@ -1,19 +1,22 @@
 """Deterministic patch, validation, acceptance, and stopping logic."""
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from time import monotonic
 from typing import Any, Dict, Optional
 
 from agent import runner
-from agent.logging_utils import log_iteration
 from agent.llm_client import resolve_model
+from agent.logging_utils import log_iteration
+from agent.one_k_policy import paired_seed_result
 from agent.patcher import apply_patch, validate_syntax
 from agent.state import RunState
 
 
 _ROOT = Path(__file__).resolve().parents[1]
+_ONEK_BASELINE_PATH = _ROOT / "runs" / "1k-baseline-distribution.json"
 
 
 @dataclass
@@ -42,6 +45,14 @@ def _entry(state: RunState, diff: str, status: str, metrics: Optional[Dict[str, 
     }
 
 
+def _one_k_baseline_scores(path: Path | str) -> list[float]:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    scores = payload["valid_primary"][:3]
+    if len(scores) != 3:
+        raise ValueError("1K baseline distribution must contain seeds 0, 1, and 2.")
+    return scores
+
+
 def run_candidate(
     state: RunState,
     diff: str,
@@ -52,12 +63,15 @@ def run_candidate(
     hypothesis: str = "manual candidate patch",
     rationale: str = "Deterministic executor evaluation.",
     tokens_used: int = 0,
+    dataset: str = "pure",
+    baseline_distribution_path: Path | str = _ONEK_BASELINE_PATH,
 ) -> IterationResult:
-    """Apply and evaluate a patch, accepting only strict validation improvements."""
+    """Apply and evaluate a patch, accepting only dataset-appropriate validation evidence."""
     started_at = monotonic()
     try:
         candidate_code = apply_patch(state.current_code, diff)
         validate_syntax(candidate_code)
+        baseline_scores = _one_k_baseline_scores(baseline_distribution_path) if dataset == "1k" else None
     except Exception as error:
         state.retry_count += 1
         error_trace = "%s: %s" % (type(error).__name__, error)
@@ -66,7 +80,7 @@ def run_candidate(
         log_iteration(state, entry, runs_dir)
         return IterationResult("error", error_trace=error_trace)
 
-    result = runner.run(candidate_code, data_dir, cache_dir, timeout_s)
+    result = runner.run_onek_paired(candidate_code, data_dir, cache_dir, timeout_s) if dataset == "1k" else runner.run(candidate_code, data_dir, cache_dir, timeout_s)
     wall_time_s = monotonic() - started_at
     if result["status"] != "ok":
         state.retry_count += 1
@@ -79,7 +93,21 @@ def run_candidate(
     metrics = result["metrics"]
     valid_metrics = metrics["valid"]
     previous_primary = None if state.best_metrics is None else state.best_metrics["primary"]
-    accepted = previous_primary is None or valid_metrics["primary"] > previous_primary
+    if dataset == "1k":
+        candidate_scores = [seed_metrics["primary"] for seed_metrics in result["per_seed_valid"]]
+        paired = paired_seed_result(candidate_scores, baseline_scores)
+        metrics["paired_seed"] = {
+            "candidate_primary": candidate_scores,
+            "baseline_primary": baseline_scores,
+            "deltas": paired.deltas,
+            "mean_delta": paired.mean_delta,
+            "delta_std": paired.delta_std,
+            "lower_bound": paired.lower_bound,
+            "accepted": paired.accepted,
+        }
+        accepted = paired.accepted and (previous_primary is None or valid_metrics["primary"] > previous_primary)
+    else:
+        accepted = previous_primary is None or valid_metrics["primary"] > previous_primary
     status = "accepted" if accepted else "rejected"
     if accepted:
         state.current_code = candidate_code

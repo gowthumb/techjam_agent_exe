@@ -87,13 +87,17 @@ def _decision_rules_context(knowledge_base: str) -> str:
     return "\n".join(rules) if rules else "- No replication/control/veto rules found."
 
 
-def _planner_knowledge_context(knowledge_base: str) -> str:
+def _planner_knowledge_context(knowledge_base: str, dataset: str = "pure") -> str:
     """Keep only per-iteration planning sections from the curated YAML."""
+    if dataset == "1k":
+        scale_transfer = _yaml_section(knowledge_base, "scale_transfer")
+        update = re.search(r"^  post_phase20_update:\n(.*?)(?=^  [A-Za-z_][A-Za-z0-9_]*:|\Z)", scale_transfer, re.MULTILINE | re.DOTALL)
+        return "scale_transfer:\n  post_phase20_update:\n" + update.group(1).rstrip() if update else scale_transfer
     sections = [_yaml_section(knowledge_base, section) for section in _PLANNER_SECTIONS]
     return "\n\n".join(section for section in sections if section)
 
 
-def _system_prompt(knowledge_base: str, state: RunState) -> str:
+def _system_prompt(knowledge_base: str, state: RunState, dataset: str = "pure") -> str:
     return """You are the Planner in an autonomous recommender-system research pipeline. Select exactly one next hypothesis for the Coder; you do not write code.
 
 Return only valid JSON, with exactly this shape:
@@ -106,14 +110,14 @@ Hard constraints:
 - The rationale must cite a numbered knowledge-base item, or clearly justify a direction beyond the knowledge base.
 
 ----- CONFIRMED / HIGH-CONFIDENCE KNOWLEDGE -----
-""" + _confirmed_knowledge_context(knowledge_base) + """
+""" + (_planner_knowledge_context(knowledge_base, "1k") if dataset == "1k" else _confirmed_knowledge_context(knowledge_base)) + """
 ----- DECISION PROTOCOL: REPLICATION / CONTROL / VETO -----
 """ + _decision_rules_context(knowledge_base) + """
 ----- ITERATION-RELEVANT KNOWLEDGE BASE -----
-""" + _planner_knowledge_context(knowledge_base) + "\n----- CURRENT BEST VALIDATION METRICS -----\n" + json.dumps(state.best_metrics, default=str) + "\n----- EXPERIMENT HISTORY -----\n" + _history_context(state.experiment_history)
+""" + _planner_knowledge_context(knowledge_base, dataset) + "\n----- CURRENT BEST VALIDATION METRICS -----\n" + json.dumps(state.best_metrics, default=str) + "\n----- EXPERIMENT HISTORY -----\n" + _history_context(state.experiment_history)
 
 def propose_hypothesis(
-    state: RunState, knowledge_base_path: str = "knowledge_base/knowledge_base.yaml"
+    state: RunState, knowledge_base_path: str = "knowledge_base/knowledge_base.yaml", dataset: str = "pure"
 ) -> PlannerResult:
     """Ask the Planner for one structured hypothesis using bounded run context."""
     path = Path(knowledge_base_path)
@@ -121,7 +125,7 @@ def propose_hypothesis(
         path = _ROOT / path
     knowledge_base = path.read_text(encoding="utf-8")
     response = call_llm(
-        _system_prompt(knowledge_base, state),
+        _system_prompt(knowledge_base, state, dataset),
         "Choose the next hypothesis now.",
         model=resolve_model("PLANNER"),
         temperature=resolve_temperature("PLANNER"),

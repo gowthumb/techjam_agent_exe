@@ -81,6 +81,20 @@ kb_ablation:
         self.assertIn("attribution_invariant", rules)
         self.assertIn("Adam optimizer update", rules)
 
+    def test_onek_context_uses_scale_transfer_update_not_pure_candidates(self):
+        knowledge_base = """candidate_models:
+  - name: fm_bpr
+    validated: true
+scale_transfer:
+  post_phase20_update:
+    onek_completed_parity_axes:
+      verdict: NONE_BEAT_1K_POINTWISE_BASELINE
+"""
+        context = _planner_knowledge_context(knowledge_base, dataset="1k")
+        self.assertIn("post_phase20_update", context)
+        self.assertIn("NONE_BEAT_1K_POINTWISE_BASELINE", context)
+        self.assertNotIn("candidate_models", context)
+
 
 if __name__ == "__main__":
     unittest.main()

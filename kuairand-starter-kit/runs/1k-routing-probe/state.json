@@ -1,0 +1,13 @@
+{
+  "best_metrics": {
+    "primary": 0.6439
+  },
+  "current_code": "\"\"\"Minimal KuaiRand-1K adapter built on the proven scale-transfer pipeline.\"\"\"\nfrom __future__ import annotations\n\nimport sys\nfrom pathlib import Path\n\n\nDATASET = \"1k\"\n_ML_ROOT = Path.cwd().parent / \"ml_modelling\"\nsys.path.insert(0, str(_ML_ROOT))\nsys.path.insert(0, str(_ML_ROOT / \"experiments\"))\n\nfrom explib import fm, harness\nfrom p5_scale_transfer import prepare\n\n\ndef run_fm_1k(\n    splits_or_bench=\"1k\", k=16, lr=0.001, epochs=40, bs=8192, seed=0,\n    sparse=True, return_predictions=False,\n):\n    \"\"\"Train sparse pointwise FM on 1K and return baseline-compatible metrics.\"\"\"\n    if splits_or_bench not in (None, \"1k\"):\n        raise ValueError(\"baseline_1k supports only the KuaiRand-1K benchmark\")\n    _, _, enc, dim = prepare(\"1k\")\n    model, _ = fm.train(\n        enc, dim, loss=\"pointwise\", k=k, lr=lr, epochs=epochs, bs=bs,\n        patience=4, seed=seed, evaluator=harness.score, verbose=True, sparse=sparse,\n    )\n    result = {}\n    for split in (\"valid\", \"test\"):\n        features, labels, users = enc[split]\n        scores = model.predict(features)\n        result[split] = harness.score(users, labels, scores)\n        if split == \"test\" and return_predictions:\n            result[\"test_scores\"] = scores\n    return result\n\n\ndef run_fm(splits_or_bench=\"1k\", **kwargs):\n    \"\"\"Runner-compatible alias; the argument is ignored unless it names 1K.\"\"\"\n    return run_fm_1k(\"1k\", **kwargs)",
+  "experiment_history": [],
+  "iteration_num": 0,
+  "manual_interventions": 0,
+  "retry_count": 0,
+  "run_id": "1k-routing-probe",
+  "total_tokens": 0,
+  "total_wall_clock_s": 0.0
+}

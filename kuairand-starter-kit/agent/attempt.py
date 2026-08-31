@@ -3,10 +3,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from time import monotonic
 from typing import Any, Dict, Optional
 
-from agent.coder import CoderResult, propose_patch
+from agent.coder import propose_patch
 from agent.debugger import fix_patch
 from agent.executor import IterationResult, run_candidate
 from agent.llm_client import resolve_model
@@ -37,6 +36,7 @@ def attempt_hypothesis(
     timeout_s: float = 300,
     initial_diff: Optional[str] = None,
     initial_tokens: int = 0,
+    dataset: str = "pure",
 ) -> AttemptResult:
     """Try Coder then Debugger repairs until a candidate receives a validation score."""
     state.retry_count = 0
@@ -51,14 +51,12 @@ def attempt_hypothesis(
             tokens_used = coder_result.input_tokens + coder_result.output_tokens
         except Exception as error:
             errors.append("Coder patch generation failed: %s: %s" % (type(error).__name__, error))
-    else:
-        failed_diff = initial_diff
 
     if not errors:
         attempted_diffs.append(failed_diff)
         result = run_candidate(
             state, failed_diff, data_dir, cache_dir, runs_dir, timeout_s,
-            hypothesis["description"], hypothesis["rationale"], tokens_used,
+            hypothesis["description"], hypothesis["rationale"], tokens_used, dataset,
         )
         if result.status in {"accepted", "rejected"}:
             return AttemptResult(result.status, result, attempted_diffs, errors, 0)
@@ -79,7 +77,7 @@ def attempt_hypothesis(
         attempted_diffs.append(failed_diff)
         result = run_candidate(
             state, failed_diff, data_dir, cache_dir, runs_dir, timeout_s,
-            hypothesis["description"], hypothesis["rationale"], tokens_used,
+            hypothesis["description"], hypothesis["rationale"], tokens_used, dataset,
         )
         if result.status in {"accepted", "rejected"}:
             return AttemptResult(result.status, result, attempted_diffs, errors, retry_index)
