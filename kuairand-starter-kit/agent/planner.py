@@ -21,7 +21,19 @@ _PLANNER_SECTIONS = (
     "dead_ends",
     "feature_engineering_menu",
     "priors",
+    # scale_transfer carries the 1K/27K cold-start regime diagnosis and the
+    # "don't re-test BPR/SSM/GBDT without new evidence" directive -- harmless
+    # context on Pure, required context on the scaled benchmarks (see the
+    # bench-conditional block appended below by _system_prompt). dataset_facts
+    # stays excluded, same as meta/calibration/kb_ablation: bulk per-benchmark
+    # numbers the scaled-bench context below already carries where it matters.
+    "scale_transfer",
 )
+# Operational runbooks the Planner must see verbatim when targeting a scaled
+# benchmark -- these are NOT part of knowledge_base.yaml, so they need their own
+# read here. Kept out of the Pure prompt: full text of both, every iteration,
+# would be pure token cost with no Pure-relevant content.
+_SCALED_BENCH_DOCS = ("HARDWARE_AWARENESS.md", "ONEK_RESULTS.md")
 
 
 @dataclass(frozen=True)
@@ -131,7 +143,32 @@ def _planner_knowledge_context(knowledge_base: str) -> str:
     return "\n\n".join(section for section in sections if section)
 
 
-def _system_prompt(knowledge_base: str, state: RunState) -> str:
+def _scaled_bench_context(bench: str) -> str:
+    """Full text of the operational runbooks a scaled-benchmark hypothesis must respect."""
+    if bench == "pure":
+        return ""
+    parts = ["""
+----- OPERATIONAL CONSTRAINTS: KuaiRand-%s -----
+This hypothesis targets KuaiRand-%s, not Pure. The two documents below are the
+measured record of what has and hasn't worked at this scale -- read them before
+proposing anything. In particular: sparse Adam is mandatory (not a tunable), no
+ranking loss (BPR/SSM) or GBDT variant has beaten the pointwise baseline on the
+one benchmark either was tried on (1K), and a lead that looks real on one seed
+has evaporated on 3-seed replication twice already in this exact workstream.
+Prefer a genuinely untested axis (see ONEK_RESULTS.md's "what this means"
+section) over re-proposing something already marked negative below -- that is
+exactly what the "Already Tested, No Gain" hard constraint means at this scale.
+""" % (bench.upper(), bench.upper())]
+    for name in _SCALED_BENCH_DOCS:
+        doc_path = _ROOT / "knowledge_base" / name
+        try:
+            parts.append("----- %s -----\n%s" % (name, doc_path.read_text(encoding="utf-8")))
+        except OSError:
+            continue
+    return "\n\n".join(parts)
+
+
+def _system_prompt(knowledge_base: str, state: RunState, bench: str = "pure") -> str:
     return """You are the Planner in an autonomous recommender-system research pipeline. Select exactly one next hypothesis for the Coder; you do not write code.
 
 Return only valid JSON, with exactly this shape:
@@ -148,17 +185,21 @@ Hard constraints:
 ----- DECISION PROTOCOL: REPLICATION / CONTROL / VETO -----
 """ + _decision_rules_context(knowledge_base) + """
 ----- ITERATION-RELEVANT KNOWLEDGE BASE -----
-""" + _planner_knowledge_context(knowledge_base) + "\n----- CURRENT BEST VALIDATION METRICS -----\n" + json.dumps(state.best_metrics, default=str) + "\n----- EXPERIMENT HISTORY -----\n" + _history_context(state.experiment_history)
+""" + _planner_knowledge_context(knowledge_base) + "\n----- CURRENT BEST VALIDATION METRICS -----\n" + json.dumps(state.best_metrics, default=str) + "\n----- EXPERIMENT HISTORY -----\n" + _history_context(state.experiment_history) + _scaled_bench_context(bench)
 
 def propose_hypothesis(
-    state: RunState, knowledge_base_path: str = "knowledge_base/knowledge_base.yaml"
+    state: RunState, knowledge_base_path: str = "knowledge_base/knowledge_base.yaml", bench: str = "pure"
 ) -> PlannerResult:
-    """Ask the Planner for one structured hypothesis using bounded run context."""
+    """Ask the Planner for one structured hypothesis using bounded run context.
+
+    ``bench`` (pure/1k/27k) gates whether HARDWARE_AWARENESS.md and
+    ONEK_RESULTS.md are injected in full -- see _scaled_bench_context.
+    """
     path = Path(knowledge_base_path)
     if not path.is_absolute():
         path = _ROOT / path
     knowledge_base = path.read_text(encoding="utf-8")
-    system_prompt = _system_prompt(knowledge_base, state)
+    system_prompt = _system_prompt(knowledge_base, state, bench)
     model = resolve_model("PLANNER")
     temperature = resolve_temperature("PLANNER")
 

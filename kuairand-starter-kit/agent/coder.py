@@ -35,7 +35,27 @@ def _clean_diff(raw_response: str) -> str:
     return _FENCE_PATTERN.sub("", raw_response).strip()
 
 
-def _system_prompt(current_code: str) -> str:
+# Extra hard constraints appended to the system prompt only when the target
+# benchmark's scale actually requires them (knowledge_base/HARDWARE_AWARENESS.md).
+# Keeping these out of the Pure prompt avoids constraining a benchmark they were
+# never measured on.
+_SCALED_BENCH_CONSTRAINTS = """
+This candidate targets KuaiRand-%s, not Pure. Two additional hard constraints
+apply, both measured in knowledge_base/HARDWARE_AWARENESS.md:
+- Dense Adam (updating the whole embedding table every batch) is infeasible at
+  this vocabulary size. Never remove or bypass the sparse-Adam update in FM.step;
+  a hypothesis needing dense-only behavior on this benchmark is proposing
+  something the measured hardware already rules out, not a modeling choice.
+- Never build a wide per-row feature matrix (a GBDT-style dense float32 array
+  with one column per feature, materialized for every row). That was calculated
+  at ~22GB against a 23.7GB machine at 27K scale and deliberately never
+  attempted. Stay inside the existing int-encoded-fields representation; add or
+  remove *fields* in that encoding, don't add a second, wider matrix alongside it.
+""".strip()
+
+
+def _system_prompt(current_code: str, bench: str = "pure") -> str:
+    scaled_note = ("\n\n" + (_SCALED_BENCH_CONSTRAINTS % bench.upper())) if bench != "pure" else ""
     return """You are the Coder in an autonomous recommender-system research pipeline.
 Translate the supplied hypothesis into a surgical patch for the complete current Python module below.
 
@@ -55,19 +75,19 @@ Hard constraints:
 - Never rewrite the whole file. Use the smallest sufficient SEARCH span that is unambiguous.
 - Preserve the function signature run_fm(splits, ...) exactly; the Executor relies on it.
 - run_fm must accept return_predictions: bool = False. When it is True, return a test_scores array or list aligned to the test split row order alongside valid and test metrics. Its default must remain False.
-- Keep existing imports, including from data import load, encode, unless the hypothesis specifically requires changing them.
+- Keep the existing top-of-file data-loading imports (from data import load, encode on Pure; from data_1k or data_27k import load, encode on those benchmarks) unless the hypothesis specifically requires changing them.
 - The diff must implement the hypothesis's actual mechanism, not adjust existing parameters, reformat code, add unused constants, cast dtypes, or add helper functions that are not called from the active code path.
 - A patch that does not change the model's actual computation is invalid regardless of its size or syntax validity.
 - If the hypothesis requires a substantial change (a new loss function, new sampling logic, a new layer), write that logic and wire it into the function that's actually called -- don't leave it unused.
 
-Execution contract: the normal runner invokes run_fm(splits) in an isolated subprocess and receives only validation metrics. Finalization alone invokes run_fm(splits, return_predictions=True), which must return aligned test_scores. Do not alter evaluate.py, change the split names, remove valid/test metric keys, or add code that exposes test scores during normal iteration. Preserve data.load() row order: never reorder, filter, or resort rows in a way that breaks submission row_id-to-(user_id, video_id) alignment; ml_modelling.explib.dataset.verify_row_order_matches_starter_kit() verifies this invariant. Preserve the baseline forward-pass structure, Adam optimizer update, and initialization unless the hypothesis explicitly changes one of them, so an accepted result is attributable to the stated hypothesis.
+Execution contract: the normal runner invokes run_fm(splits) in an isolated subprocess and receives only validation metrics. Finalization alone invokes run_fm(splits, return_predictions=True), which must return aligned test_scores. Do not alter evaluate.py, change the split names, remove valid/test metric keys, or add code that exposes test scores during normal iteration. Preserve data.load() row order: never reorder, filter, or resort rows in a way that breaks submission row_id-to-(user_id, video_id) alignment; ml_modelling.explib.dataset.verify_row_order_matches_starter_kit() verifies this invariant. Preserve the baseline forward-pass structure, Adam optimizer update, and initialization unless the hypothesis explicitly changes one of them, so an accepted result is attributable to the stated hypothesis.""" + scaled_note + """
 
 Current code follows:
 ----- CURRENT CODE -----
 """ + current_code + "\n----- END CURRENT CODE -----"
 
 
-def propose_patch(current_code: str, hypothesis: Dict[str, Any]) -> CoderResult:
+def propose_patch(current_code: str, hypothesis: Dict[str, Any], bench: str = "pure") -> CoderResult:
     """Request a Search/Replace patch for one validated, planner-owned hypothesis."""
     _validate_hypothesis(hypothesis)
     user_prompt = "\n".join(
@@ -78,7 +98,7 @@ def propose_patch(current_code: str, hypothesis: Dict[str, Any]) -> CoderResult:
         )
     )
     response = call_llm(
-        _system_prompt(current_code), user_prompt, model=resolve_model("CODER"),
+        _system_prompt(current_code, bench), user_prompt, model=resolve_model("CODER"),
         temperature=resolve_temperature("CODER"), role="CODER",
     )
     return CoderResult(

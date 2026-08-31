@@ -49,10 +49,38 @@ def _run_directory(runs_dir: Path, state: RunState) -> Path:
     return directory
 
 
-def _new_state() -> RunState:
-    state = RunState.from_baseline(ROOT / "baseline.py")
-    scores = json.loads((ROOT / "baseline_scores.json").read_text(encoding="utf-8"))
-    state.best_metrics = scores["scores"]["fm_official"]["valid"]
+# bench -> baseline module path. Pure's has a precomputed baseline_scores.json;
+# 1K/27K don't, so their starting best_metrics comes from actually running the
+# baseline once (cheap on 1K, expensive but self-verifying on 27K -- see
+# scripts/run_agent_scaled.py for the recommended 1K-first path instead of
+# running this script directly with --bench 27k).
+_BASELINE_PATH = {
+    "pure": ROOT / "baseline.py",
+    "1k": ROOT / "baseline_1k.py",
+    "27k": ROOT / "baseline_27k.py",
+}
+
+
+def _new_state(bench: str = "pure", data_dir: Optional[Path] = None, cache_dir: Optional[Path] = None, timeout_s: Optional[float] = None) -> RunState:
+    state = RunState.from_baseline(_BASELINE_PATH[bench])
+    if bench == "pure":
+        scores = json.loads((ROOT / "baseline_scores.json").read_text(encoding="utf-8"))
+        state.best_metrics = scores["scores"]["fm_official"]["valid"]
+        return state
+    from agent.executor import _BENCH_DATA_DIR, _BENCH_TIMEOUT_S
+    from agent.runner import run as run_candidate_code
+    _progress("seeding %s baseline metrics (one run of %s) ..." % (bench.upper(), _BASELINE_PATH[bench].name))
+    result = run_candidate_code(
+        state.current_code,
+        data_dir if data_dir is not None else _BENCH_DATA_DIR[bench],
+        cache_dir,
+        timeout_s if timeout_s is not None else _BENCH_TIMEOUT_S[bench],
+        bench=bench,
+    )
+    if result["status"] != "ok":
+        raise RuntimeError("Could not establish a %s baseline: %s" % (bench.upper(), result.get("error_trace", result["status"])))
+    state.best_metrics = result["metrics"]["valid"]
+    _progress("%s baseline seeded | valid %s" % (bench.upper(), _fmt_metrics(state.best_metrics)))
     return state
 
 
@@ -78,6 +106,7 @@ def run_loop(
     runs_dir: Path,
     cache_dir: Path,
     finalize_on_test: bool = True,
+    bench: str = "pure",
 ) -> dict:
     """Run until convergence, a budget cap, or repeated pre-scoring abandonment."""
     reset_quota_pause_budget()
@@ -102,7 +131,7 @@ def run_loop(
                 )
             )
             try:
-                planner_result = propose_hypothesis(state)
+                planner_result = propose_hypothesis(state, bench=bench)
             except LLMError:
                 state.total_wall_clock_s += monotonic() - pass_started_at
                 state.save(run_directory / "state.json")
@@ -134,6 +163,7 @@ def run_loop(
                     data_dir=data_dir,
                     cache_dir=cache_dir,
                     runs_dir=runs_dir,
+                    bench=bench,
                 )
             except Exception:
                 state.total_wall_clock_s += max(0.0, monotonic() - pass_started_at - (state.total_wall_clock_s - accounted_before_attempt))
@@ -167,7 +197,7 @@ def run_loop(
         final_test_metrics = None
         if finalize_on_test:
             final_started_at = monotonic()
-            final_result = score_final_on_test(state.current_code, data_dir, cache_dir)
+            final_result = score_final_on_test(state.current_code, data_dir, cache_dir, bench=bench)
             state.total_wall_clock_s += monotonic() - final_started_at
             if final_result["status"] != "ok":
                 raise RuntimeError(final_result.get("error_trace", "Final test scoring timed out."))
@@ -204,18 +234,25 @@ def run_loop(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-id")
+    parser.add_argument("--bench", choices=["pure", "1k", "27k"], default="pure",
+                        help="Which benchmark to target. 1k/27k use sparse-Adam baselines and the "
+                             "HARDWARE_AWARENESS.md/ONEK_RESULTS.md-aware Planner context; see "
+                             "scripts/run_agent_scaled.py for the recommended 1K-first, "
+                             "27K-confirmation workflow instead of running --bench 27k directly.")
     parser.add_argument("--max-iterations", type=int, default=50)
     parser.add_argument("--max-wallclock-hours", type=float, default=6)
-    parser.add_argument("--data-dir", type=Path, default=ROOT / "KuaiRand-Pure" / "data")
+    parser.add_argument("--data-dir", type=Path, default=None)
     parser.add_argument("--runs-dir", type=Path, default=ROOT / "runs")
     parser.add_argument("--cache-dir", type=Path, default=ROOT / ".cache")
     parser.add_argument("--skip-final-test", action="store_true", help="Stop and persist without reading test metrics.")
     args = parser.parse_args()
+    from agent.executor import _BENCH_DATA_DIR
+    data_dir = args.data_dir if args.data_dir is not None else _BENCH_DATA_DIR[args.bench]
     state_path = args.runs_dir / args.run_id / "state.json" if args.run_id else None
     if state_path is not None and state_path.exists():
         state = RunState.load(state_path)
     else:
-        state = _new_state()
+        state = _new_state(args.bench, data_dir, args.cache_dir)
         if args.run_id:
             state.run_id = args.run_id
     try:
@@ -223,10 +260,11 @@ def main() -> int:
             state,
             max_iterations=args.max_iterations,
             max_wallclock_hours=args.max_wallclock_hours,
-            data_dir=args.data_dir,
+            data_dir=data_dir,
             runs_dir=args.runs_dir,
             cache_dir=args.cache_dir,
             finalize_on_test=not args.skip_final_test,
+            bench=args.bench,
         )
     except LLMError as error:
         print("STOPPED: %s" % error, file=sys.stderr)

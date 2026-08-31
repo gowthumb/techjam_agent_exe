@@ -31,14 +31,21 @@ def attempt_hypothesis(
     hypothesis: Dict[str, str],
     max_retries: int = 3,
     *,
-    data_dir: Path | str = _ROOT / "KuaiRand-Pure" / "data",
+    data_dir: Optional[Path | str] = None,
     cache_dir: Optional[Path | str] = None,
     runs_dir: Path | str = _ROOT / "runs",
-    timeout_s: float = 300,
+    timeout_s: Optional[float] = None,
     initial_diff: Optional[str] = None,
     initial_tokens: int = 0,
+    bench: str = "pure",
+    seed: Optional[int] = None,
 ) -> AttemptResult:
-    """Try Coder then Debugger repairs until a candidate receives a validation score."""
+    """Try Coder then Debugger repairs until a candidate receives a validation score.
+
+    ``bench`` selects which benchmark's constraints the Coder/Debugger prompts
+    carry (see agent/coder.py's per-bench hard constraints) and which data
+    directory / timeout default agent/executor.py uses when not given explicitly.
+    """
     state.retry_count = 0
     attempted_diffs: list[str] = []
     errors: list[str] = []
@@ -46,7 +53,7 @@ def attempt_hypothesis(
     tokens_used = initial_tokens
     if initial_diff is None:
         try:
-            coder_result = propose_patch(state.current_code, hypothesis)
+            coder_result = propose_patch(state.current_code, hypothesis, bench=bench)
             failed_diff = coder_result.diff
             tokens_used = coder_result.input_tokens + coder_result.output_tokens
         except Exception as error:
@@ -59,6 +66,7 @@ def attempt_hypothesis(
         result = run_candidate(
             state, failed_diff, data_dir, cache_dir, runs_dir, timeout_s,
             hypothesis["description"], hypothesis["rationale"], tokens_used,
+            bench=bench, seed=seed,
         )
         if result.status in {"accepted", "rejected"}:
             return AttemptResult(result.status, result, attempted_diffs, errors, 0)
@@ -69,7 +77,7 @@ def attempt_hypothesis(
 
     for retry_index in range(1, max_retries + 1):
         try:
-            repair = fix_patch(state.current_code, failed_diff, errors[-1])
+            repair = fix_patch(state.current_code, failed_diff, errors[-1], bench=bench)
             failed_diff = repair.diff
             tokens_used = repair.input_tokens + repair.output_tokens
         except Exception as error:
@@ -80,6 +88,7 @@ def attempt_hypothesis(
         result = run_candidate(
             state, failed_diff, data_dir, cache_dir, runs_dir, timeout_s,
             hypothesis["description"], hypothesis["rationale"], tokens_used,
+            bench=bench, seed=seed,
         )
         if result.status in {"accepted", "rejected"}:
             return AttemptResult(result.status, result, attempted_diffs, errors, retry_index)
@@ -95,6 +104,7 @@ def attempt_hypothesis(
         "error_trace": "\n\n".join(errors),
         "wall_time_s": 0.0,
         "tokens_used": 0,
+        "bench": bench,
         "role_models": {
             "planner": resolve_model("PLANNER"),
             "coder": resolve_model("CODER"),

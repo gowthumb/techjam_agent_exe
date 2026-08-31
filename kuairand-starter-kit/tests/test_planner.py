@@ -63,6 +63,8 @@ dataset_facts:
   rows: 1
 kb_ablation:
   result: ignored
+scale_transfer:
+  headline: do not apply this KB to 1K blind
 """
         context = _planner_knowledge_context(knowledge_base)
         self.assertIn("decision_protocol:", context)
@@ -70,6 +72,7 @@ kb_ablation:
         self.assertIn("dead_ends:", context)
         self.assertIn("feature_engineering_menu:", context)
         self.assertIn("priors:", context)
+        self.assertIn("scale_transfer:", context)
         self.assertNotIn("meta:", context)
         self.assertNotIn("calibration:", context)
         self.assertNotIn("dataset_facts:", context)

@@ -380,9 +380,13 @@ anything, not assumed.
 
 27K is **not** a bigger sample of new users — it's Pure's *same* ~27K users
 (1.0x), each with 224x more logged interactions, i.e. full histories rather than
-a snapshot. And it confirms the `if_attempted` prediction with a sharper number
-than 1K itself: 82.7% of test videos are entirely unseen in train (vs 1K's
-84.9%) — the same item-cold-start regime, if anything slightly more extreme.
+a snapshot. And it confirms the `if_attempted` prediction, though by a slightly
+*milder* number than 1K itself, not a sharper one: 82.7% of test videos are
+entirely unseen in train, vs 1K's 84.9% (i.e. 17.3% seen vs 1K's 15.1% — more of
+27K's full-history users' test videos turn out to have shown up somewhere in
+their own train history). Still the same item-cold-start regime, orders of
+magnitude past Pure's 0.1% unseen — just not literally the sharpest of the
+three, which an earlier draft of this section overstated.
 
 **What ran.** `experiments/p20_27k_run.py` (new) — exactly one config, 1K's
 confirmed winner (pointwise, k=16, lr=1e-3, sparse Adam), transferred as-is, zero
@@ -448,12 +452,87 @@ structural argument left untested is CatBoost's YetiRank with the `cat_features`
 bug fixed — everything else in Pure's KB has now had its fair shot on 1K and
 lost.
 
+---
+
+## Agent pipeline integration
+
+Everything above this section ran through one-off scripts in
+`ml_modelling/experiments/`, never through the autonomous
+Planner/Coder/Debugger/Executor loop in `agent/` — that loop was, until now,
+wired to KuaiRand-Pure only (`agent/data_cache.py` hardcoded Pure's filenames
+and `data.py`'s dense string-keyed encoder; `agent/executor.py`'s default
+timeout was 300s, far under 27K's ~2063s load alone). This section documents
+closing that gap, following directly from this phase's own conclusion: the
+search belongs on 1K, and 27K is reserved for confirming whatever survives it.
+
+**What was built.**
+- `data_1k.py` / `data_27k.py`: the same `load(data_dir)` / `encode(splits)` /
+  `FIELDS` contract `data.py` exposes for Pure, but delegating to
+  `ml_modelling/explib/features.py`'s vectorized int-fast-path encoder instead
+  of the string-keyed one — mandatory past ~500K encoder dim per
+  `HARDWARE_AWARENESS.md` rule 1. Verified against this phase's own numbers: a
+  fresh `data_1k.encode()` run reproduces the exact encoder dim reported above
+  (2,925,549) and the exact train/test label rates (0.2635 / 0.2588).
+- `baseline_1k.py` / `baseline_27k.py`: self-contained `run_fm(splits, ...)`
+  candidates (same shape as `baseline.py`, so the Coder's search/replace
+  contract needs no special-casing) implementing sparse Adam unconditionally,
+  defaulting to this phase's confirmed config (pointwise, k=16, lr=1e-3).
+- `agent/data_cache.py`, `agent/runner.py`, `agent/executor.py`,
+  `agent/attempt.py`: threaded a `bench` ("pure"/"1k"/"27k") parameter through
+  the whole call chain, each defaulting to "pure" so nothing about the existing
+  Pure loop changed. Per-bench timeout floors live in
+  `agent/executor.py::_BENCH_TIMEOUT_S` (300s / 1800s / 14400s).
+- `agent/coder.py`, `agent/debugger.py`: append a hard-constraint block to the
+  system prompt when `bench != "pure"` — sparse Adam is not a tunable on these
+  benchmarks, and no wide per-row feature matrix may be built (the ~22GB GBDT
+  calculation this document's `HARDWARE_AWARENESS.md` companion describes).
+- `agent/planner.py`: injects `HARDWARE_AWARENESS.md`'s and this file's full
+  text into the Planner's prompt whenever `bench != "pure"`, plus
+  `knowledge_base.yaml`'s `scale_transfer` section (previously read by nothing
+  in the automated loop at all).
+- `scripts/run_agent_scaled.py`: the 1K-first, 27K-confirmation workflow this
+  phase's own "what this means" section below argues for. It runs the standard
+  loop against 1K, and only if a candidate is accepted, replicates it over 3
+  seeds (`agent/runner.run(..., seed=N)`, a new parameter letting the same code
+  be re-scored under different seeds without a new patch) before ever touching
+  27K. A replication-confirmed win is retargeted from `data_1k` to `data_27k`
+  (a literal import-line substitution — both modules share one contract) and
+  run once on 27K via a new `agent/runner.score_confirm`, which returns valid
+  AND test from a single training pass — the iterative loop's own
+  validation-only / test-only split doesn't fit a benchmark too expensive to
+  train twice just to keep them apart, so this one caller is allowed both, and
+  only for a terminal confirmation, never inside the search.
+
+**Verified, not just written.** `data_1k.py` + `baseline_1k.py` were run
+end-to-end against this machine's actual `KuaiRand-1K/data` (through
+`agent/runner.run`, the same subprocess path the orchestrator uses) at 2
+epochs: valid primary 0.6438, matching this phase's own 3-seed pointwise
+baseline (0.6439 ± 0.0022) well inside noise from a fifth of the epoch budget —
+an independent confirmation the new encoder/model path reproduces the original
+finding, not a coincidence. `agent/executor.run_candidate` was exercised with a
+hand-written patch (bypassing the LLM) end-to-end: apply → subprocess execute →
+accept/reject → log with the new `bench` field, all correct. The full existing
+`tests/` suite (40 tests) still passes.
+
+**Known blocker, found while verifying this, not fixed by it.** This machine's
+`KuaiRand-27K.tar.gz` and its extracted `KuaiRand-27K/data/` are incomplete —
+only `user_features_27k.csv` and two `video_features_statistic` parts (~14.4GB)
+are present; every `log_standard_*`, `log_random_*`, and
+`video_features_basic_27k.csv` file this phase's own run actually needed is
+missing. `scripts/run_agent_scaled.py`'s stage 3 (the 27K confirmation) will
+fail with a clear `FileNotFoundError` from `data_27k.py` until the archive is
+re-fetched correctly — see `HARDWARE_AWARENESS.md`'s new rule 6. The 1K stage
+(stages 1-2) does not depend on this and is fully runnable now.
+
+---
+
 **27K (Phase 20) is a confirmation, not a fifth data point in the same search.**
-It transferred the one surviving config one benchmark further, into an even
-sharper version of the same cold-start regime, and it ran clean: sane scores,
-no divergence, overfitting arriving even faster than on 1K (epoch 1 vs epoch 2)
-in exactly the direction the regime diagnosis predicts. The right reading is not
-"27K also needs tuning" — every reason pointwise won on 1K applies more strongly
-at 27K's slightly more extreme cold-start share — it's that the same one-line
-diagnosis (item cold-start removes the signal every fancier lever depends on)
-now has evidence at three orders of magnitude of scale, not one.
+It transferred the one surviving config one benchmark further, into the same
+order-of-magnitude cold-start regime (82.7% unseen vs 1K's 84.9% — comparable,
+not sharper; see the correction above), and it ran clean: sane scores, no
+divergence, overfitting arriving even faster than on 1K (epoch 1 vs epoch 2) in
+exactly the direction the regime diagnosis predicts. The right reading is not
+"27K also needs tuning" — every reason pointwise won on 1K applies just as
+strongly at 27K's comparably extreme cold-start share — it's that the same
+one-line diagnosis (item cold-start removes the signal every fancier lever
+depends on) now has evidence at three orders of magnitude of scale, not one.

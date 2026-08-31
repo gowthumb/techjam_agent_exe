@@ -903,7 +903,7 @@ kb_ensemble:
 # --------------------------------------------------------------- scale transfer
 scale_transfer:
   derived_from: kuairand_pure
-  status: "validated against KuaiRand-1K; 27K not attempted (see below)"
+  status: "validated against KuaiRand-1K; 27K attempted once, single seed, not replicated (see kuairand_27k below)"
 
   headline: >-
     DO NOT APPLY THIS KB TO KUAIRAND-1K. The recommended config LOSES there by
