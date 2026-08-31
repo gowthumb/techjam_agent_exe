@@ -1,0 +1,25 @@
+numpy==2.4.6
+annotated-types==0.8.0
+anyio==4.14.2
+h11==0.16.0
+httpcore2==2.12.0
+httpx2==2.12.0
+idna==3.19
+jiter==0.16.0
+openai==3.6.0
+pydantic==2.13.5
+pydantic_core==2.46.5
+python-dotenv==1.2.3
+sniffio==1.3.1
+truststore==0.10.4
+typing-inspection==0.4.4
+typing_extensions==4.16.0
+
+# Only needed to run the CatBoost YetiRank hypothesis on KuaiRand-1K
+# (knowledge_base/SCALE_DIRECTIVES.md's top "genuinely untested" direction --
+# ml_modelling/experiments/p19_1k_gbdt.py never completed a run of it due to a
+# real bug, see knowledge_base/ONEK_RESULTS.md Phase 19). Not required for the
+# FM baseline or the agent loop on Pure -- pulls in pandas/scipy/matplotlib as
+# transitive dependencies, a real footprint past the "numpy only" plain
+# baseline, so it's called out here rather than silently bundled above.
+catboost==1.2.10

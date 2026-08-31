@@ -1,8 +1,41 @@
-"""KuaiRand-Pure baselines。
-  --model pop   : item popularity（官方 baseline，纯统计，不训练）
-  --model fm    : Factorization Machine（起步模型，学生从这里往上改）
-  --model random: 随机打分（下界，用来自检评测代码没坏）
-只依赖 numpy。用法见 README.md
+"""KuaiRand-Pure — winning candidate from agent run 5cb9e936da024858815cd932df6ecfb7.
+
+Provenance (see runs/5cb9e936da024858815cd932df6ecfb7/{iterations.jsonl,summary.json}):
+  iteration 3 of 6, status "accepted", stopping_reason "converged".
+  valid: GAUC 0.6699 | nDCG@5 0.5372 | primary 0.6035  (baseline: 0.6016)
+  test:  GAUC 0.6635 | nDCG@5 0.5293 | primary 0.5964  (baseline: 0.5946, +0.0018)
+
+Mechanism actually implemented (verified against the logged code_diff): plain
+pointwise FM (same forward pass, optimizer, and init as baseline.py::FM),
+reweighting the BCE loss/gradient by pos_weight = n_negative / n_positive on
+the train split -- i.e. prevalence-balanced pointwise BCE. No sequence model,
+no behavior history.
+
+CAVEAT, worth reading before trusting this as a final submission: the
+Planner's logged hypothesis for this iteration ("replicate the leakage-safe
+DIN variant using positive-only behavior sequences, 3+ paired seeds, a
+no-sequence control, and a rand_valid exposure-policy veto") does NOT match
+what the Coder actually patched -- no DIN, no sequence, no 3-seed replication,
+no rand_valid check ever ran. It happens to be the same prevalence-balancing
+mechanism a *later* iteration (4) proposed correctly and by name, which was
+then rejected for not clearing the acceptance band against this already-best
+candidate. So: the mechanism is legitimate and plausible (class imbalance
+reweighting is a standard, well-understood lever), but the specific validation
+story attached to it in the run log is not real, and the gain (+0.0018 test,
++0.0019 valid) is a single seed clearing this codebase's own noise band
+(~0.0016) by a thin margin -- exactly the shape of result
+knowledge_base/knowledge_base_rationale.md and ONEK_RESULTS.md both warn has
+evaporated on replication before. Treat this as "a plausible single-seed lead
+that produces a legal, scoring submission," not as a KB-confirmed win, unless
+it's replicated over a few more seeds first.
+
+Original starter-kit header follows, unmodified:
+---
+KuaiRand-Pure baselines.
+  --model pop   : item popularity (official baseline, no training)
+  --model fm    : Factorization Machine (starting model)
+  --model random: random scoring (lower bound, sanity check for the scorer)
+numpy only. Usage: see README.md
 """
 import argparse, collections, time
 import numpy as np
@@ -12,7 +45,7 @@ from evaluate import evaluate
 
 def sigmoid(x): return 1.0 / (1.0 + np.exp(-np.clip(x, -30, 30)))
 
-# ---------------- item popularity（官方 baseline） ----------------
+# ---------------- item popularity (official baseline) ----------------
 def run_pop(splits, prior=20.0):
     pos, imp = collections.Counter(), collections.Counter()
     for x in splits['train']:
@@ -37,12 +70,13 @@ def run_random(splits, seed=0):
 
 # ---------------- Factorization Machine ----------------
 class FM:
-    def __init__(self, dim, k=16, lr=0.001, l2=1e-6, seed=0):
+    def __init__(self, dim, k=16, lr=0.001, l2=1e-6, seed=0, pos_weight=1.0):
         rng = np.random.default_rng(seed)
         self.V = rng.normal(0, 0.01, (dim, k)).astype(np.float32)
         self.W = np.zeros(dim, dtype=np.float32)
         self.b = np.float32(0.0)
         self.lr, self.l2 = lr, l2
+        self.pos_weight = np.float32(pos_weight)
         self.mV = np.zeros_like(self.V); self.vV = np.zeros_like(self.V)
         self.mW = np.zeros_like(self.W); self.vW = np.zeros_like(self.W)
         self.t = 0
@@ -56,7 +90,9 @@ class FM:
     def step(self, X, y):
         B = len(y)
         z, E, S = self.logits(X)
-        g = ((sigmoid(z) - y) / B).astype(np.float32)    # (B,)
+        p = sigmoid(z)
+        w = (self.pos_weight * y + (1.0 - y)).astype(np.float32)   # per-sample weight
+        g = ((p * w - self.pos_weight * y) / B).astype(np.float32)  # (B,) weighted-BCE grad
         gV = np.zeros_like(self.V); gW = np.zeros_like(self.W)
         np.add.at(gW, X, g[:, None])
         np.add.at(gV, X, g[:, None, None] * (S[:, None, :] - E))
@@ -68,7 +104,7 @@ class FM:
             Vv *= b2; Vv += (1 - b2) * (G * G)
             P -= self.lr * (M / (1 - b1 ** self.t)) / (np.sqrt(Vv / (1 - b2 ** self.t)) + eps)
         self.b -= self.lr * g.sum()
-        return float(-np.mean(y * np.log(sigmoid(z) + 1e-9) + (1 - y) * np.log(1 - sigmoid(z) + 1e-9)))
+        return float(-np.mean(w * (y * np.log(p + 1e-9) + (1 - y) * np.log(1 - p + 1e-9))))
 
     def predict(self, X, bs=200_000):
         return np.concatenate([self.logits(X[i:i + bs])[0] for i in range(0, len(X), bs)])
@@ -76,7 +112,9 @@ class FM:
 def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False, checkpoint_path=None):
     enc, dim = encode(splits)
     Xtr, ytr, _ = enc['train']; Xva, yva, uva = enc['valid']; Xte, yte, ute = enc['test']
-    m = FM(dim, k=k, lr=lr, seed=seed)
+    npos = float(np.sum(ytr)); nneg = float(len(ytr) - npos)
+    pos_weight = (nneg / npos) if npos > 0 else 1.0
+    m = FM(dim, k=k, lr=lr, seed=seed, pos_weight=pos_weight)
     rng = np.random.default_rng(seed)
     best, best_state, bad = -1, None, 0
     for ep in range(1, epochs + 1):
@@ -107,8 +145,7 @@ def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbo
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--data_dir', default='./KuaiRand-Pure/data',
-                    help='KuaiRand-Pure 解压后的 data 目录')
-    ap.add_argument('--model', default='fm', choices=['pop', 'fm', 'random'])
+                    help='KuaiRand-Pure extracted data directory')
     ap.add_argument('--k', type=int, default=16)
     ap.add_argument('--lr', type=float, default=0.001)
     ap.add_argument('--epochs', type=int, default=40)
@@ -118,11 +155,10 @@ if __name__ == '__main__':
     print(f"loading {a.data_dir} ...")
     splits = load(a.data_dir)
     print({k_: len(v) for k_, v in splits.items()}, f"fields={FIELDS}")
-    res = {'pop': run_pop, 'random': lambda s: run_random(s, a.seed),
-           'fm': lambda s: run_fm(s, k=a.k, lr=a.lr, epochs=a.epochs, seed=a.seed, checkpoint_path=a.checkpoint)}[a.model](splits)
-    if a.checkpoint and a.model == 'fm':
+    res = run_fm(splits, k=a.k, lr=a.lr, epochs=a.epochs, seed=a.seed, checkpoint_path=a.checkpoint)
+    if a.checkpoint:
         print(f"saved checkpoint to {a.checkpoint}")
-    print(f"\n=== {a.model} (seed={a.seed}) ===")
+    print(f"\n=== fm-pos_weight (seed={a.seed}) ===")
     for sp in ('valid', 'test'):
         r = res[sp]
         print(f"  {sp:5s}  GAUC {r['GAUC']:.4f} | nDCG@5 {r['nDCG@5']:.4f} | primary {r['primary']:.4f}")
