@@ -1,0 +1,7 @@
+{
+  // Don't auto-run .venv\Scripts\Activate in every new integrated terminal.
+  // The interpreter below is still used for editing, linting, and Run/Debug;
+  // activate the venv manually when you want it on a terminal's PATH.
+  "python.terminal.activateEnvironment": false,
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe"
+}
