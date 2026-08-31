@@ -999,3 +999,43 @@ scale_transfer:
               "5-1k-bpr-lr0.02-seed0", 5-1k-pointwise-k4-seed0,
               5-1k-pointwise-k16-seed0, 5-1k-pointwise-k64-seed0]
     facts_files: [phase5_facts_pure.json, phase5_facts_1k.json]
+
+  post_phase20_update:
+    kuairand_27k:
+      regime: >-
+        Confirmed as an even more extreme 1K-like item-cold-start regime: 322.3M
+        rows, 27,285 users, 32.0M videos, and only 17.3% of test videos seen in
+        train (versus 15.1% on 1K). Label rates are nearly flat across splits.
+      pointwise_reference: >-
+        Pointwise FM, k=16, lr=1e-3, sparse=True reached valid 0.6687 and test
+        0.6557 at epoch 1. This is one unreplicated seed, not a tuned result;
+        27K seed noise is unmeasured and a three-seed replication costs about
+        four training hours. Treat it only as evidence that the pointwise
+        cold-start baseline is sane and in-family.
+      directive: >-
+        Do not transfer Pure's BPR/SSM/GBDT recommendations to 27K without new
+        evidence. Start from sparse pointwise FM and re-measure the benchmark
+        before exploring; 27K shares 1K's cold-item regime more strongly than
+        Pure's warm-ID regime.
+      evidence: {exp_ids: [20-27k-pointwise-k16-lr0.001-seed0], facts_files: [phase5_facts_27k.json]}
+
+    onek_completed_parity_axes:
+      verdict: NONE_BEAT_1K_POINTWISE_BASELINE
+      results: >-
+        On the 1K pointwise baseline (valid 0.6439 +/- 0.0022), sampled softmax
+        scored 0.6290, user-tab affinity 0.6422, user-duration affinity 0.6362,
+        and XGBoost rank:pairwise 0.6402. Three-seed XGBoost rank:ndcg averaged
+        0.6429 +/- 0.0040 after a single-seed +0.0024 lead evaporated.
+      caveats: >-
+        None reached the >1 baseline-SE replication gate or the random-exposure
+        veto stage, except rank:ndcg which failed on replication. A 1K smaller-lr
+        apparent test gain likewise remains untrusted until 1K random-exposure
+        evaluation exists; the current unbiased loader is Pure-only. CatBoost
+        YetiRank was not completed because CPU pair generation stalled and ID
+        columns were not passed as categorical, so it is untested rather than
+        negative.
+      directive: >-
+        Keep pointwise k=16 as the 1K starting point. Do not reopen SSM,
+        user-tab/user-duration affinity, or XGBoost ranking objectives on 1K
+        without materially new evidence.
+      evidence: {exp_ids: [18-1k-ssm-lr0.0003-t1-n8-k16-seed0, 18-1k-pointwise-aff-user_tab-seed0, 18-1k-pointwise-aff-user_dur-seed0, 19-1k-xgb-pairwise-seed0, 19-1k-xgb-ndcg-seed0]}
