@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 from time import monotonic
 from typing import Optional
@@ -18,6 +19,28 @@ from agent.llm_client import LLMError, reset_quota_pause_budget
 from agent.planner import propose_hypothesis
 from agent.runner import score_final_on_test
 from agent.state import RunState
+
+
+def _now() -> str:
+    return datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def _progress(message: str) -> None:
+    """Emit one high-level orchestrator progress line, matching the LLM client's prefix."""
+    print("[%s] %s" % (_now(), message), flush=True)
+
+
+def _fmt_metrics(metrics: Optional[dict]) -> str:
+    """Render GAUC / nDCG@5 / primary from a metrics dict, tolerating missing keys."""
+    if not metrics:
+        return "n/a"
+    parts = ["%s %.5f" % (key, metrics[key]) for key in ("primary", "GAUC", "nDCG@5") if metrics.get(key) is not None]
+    return " / ".join(parts) if parts else "n/a"
+
+
+def _short(text: object, limit: int = 240) -> str:
+    collapsed = " ".join(str(text).split())
+    return collapsed if len(collapsed) <= limit else collapsed[: limit - 1] + "…"
 
 
 def _run_directory(runs_dir: Path, state: RunState) -> Path:
@@ -67,13 +90,41 @@ def run_loop(
             if reason is not None:
                 break
             pass_started_at = monotonic()
+            _progress(
+                "iteration %d starting | scored so far %d/%d | tokens used %d | wall-clock %.0fs | best valid %s"
+                % (
+                    state.iteration_num + 1,
+                    state.iteration_num,
+                    max_iterations,
+                    state.total_tokens,
+                    state.total_wall_clock_s,
+                    _fmt_metrics(state.best_metrics),
+                )
+            )
             try:
                 planner_result = propose_hypothesis(state)
-            except Exception:
+            except LLMError:
                 state.total_wall_clock_s += monotonic() - pass_started_at
                 state.save(run_directory / "state.json")
                 raise
+            except Exception as error:
+                state.total_wall_clock_s += monotonic() - pass_started_at
+                consecutive_abandoned += 1
+                _progress(
+                    "iteration %d planner produced no usable hypothesis (%s: %s) — skipping (%d in a row)"
+                    % (state.iteration_num + 1, type(error).__name__, error, consecutive_abandoned)
+                )
+                state.save(run_directory / "state.json")
+                continue
             state.total_tokens += planner_result.input_tokens + planner_result.output_tokens
+            _progress(
+                "iteration %d hypothesis (%s): %s"
+                % (
+                    state.iteration_num + 1,
+                    planner_result.hypothesis.get("target_module", "?"),
+                    _short(planner_result.hypothesis["description"]),
+                )
+            )
             accounted_before_attempt = state.total_wall_clock_s
             try:
                 attempt_result = attempt_hypothesis(
@@ -92,6 +143,26 @@ def run_loop(
             runner_accounted_s = state.total_wall_clock_s - accounted_before_attempt
             state.total_wall_clock_s += max(0.0, attempt_elapsed_s - runner_accounted_s)
             consecutive_abandoned = consecutive_abandoned + 1 if attempt_result.status == "abandoned" else 0
+            latest_valid = None
+            if attempt_result.iteration_result is not None and attempt_result.iteration_result.metrics:
+                latest_valid = attempt_result.iteration_result.metrics.get("valid")
+            if attempt_result.status == "abandoned":
+                _progress(
+                    "iteration %d ABANDONED after %d retries (no validation score) | tokens used %d | pass %.0fs"
+                    % (state.iteration_num + 1, attempt_result.retries_used, state.total_tokens, attempt_elapsed_s)
+                )
+            else:
+                _progress(
+                    "iteration %d %s | latest valid %s | best valid %s | tokens used %d | pass %.0fs"
+                    % (
+                        state.iteration_num,
+                        attempt_result.status.upper(),
+                        _fmt_metrics(latest_valid),
+                        _fmt_metrics(state.best_metrics),
+                        state.total_tokens,
+                        attempt_elapsed_s,
+                    )
+                )
             state.save(run_directory / "state.json")
         final_test_metrics = None
         if finalize_on_test:
@@ -101,6 +172,17 @@ def run_loop(
             if final_result["status"] != "ok":
                 raise RuntimeError(final_result.get("error_trace", "Final test scoring timed out."))
             final_test_metrics = final_result["metrics"]["test"]
+        _progress(
+            "run complete (%s) | scored iterations %d | best valid %s | final test %s | tokens used %d | wall-clock %.0fs"
+            % (
+                reason,
+                state.iteration_num,
+                _fmt_metrics(state.best_metrics),
+                _fmt_metrics(final_test_metrics),
+                state.total_tokens,
+                state.total_wall_clock_s,
+            )
+        )
         summary = {
             "stopping_reason": reason,
             "best_validation_metrics": state.best_metrics,

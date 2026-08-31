@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict
 
-from agent.coder import _validate_hypothesis
+from agent.coder import _HYPOTHESIS_KEYS, _validate_hypothesis
 from agent.llm_client import call_llm, resolve_model
 from agent.llm_client import resolve_temperature
 from agent.state import RunState
@@ -33,7 +33,45 @@ class PlannerResult:
 
 
 def _clean_json(raw_response: str) -> str:
-    return _FENCE_PATTERN.sub("", raw_response).strip()
+    """Return the first balanced ``{...}`` object, tolerating fences or prose around it."""
+    stripped = _FENCE_PATTERN.sub("", raw_response).strip()
+    start = stripped.find("{")
+    if start == -1:
+        return stripped
+    depth = 0
+    in_string = False
+    escape = False
+    for index in range(start, len(stripped)):
+        char = stripped[index]
+        if in_string:
+            if escape:
+                escape = False
+            elif char == "\\":
+                escape = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return stripped[start : index + 1]
+    return stripped[start:]
+
+
+def _normalize_hypothesis(parsed: Any) -> Dict[str, str]:
+    """Coerce a parsed planner reply into exactly the three required string fields."""
+    if isinstance(parsed, dict) and isinstance(parsed.get("hypothesis"), dict):
+        parsed = parsed["hypothesis"]
+    if not isinstance(parsed, dict):
+        raise ValueError("Planner response was not a JSON object.")
+    if _HYPOTHESIS_KEYS.issubset(parsed):
+        parsed = {key: parsed[key] for key in _HYPOTHESIS_KEYS}
+    _validate_hypothesis(parsed)
+    return {key: str(parsed[key]).strip() for key in _HYPOTHESIS_KEYS}
 
 
 def _score_delta(entry: Dict[str, Any]) -> str:
@@ -120,16 +158,35 @@ def propose_hypothesis(
     if not path.is_absolute():
         path = _ROOT / path
     knowledge_base = path.read_text(encoding="utf-8")
-    response = call_llm(
-        _system_prompt(knowledge_base, state),
-        "Choose the next hypothesis now.",
-        model=resolve_model("PLANNER"),
-        temperature=resolve_temperature("PLANNER"),
-        role="PLANNER",
-    )
-    try:
-        hypothesis = json.loads(_clean_json(response.text))
-    except json.JSONDecodeError as error:
-        raise ValueError("Planner response was not valid JSON: %s" % error) from error
-    _validate_hypothesis(hypothesis)
-    return PlannerResult(hypothesis, response.text, response.input_tokens, response.output_tokens)
+    system_prompt = _system_prompt(knowledge_base, state)
+    model = resolve_model("PLANNER")
+    temperature = resolve_temperature("PLANNER")
+
+    last_error = "no response"
+    input_tokens = output_tokens = 0
+    raw_response = ""
+    for attempt in range(3):
+        if attempt == 0:
+            user_prompt = "Choose the next hypothesis now."
+        else:
+            user_prompt = (
+                'Your previous reply was rejected (%s). Return ONLY a single JSON object with '
+                'exactly these three string keys and nothing else, no prose, no code fences: '
+                '"description", "rationale", "target_module".' % last_error
+            )
+        response = call_llm(system_prompt, user_prompt, model=model, temperature=temperature, role="PLANNER")
+        raw_response = response.text
+        input_tokens += response.input_tokens
+        output_tokens += response.output_tokens
+        try:
+            parsed = json.loads(_clean_json(response.text))
+        except json.JSONDecodeError as error:
+            last_error = "response was not valid JSON: %s" % error
+            continue
+        try:
+            hypothesis = _normalize_hypothesis(parsed)
+        except ValueError as error:
+            last_error = str(error)
+            continue
+        return PlannerResult(hypothesis, raw_response, input_tokens, output_tokens)
+    raise ValueError("Planner did not return a valid hypothesis after 3 attempts: %s" % last_error)

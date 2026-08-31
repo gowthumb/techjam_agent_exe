@@ -66,6 +66,24 @@ def _load_configuration() -> tuple[str, str, str]:
     return api_key, base_url, model
 
 
+def _env_flag(name: str) -> bool:
+    """Interpret an environment variable as a boolean flag."""
+    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _thinking_extra_body() -> dict:
+    """Disable server-side reasoning output when LLM_DISABLE_THINKING is set.
+
+    Reasoning models (e.g. deepseek-v4-pro on build.nvidia.com) otherwise prepend
+    chain-of-thought to the message content, which breaks the Planner's JSON and
+    the Coder's Search/Replace parsing. Mirrors the provider's documented
+    extra_body={"chat_template_kwargs": {"thinking": False}} switch.
+    """
+    if not _env_flag("LLM_DISABLE_THINKING"):
+        return {}
+    return {"chat_template_kwargs": {"thinking": False}}
+
+
 def resolve_model(role: str) -> str:
     """Return a role-specific compatible model, falling back to LLM_MODEL."""
     _, _, shared_model = _load_configuration()
@@ -155,6 +173,9 @@ def call_llm(
             }
             if temperature is not None:
                 request["temperature"] = temperature
+            extra_body = _thinking_extra_body()
+            if extra_body:
+                request["extra_body"] = extra_body
             completion = client.chat.completions.create(**request)
             print(
                 "[%s] LLM response received: role=%s model=%s elapsed_s=%.2f"

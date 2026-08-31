@@ -15,6 +15,14 @@ from agent.state import RunState
 
 _ROOT = Path(__file__).resolve().parents[1]
 
+# Mirrors knowledge_base.yaml decision_protocol.single_run_band: a single-run
+# validation delta below this sits inside the measured seed-noise band (official
+# seed sd ~0.0008) and is not treated as a real improvement.
+_ACCEPTANCE_BAND = 0.0016
+# README convergence parameters: epsilon ~= 2.5 sigma, N = 3 non-improving iterations.
+_CONVERGENCE_EPSILON = 0.002
+_CONVERGENCE_WINDOW = 3
+
 
 @dataclass
 class IterationResult:
@@ -79,7 +87,7 @@ def run_candidate(
     metrics = result["metrics"]
     valid_metrics = metrics["valid"]
     previous_primary = None if state.best_metrics is None else state.best_metrics["primary"]
-    accepted = previous_primary is None or valid_metrics["primary"] > previous_primary
+    accepted = previous_primary is None or valid_metrics["primary"] > previous_primary + _ACCEPTANCE_BAND
     status = "accepted" if accepted else "rejected"
     if accepted:
         state.current_code = candidate_code
@@ -92,18 +100,33 @@ def run_candidate(
     return IterationResult(status, metrics=metrics)
 
 
-def check_convergence(state: RunState) -> bool:
-    """Apply epsilon=0.002 over three scored intervals after an accepted improvement."""
-    best_so_far = []
-    best = float("-inf")
-    accepted_improvement = False
+def check_convergence(
+    state: RunState,
+    epsilon: float = _CONVERGENCE_EPSILON,
+    window: int = _CONVERGENCE_WINDOW,
+) -> bool:
+    """Converged when the best validation primary has not improved past ``epsilon``
+    across ``window`` scored iterations since the most recent accepted improvement.
+
+    Scored iterations *before* the first acceptance do not count: a run that has
+    not yet beaten its starting point is still searching, not plateaued. Error and
+    abandoned iterations carry no validation score and are skipped entirely.
+    """
+    primaries_since_acceptance: list[float] = []
+    seen_acceptance = False
     for entry in state.experiment_history:
         valid_metrics = (entry.get("metrics") or {}).get("valid")
-        if valid_metrics is not None:
-            best = max(best, valid_metrics["primary"])
-            best_so_far.append(best)
-            accepted_improvement = accepted_improvement or entry.get("status") == "accepted"
-    return accepted_improvement and len(best_so_far) >= 4 and best_so_far[-1] - best_so_far[-4] <= 0.002
+        if valid_metrics is None:
+            continue
+        if entry.get("status") == "accepted":
+            seen_acceptance = True
+            primaries_since_acceptance = [valid_metrics["primary"]]
+        elif seen_acceptance:
+            primaries_since_acceptance.append(valid_metrics["primary"])
+    if not seen_acceptance or len(primaries_since_acceptance) <= window:
+        return False
+    anchor = primaries_since_acceptance[0]
+    return max(primaries_since_acceptance) - anchor <= epsilon
 
 
 def check_caps(state: RunState) -> bool:
