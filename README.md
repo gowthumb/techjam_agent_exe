@@ -43,6 +43,10 @@ A second attempt (`1k-paired-run-1`) used a purpose-built paired-seed statistica
 
 KuaiRand-27K was not attempted as a full agent-driven submission; see `ml_modelling/` on the `ML-modelling` branch for a teammate's independent exploratory work at that scale (real measured hardware/timing data, a GBDT baseline attempt, and a 27K run).
 
+### KuaiRand-27K (bonus benchmark)
+
+Not attempted as a full agent-driven submission (Planner/Coder/Executor loop). A single manual scale-transfer measurement (`ml_modelling/experiments/p20_27k_run.py`, on the `orchestrator_with_kb_27k` branch) confirms the pipeline runs correctly at full 27K scale: sparse pointwise FM, k=16, lr=0.001, seed=0, on the full 322,278,385-row dataset (71.1M validation rows / 26,729 users, 114.8M test rows / 27,249 users, 32M+ videos). Result: validation primary 0.6687 (GAUC 0.6911, nDCG@5 0.6463), test primary 0.6557 (GAUC 0.6852, nDCG@5 0.6261). No organizer baseline reference exists for 27K in this repo, so this is reported as a raw measurement, not a scored delta — it demonstrates infrastructure readiness rather than a benchmarked improvement.
+
 ## Resource Usage
 
 | Benchmark | Total LLM tokens | Wall-clock | Iterations used | Compute |
@@ -89,6 +93,7 @@ See also: `docs/HARDWARE_AWARENESS.md` for measured (not estimated) CPU/memory/t
 
 ## Team Contributions
 
-- **Gautham & Yash** — Track A: agent orchestrator (Planner/Coder/Executor/Debugger loop, convergence logic, knowledge base curation, Pure and 1K bonus runs).
-- **Harineesh** — Track B: ML modelling components, KuaiRand-1K/27K scale-transfer exploration, hardware/performance measurement (see `ml_modelling/` on the `ML-modelling` branch).
-- **Gautham, Yash & Harineesh** — Track C: results writeup, README, Devpost submission.
+- **Yash** — `orchestrator`, `orchestrator_with_kb` branches: agent orchestrator (Planner/Coder/Executor/Debugger loop), knowledge base integration, Pure official submission (`pure-real-run-1`), KuaiRand-1K bonus adapter and both 1K runs, paired-seed statistical stopping policy.
+- **Gautham** — `orchestrator_with_kb_gauthi`, `orchestrator_with_kb_27k` branches (both descending from `orchestrator_with_kb`): additional Pure hypothesis exploration (L2 regularization tuning, DIN/SSM-labeled attempts), KuaiRand-27K infrastructure and scale measurement (`baseline_27k.py`, `data_27k.py`).
+- **Harineesh** — `ML-modelling` branch: core ML pipeline components (`explib`), KuaiRand-1K/27K scale-transfer research (Phases 10-20), hardware/performance measurement (`HARDWARE_AWARENESS.md`).
+- **All three** — results writeup, README, Devpost submission.
