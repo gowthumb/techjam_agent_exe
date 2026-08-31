@@ -34,6 +34,31 @@ class AttemptSmokeTest(unittest.TestCase):
         debugger.assert_called_once()
         self.assertEqual(runner.call_count, 2)
 
+    def test_no_op_result_routes_to_debugger_like_a_runtime_error(self):
+        """A candidate that scored but changed nothing (agent/executor.py's no_op
+        status) must get the same Debugger-repair chance as a runtime error --
+        it is not "accepted"/"rejected", so attempt_hypothesis's existing
+        generic retry logic should already handle it without special-casing."""
+        state = RunState(current_code="value = 1\n")
+        repair = CoderResult(FIXED_DIFF, FIXED_DIFF, 4, 2)
+        with tempfile.TemporaryDirectory() as temporary_directory, patch(
+            "agent.attempt.fix_patch", return_value=repair
+        ) as debugger, patch(
+            "agent.attempt.run_candidate",
+            side_effect=[
+                IterationResult("no_op", metrics={"valid": {"primary": 0.5}}, error_trace="bit-identical to current best"),
+                IterationResult("accepted", metrics={"valid": {"primary": 0.55}}),
+            ],
+        ) as runner:
+            result = attempt_hypothesis(
+                state, HYPOTHESIS, max_retries=1, runs_dir=Path(temporary_directory), initial_diff=BROKEN_DIFF
+            )
+        self.assertEqual(result.status, "accepted")
+        self.assertEqual(result.retries_used, 1)
+        debugger.assert_called_once()
+        self.assertIn("bit-identical", debugger.call_args.args[2])
+        self.assertEqual(runner.call_count, 2)
+
     def test_malformed_coder_and_debugger_responses_are_abandoned_without_crashing(self):
         state = RunState(current_code="value = 1\n")
         malformed = PatchError("No valid Search/Replace block found.")

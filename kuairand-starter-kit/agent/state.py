@@ -29,6 +29,11 @@ class RunState:
     total_wall_clock_s: float = 0.0
     total_tokens: int = 0
     run_id: str = field(default_factory=lambda: uuid.uuid4().hex)
+    # Top-level module names agent/dependencies.py has already attempted to
+    # pip install during this run -- caps auto-install to one attempt per
+    # module per run, regardless of how many iterations re-hit the same
+    # missing import (agent/executor.py checks this before calling install()).
+    attempted_installs: List[str] = field(default_factory=list)
 
     @classmethod
     def from_baseline(cls, baseline_path: Optional[Path] = None, **kwargs: Any) -> "RunState":

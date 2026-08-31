@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from agent.llm_client import LLMResponse
-from agent.planner import _decision_rules_context, _history_context, _planner_knowledge_context, _system_prompt, propose_hypothesis
+from agent.planner import _decision_rules_context, _history_context, _planner_knowledge_context, _scaled_bench_context, _system_prompt, propose_hypothesis
 from agent.state import RunState
 
 
@@ -72,17 +72,42 @@ scale_transfer:
         self.assertIn("dead_ends:", context)
         self.assertIn("feature_engineering_menu:", context)
         self.assertIn("priors:", context)
-        self.assertIn("scale_transfer:", context)
         self.assertNotIn("meta:", context)
         self.assertNotIn("calibration:", context)
         self.assertNotIn("dataset_facts:", context)
         self.assertNotIn("kb_ablation:", context)
+        # scale_transfer's raw YAML is excluded too -- it's ~15KB of mostly
+        # evidence blocks; the directives that matter per-iteration live in
+        # the much smaller knowledge_base/SCALE_DIRECTIVES.md instead, only
+        # injected for bench != "pure" (see test_scaled_bench_context_*).
+        self.assertNotIn("scale_transfer:", context)
         rules = _decision_rules_context(knowledge_base)
         self.assertIn("replication_rule", rules)
         self.assertIn("control_rule", rules)
         self.assertIn("unbiased_veto", rules)
         self.assertIn("attribution_invariant", rules)
         self.assertIn("Adam optimizer update", rules)
+
+    def test_scaled_bench_context_is_condensed_not_the_full_docs(self):
+        self.assertEqual(_scaled_bench_context("pure"), "")
+        context = _scaled_bench_context("1k")
+        self.assertIn("Sparse Adam only", context)
+        self.assertIn("KuaiRand-1K", context)
+        # ~3KB condensed doc, not HARDWARE_AWARENESS.md + ONEK_RESULTS.md's ~47KB combined.
+        self.assertLess(len(context), 5000)
+
+    def test_history_omits_code_diff_but_keeps_decision_fields(self):
+        history = [{
+            "iteration_num": 1, "hypothesis": "reweight the loss", "rationale": "because X",
+            "status": "accepted", "metrics": {"valid": {"primary": 0.6}},
+            "code_diff": "Y" * 5000, "error_trace": None, "wall_time_s": 1.0,
+            "tokens_used": 10, "bench": "1k", "role_models": {"planner": "m"},
+        }]
+        context = _history_context(history)
+        self.assertNotIn("Y" * 100, context)
+        self.assertIn('"hypothesis": "reweight the loss"', context)
+        self.assertIn('"rationale": "because X"', context)
+        self.assertIn('"status": "accepted"', context)
 
 
 if __name__ == "__main__":

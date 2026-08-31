@@ -51,9 +51,11 @@ def _run_directory(runs_dir: Path, state: RunState) -> Path:
 
 # bench -> baseline module path. Pure's has a precomputed baseline_scores.json;
 # 1K/27K don't, so their starting best_metrics comes from actually running the
-# baseline once (cheap on 1K, expensive but self-verifying on 27K -- see
-# scripts/run_agent_scaled.py for the recommended 1K-first path instead of
-# running this script directly with --bench 27k).
+# baseline once (cheap on 1K; --bench 27k is currently out of scope -- this
+# machine's KuaiRand-27K archive is incomplete, see
+# knowledge_base/HARDWARE_AWARENESS.md rule 6 -- use scripts/maximize_1k.py for
+# the recommended 1K search + replication workflow instead of this script
+# directly).
 _BASELINE_PATH = {
     "pure": ROOT / "baseline.py",
     "1k": ROOT / "baseline_1k.py",
@@ -195,15 +197,30 @@ def run_loop(
                 )
             state.save(run_directory / "state.json")
         final_test_metrics = None
+        checkpoint_saved = False
+        checkpoint_path = run_directory / "model_checkpoint.npz"
         if finalize_on_test:
             final_started_at = monotonic()
-            final_result = score_final_on_test(state.current_code, data_dir, cache_dir, bench=bench)
+            # Save the trained weights only for a genuine convergence, not a
+            # cap-hit -- "converged" is the one stopping reason that means the
+            # search itself decided it was done, per the acceptance/convergence
+            # rule, rather than running out of iteration/wall-clock budget
+            # mid-search. checkpoint_path is best-effort (see
+            # agent/runner.score_final_on_test's docstring): a candidate whose
+            # run_fm doesn't accept it just comes back with checkpoint_saved=False,
+            # never an error.
+            final_result = score_final_on_test(
+                state.current_code, data_dir, cache_dir, bench=bench,
+                checkpoint_path=checkpoint_path if reason == "converged" else None,
+            )
             state.total_wall_clock_s += monotonic() - final_started_at
             if final_result["status"] != "ok":
                 raise RuntimeError(final_result.get("error_trace", "Final test scoring timed out."))
             final_test_metrics = final_result["metrics"]["test"]
+            checkpoint_saved = bool(final_result.get("checkpoint_saved"))
         _progress(
-            "run complete (%s) | scored iterations %d | best valid %s | final test %s | tokens used %d | wall-clock %.0fs"
+            "run complete (%s) | scored iterations %d | best valid %s | final test %s | tokens used %d | "
+            "wall-clock %.0fs%s"
             % (
                 reason,
                 state.iteration_num,
@@ -211,12 +228,14 @@ def run_loop(
                 _fmt_metrics(final_test_metrics),
                 state.total_tokens,
                 state.total_wall_clock_s,
+                (" | checkpoint saved to %s" % checkpoint_path) if checkpoint_saved else "",
             )
         )
         summary = {
             "stopping_reason": reason,
             "best_validation_metrics": state.best_metrics,
             "final_test_metrics": final_test_metrics,
+            "checkpoint_path": str(checkpoint_path) if checkpoint_saved else None,
             "total_iterations": state.iteration_num,
             "total_tokens": state.total_tokens,
             "total_wall_clock_s": state.total_wall_clock_s,
@@ -237,8 +256,9 @@ def main() -> int:
     parser.add_argument("--bench", choices=["pure", "1k", "27k"], default="pure",
                         help="Which benchmark to target. 1k/27k use sparse-Adam baselines and the "
                              "HARDWARE_AWARENESS.md/ONEK_RESULTS.md-aware Planner context; see "
-                             "scripts/run_agent_scaled.py for the recommended 1K-first, "
-                             "27K-confirmation workflow instead of running --bench 27k directly.")
+                             "scripts/maximize_1k.py for the recommended 1K search + replication "
+                             "workflow. 27k is currently out of scope -- this machine's KuaiRand-27K "
+                             "archive is incomplete, see HARDWARE_AWARENESS.md rule 6.")
     parser.add_argument("--max-iterations", type=int, default=50)
     parser.add_argument("--max-wallclock-hours", type=float, default=6)
     parser.add_argument("--data-dir", type=Path, default=None)

@@ -1,0 +1,14 @@
+{
+  "best_validation_metrics": {
+    "GAUC": 0.6755715608596802,
+    "nDCG@5": 0.6157186031341553,
+    "primary": 0.6456450819969177
+  },
+  "consecutive_abandoned": 0,
+  "final_test_metrics": null,
+  "manual_interventions": 0,
+  "stopping_reason": "converged",
+  "total_iterations": 8,
+  "total_tokens": 386109,
+  "total_wall_clock_s": 2255.8279999999795
+}

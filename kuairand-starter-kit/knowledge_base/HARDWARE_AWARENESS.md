@@ -36,21 +36,31 @@ check and act on that, not on what a framework or plan document implies.
 ## Agent pipeline integration
 
 Every rule below is now enforced in code, not just read here by a human before
-running a one-off script. `agent/planner.py` injects this file's and
-`ONEK_RESULTS.md`'s full text into the Planner's prompt whenever the target
-benchmark isn't Pure; `agent/coder.py`/`agent/debugger.py` add a hard
-constraint blocking dense-Adam and wide-feature-matrix patches on those
-benchmarks (rules 1 and 2); `agent/executor.py`'s `_BENCH_TIMEOUT_S` sets a
-per-benchmark timeout floor (300s / 1800s / 14400s for Pure/1K/27K) so a
-candidate isn't killed mid-run by a Pure-scale default; `data_1k.py`/
-`data_27k.py` are the sparse int-fast-path data layer this document specifies,
-wired into `agent/data_cache.py` via a `bench` parameter. See
-`ONEK_RESULTS.md`'s own "Agent pipeline integration" section for the full
-picture, including the 1K-first promotion workflow in
-`scripts/run_agent_scaled.py` that this document's rule 4 (time budget) and the
-plan's own 6h-per-benchmark ceiling make necessary: there is no room inside
-that ceiling to search AND replicate directly on 27K, so the search happens on
-1K and only a replication-confirmed winner is ever run on 27K.
+running a one-off script. `agent/planner.py` injects a condensed summary of
+this file and `ONEK_RESULTS.md` (`knowledge_base/SCALE_DIRECTIVES.md`, ~3KB)
+into the Planner's prompt whenever the target benchmark isn't Pure — not the
+full ~47KB of both docs verbatim, which was the original approach and turned
+out to be pure per-iteration token cost (see that file's own header, and
+`ONEK_RESULTS.md`'s integration section, for the measured before/after);
+`agent/coder.py`/`agent/debugger.py` add a hard constraint blocking dense-Adam
+and wide-feature-matrix patches on those benchmarks (rules 1 and 2);
+`agent/executor.py`'s `_BENCH_TIMEOUT_S` sets a per-benchmark timeout floor
+(300s / 2700s / 14400s for Pure/1K/27K) so a candidate isn't killed mid-run by
+a Pure-scale default; `data_1k.py`/`data_27k.py` are the sparse int-fast-path
+data layer this document specifies, wired into `agent/data_cache.py` via a
+`bench` parameter.
+
+**27K is currently out of scope.** This machine's `KuaiRand-27K.tar.gz` and
+extracted `KuaiRand-27K/data/` are incomplete -- see rule 6 above. The active
+entry point is `scripts/maximize_1k.py`: it runs the full search budget against
+1K alone (no budget held back for a 27K confirmation), then replicates any
+winning candidate over 3 seeds before trusting it, exactly the discipline rule
+4's time-budget math and `ONEK_RESULTS.md`'s own two false-lead incidents both
+argue for. The 27K-facing plumbing (`data_27k.py`, `baseline_27k.py`,
+`agent/runner.score_confirm`, the `"27k"` entries in `_BENCH_TIMEOUT_S`/
+`_BENCH_DATA_DIR`) is left in place and still passes its own smoke tests --
+resuming 27K later is a data problem (re-fetch the archive correctly), not a
+code problem.
 
 ## Step 0 — hardware inventory (run once per machine, cheap, ~5s)
 

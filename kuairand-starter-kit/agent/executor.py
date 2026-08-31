@@ -6,8 +6,8 @@ from pathlib import Path
 from time import monotonic
 from typing import Any, Dict, Optional
 
-from agent import runner
-from agent.logging_utils import log_iteration
+from agent import dependencies, runner
+from agent.logging_utils import log_auto_install, log_iteration
 from agent.llm_client import resolve_model
 from agent.patcher import apply_patch, validate_syntax
 from agent.state import RunState
@@ -15,13 +15,39 @@ from agent.state import RunState
 
 _ROOT = Path(__file__).resolve().parents[1]
 
-# Mirrors knowledge_base.yaml decision_protocol.single_run_band: a single-run
-# validation delta below this sits inside the measured seed-noise band (official
-# seed sd ~0.0008) and is not treated as a real improvement. 1K's own seed sd is
-# 4x Pure's (0.0022) and 27K's is unmeasured, so this band is a Pure-calibrated
-# floor, not a validated gate at scale -- scripts/run_agent_scaled.py layers a
-# 3-seed replication check on top before trusting any 1K accept.
-_ACCEPTANCE_BAND = 0.0016
+# Per-benchmark minimum validation-primary delta to accept a candidate as an
+# improvement over the current best, keyed by bench.
+#
+# Pure's 0.0016 mirrors knowledge_base.yaml decision_protocol.single_run_band:
+# a single-run delta below this sits inside Pure's measured 5-seed noise
+# (sd ~0.0008) and is not treated as a real improvement.
+#
+# 1K's went through two revisions before landing back on Pure's number, and
+# the reasoning from both is worth keeping:
+#   - Raised to 0.032 at one point, deliberately far past anything 1K's own
+#     noise (sd 0.0022) would require, after a Pure-track false accept made a
+#     wide margin look prudent. In practice this made acceptance nearly
+#     unreachable: the one confirmed, 3-seed-replicated 1K win in this
+#     codebase's history (a sparse-Adagrad swap) was itself a +0.0018
+#     single-run delta -- smaller than even a "moderate" 0.005-0.007 band a
+#     later revision proposed. A whole subsequent run (10 iterations, real
+#     mechanisms, best delta +0.0034) confirmed 0.032 was calibrated to a
+#     magnitude this benchmark has never produced, on either side.
+#   - Reset to 0.0016, matching Pure, because that is the exact value that
+#     already found 1K's one real result empirically (not a theoretical
+#     argument) -- 0.0018 > 0.0016. The hackathon's own convergence rule
+#     (score_agent - score_baseline, no minimum-delta floor; converged when
+#     validation hasn't improved by more than epsilon=0.002 over 3
+#     iterations) has no acceptance threshold at all, so an internal band
+#     stricter than what the benchmark can produce only costs the ability to
+#     ever keep a real, gradeable improvement. The actual defense against a
+#     false positive is unchanged and does the real work: mandatory 3-seed
+#     replication (scripts/maximize_1k.py) before any accept is trusted, not
+#     this screen.
+#
+# 27K currently out of scope (no evidence to justify a different number);
+# defaults to Pure's.
+_ACCEPTANCE_BAND = {"pure": 0.0016, "1k": 0.0016, "27k": 0.0016}
 # README convergence parameters: epsilon ~= 2.5 sigma, N = 3 non-improving iterations.
 _CONVERGENCE_EPSILON = 0.002
 _CONVERGENCE_WINDOW = 3
@@ -35,9 +61,47 @@ _BENCH_DATA_DIR = {
     "1k": _ROOT / "KuaiRand-1K" / "data",
     "27k": _ROOT / "KuaiRand-27K" / "data",
 }
-# Pure: ~40s/run. 1K: load ~60s + ~30-45s/epoch, up to 40 epochs -> budget 30min.
-# 27K: load ~2063s (~34min) + ~750-774s/epoch, patience=4 -> budget 4h with margin.
-_BENCH_TIMEOUT_S = {"pure": 300.0, "1k": 1800.0, "27k": 14400.0}
+# Pure: ~40s/run. 1K: load ~60s + ~30-45s/epoch, up to 40 epochs -> worst case
+# ~1800s; budgeted with margin since 1K is now the sole target (no budget held
+# back for a 27K run). 27K: load ~2063s (~34min) + ~750-774s/epoch, patience=4
+# -> budget 4h with margin. (27K is currently out of scope -- this machine's
+# archive is incomplete, see HARDWARE_AWARENESS.md rule 6 -- but the timeout
+# stays defined so resuming it later is a data problem, not a code one.)
+_BENCH_TIMEOUT_S = {"pure": 300.0, "1k": 2700.0, "27k": 14400.0}
+
+_METRIC_KEYS = ("GAUC", "nDCG@5", "primary")
+
+# What a no-op patch actually looks like in practice (observed directly, not
+# hypothetical): a Coder diff that adds a parameter/capability but leaves its
+# default at the value that reproduces the original computation exactly (a
+# weight of 1.0, an epsilon of 0.0), or a diff that never wires into the
+# active code path at all. Either way the candidate trains and scores
+# successfully -- it isn't an error -- but its valid metrics come out
+# bit-for-bit identical to the current best's, because nothing about the
+# actual computation changed. That is reliably detectable (independent
+# stochastic training reproducing 3 floats to the bit by chance is not a
+# realistic coincidence) and is a different failure mode from "the mechanism
+# was tried and lost": one wastes an iteration testing nothing, the other is
+# real information. Routed back through the same Debugger-repair path as a
+# runtime error (see agent/attempt.py) rather than silently logged as
+# "rejected," so it gets a real second chance within the same hypothesis's
+# retry budget instead of quietly costing a full Planner round-trip for
+# nothing.
+_NO_OP_MESSAGE = (
+    "This patch's validation metrics (GAUC / nDCG@5 / primary) are bit-for-bit identical to the "
+    "current best's. That is not a negative result for the hypothesis -- it means the patch did not "
+    "change the model's computation at all (most likely: a new parameter left at its identity/no-op "
+    "default -- weight 1.0, probability or epsilon 0.0 -- or a diff that never wires into the active "
+    "code path). Implement the hypothesis's actual mechanism: pick ONE concrete, non-identity value "
+    "for any parameter the hypothesis names and bake it in as what actually executes. The Executor "
+    "calls run_fm(splits) with no extra keyword arguments beyond an optional seed, so whatever "
+    "default you set is the only configuration that will be tested."
+)
+
+
+def _metrics_match(a: Dict[str, float], b: Dict[str, float]) -> bool:
+    """True if two metrics dicts are identical on every key that matters for acceptance."""
+    return all(a.get(key) == b.get(key) for key in _METRIC_KEYS)
 
 
 @dataclass
@@ -104,6 +168,19 @@ def run_candidate(
         return IterationResult("error", error_trace=error_trace)
 
     result = runner.run(candidate_code, data_dir, cache_dir, timeout_s, bench=bench, seed=seed)
+    if result["status"] != "ok":
+        # A missing third-party import isn't a code problem the Coder/Debugger
+        # can patch their way out of -- try installing it once (never more
+        # than once per module per run; see agent/dependencies.py) and retry
+        # the SAME code before falling through to the normal error path. This
+        # never touches the Coder/Debugger retry budget in agent/attempt.py.
+        missing = dependencies.missing_module(result.get("error_trace"))
+        if missing and missing not in state.attempted_installs:
+            state.attempted_installs.append(missing)
+            install_result = dependencies.install(missing)
+            log_auto_install(state, missing, install_result.ok, install_result.message, runs_dir)
+            if install_result.ok:
+                result = runner.run(candidate_code, data_dir, cache_dir, timeout_s, bench=bench, seed=seed)
     wall_time_s = monotonic() - started_at
     if result["status"] != "ok":
         state.retry_count += 1
@@ -115,12 +192,27 @@ def run_candidate(
 
     metrics = result["metrics"]
     valid_metrics = metrics["valid"]
-    previous_primary = None if state.best_metrics is None else state.best_metrics["primary"]
-    accepted = previous_primary is None or valid_metrics["primary"] > previous_primary + _ACCEPTANCE_BAND
+    previous_metrics = state.best_metrics
+    previous_primary = None if previous_metrics is None else previous_metrics["primary"]
+    accepted = previous_primary is None or valid_metrics["primary"] > previous_primary + _ACCEPTANCE_BAND[bench]
+    no_op = not accepted and previous_metrics is not None and _metrics_match(valid_metrics, previous_metrics)
+    if no_op:
+        # Trained and scored successfully -- not an error -- but tested nothing.
+        # Mirror the error path: don't advance iteration_num/reset retry_count,
+        # so attempt_hypothesis's existing "anything but accepted/rejected goes
+        # back to the Debugger" logic gives this hypothesis a real repair
+        # attempt within its own retry budget instead of silently wasting the
+        # iteration on a candidate that never ran.
+        state.retry_count += 1
+        entry = _entry(state, diff, "no_op", metrics, wall_time_s, _NO_OP_MESSAGE, hypothesis, rationale, bench)
+        entry["tokens_used"] = tokens_used
+        log_iteration(state, entry, runs_dir)
+        return IterationResult("no_op", metrics=metrics, error_trace=_NO_OP_MESSAGE)
+
     status = "accepted" if accepted else "rejected"
     if accepted:
         state.current_code = candidate_code
-        state.best_metrics = {metric: valid_metrics[metric] for metric in ("GAUC", "nDCG@5", "primary")}
+        state.best_metrics = {metric: valid_metrics[metric] for metric in _METRIC_KEYS}
     state.retry_count = 0
     state.iteration_num += 1
     entry = _entry(state, diff, status, metrics, wall_time_s, None, hypothesis, rationale, bench)

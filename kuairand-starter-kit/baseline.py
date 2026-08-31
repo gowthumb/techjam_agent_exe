@@ -6,6 +6,7 @@
 """
 import argparse, collections, time
 import numpy as np
+from checkpoint import save as save_checkpoint
 from data import load, encode, FIELDS
 from evaluate import evaluate
 
@@ -72,7 +73,7 @@ class FM:
     def predict(self, X, bs=200_000):
         return np.concatenate([self.logits(X[i:i + bs])[0] for i in range(0, len(X), bs)])
 
-def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False):
+def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbose=True, return_predictions=False, checkpoint_path=None):
     enc, dim = encode(splits)
     Xtr, ytr, _ = enc['train']; Xva, yva, uva = enc['valid']; Xte, yte, ute = enc['test']
     m = FM(dim, k=k, lr=lr, seed=seed)
@@ -94,6 +95,8 @@ def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbo
                 if verbose: print(f"  early stop at epoch {ep}")
                 break
     m.V, m.W, m.b = best_state
+    if checkpoint_path:
+        save_checkpoint(checkpoint_path, m.V, m.W, m.b)
     test_scores = m.predict(Xte)
     result = {'valid': evaluate(uva, yva, m.predict(Xva)),
               'test': evaluate(ute, yte, test_scores)}
@@ -110,12 +113,15 @@ if __name__ == '__main__':
     ap.add_argument('--lr', type=float, default=0.001)
     ap.add_argument('--epochs', type=int, default=40)
     ap.add_argument('--seed', type=int, default=0)
+    ap.add_argument('--checkpoint', default=None, help='Path to save trained V/W/b weights (.npz) via checkpoint.save().')
     a = ap.parse_args()
     print(f"loading {a.data_dir} ...")
     splits = load(a.data_dir)
     print({k_: len(v) for k_, v in splits.items()}, f"fields={FIELDS}")
     res = {'pop': run_pop, 'random': lambda s: run_random(s, a.seed),
-           'fm': lambda s: run_fm(s, k=a.k, lr=a.lr, epochs=a.epochs, seed=a.seed)}[a.model](splits)
+           'fm': lambda s: run_fm(s, k=a.k, lr=a.lr, epochs=a.epochs, seed=a.seed, checkpoint_path=a.checkpoint)}[a.model](splits)
+    if a.checkpoint and a.model == 'fm':
+        print(f"saved checkpoint to {a.checkpoint}")
     print(f"\n=== {a.model} (seed={a.seed}) ===")
     for sp in ('valid', 'test'):
         r = res[sp]

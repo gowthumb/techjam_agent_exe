@@ -1,0 +1,61 @@
+{
+  "accepted_any_improvement": true,
+  "baseline_1k_valid_primary": 0.6438479423522949,
+  "final_test": {
+    "GAUC": 0.6736413836479187,
+    "nDCG@5": 0.6062076091766357,
+    "primary": 0.6399245262145996,
+    "rows": 4132081,
+    "users": 997
+  },
+  "replication": {
+    "mean_valid_primary": 0.6462840040524801,
+    "runs": [
+      {
+        "seed": 0,
+        "valid": {
+          "GAUC": 0.6755715608596802,
+          "nDCG@5": 0.6157186031341553,
+          "primary": 0.6456450819969177,
+          "rows": 2524980,
+          "users": 978
+        }
+      },
+      {
+        "seed": 1,
+        "valid": {
+          "GAUC": 0.6745784282684326,
+          "nDCG@5": 0.6164899468421936,
+          "primary": 0.6455341577529907,
+          "rows": 2524980,
+          "users": 978
+        }
+      },
+      {
+        "seed": 2,
+        "valid": {
+          "GAUC": 0.6737483739852905,
+          "nDCG@5": 0.621597170829773,
+          "primary": 0.6476727724075317,
+          "rows": 2524980,
+          "users": 978
+        }
+      }
+    ]
+  },
+  "search_summary": {
+    "best_validation_metrics": {
+      "GAUC": 0.6755715608596802,
+      "nDCG@5": 0.6157186031341553,
+      "primary": 0.6456450819969177
+    },
+    "consecutive_abandoned": 0,
+    "final_test_metrics": null,
+    "manual_interventions": 0,
+    "stopping_reason": "converged",
+    "total_iterations": 8,
+    "total_tokens": 386109,
+    "total_wall_clock_s": 2255.8279999999795
+  },
+  "verdict": "CONFIRMED: 3-seed mean valid primary 0.64628 beats the 1K baseline 0.64385 by more than the acceptance band 0.0016. This maximizes 1K's score within this run's budget."
+}

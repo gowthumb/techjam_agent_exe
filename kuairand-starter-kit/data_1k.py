@@ -88,3 +88,18 @@ def encode(splits: Dict[str, Any]):
         for name, m in masks.items()
     }
     return enc, dim
+
+
+def raw_rows(split: str):
+    """(user_id, video_id, label) RAW arrays for one split, in encode()'s exact row order.
+
+    encode()'s X only carries offset ints into the shared embedding table, not
+    the original ids -- writing a submission (submit.py's schema needs the raw
+    ids) or scoring against true labels directly needs these instead. Same
+    masks, same row order, so index i here lines up with row i of encode()'s
+    X/y/users for this split.
+    """
+    logs, masks, _cols = _prepare()
+    m = masks[split]
+    y = (logs[D.LABEL][m] != 0).astype(np.float32)
+    return logs["user_id"][m], logs["video_id"][m], y

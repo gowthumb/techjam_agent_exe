@@ -10,8 +10,11 @@ from agent.patcher import extract_patch_blocks
 def _system_prompt(current_code: str, failed_diff: str, error_message: str, bench: str = "pure") -> str:
     scaled_note = ("\n\n" + (_SCALED_BENCH_CONSTRAINTS % bench.upper())) if bench != "pure" else ""
     return """You are the Debugger in an autonomous recommender-system research pipeline.
-Diagnose why the failed patch did not apply, had invalid syntax, or failed at runtime before proposing a correction. Do not guess blindly.
-The correction must apply against the last known-good current code, not an intermediate broken version.
+Diagnose why the failed patch did not apply, had invalid syntax, failed at runtime, or -- a distinct
+failure mode, check the error message for it explicitly -- scored bit-identical to the current best
+because it never actually implemented the hypothesis's mechanism, before proposing a correction. Do
+not guess blindly. The correction must apply against the last known-good current code, not an
+intermediate broken version.
 
 Return ONLY one or more Search/Replace blocks. No explanation, no Markdown fences, and nothing outside the Search/Replace blocks.
 Use this exact format:
@@ -32,6 +35,7 @@ Hard constraints:
 - Keep existing imports (including the benchmark-specific data-loading import, e.g. from data_1k or data_27k import load, encode) unless the repair specifically requires changing them.
 - The diff must implement the hypothesis's actual mechanism, not adjust existing parameters, reformat code, add unused constants, cast dtypes, or add helper functions that are not called from the active code path. A patch that does not change the model's actual computation is invalid regardless of its size or syntax validity.
 - If the hypothesis requires a substantial change (a new loss function, new sampling logic, a new layer), write that logic and wire it into the function that's actually called -- don't leave it unused.
+- The Executor calls run_fm(splits) with no extra keyword arguments beyond an optional seed override -- there is no sweep and no way to test more than one configuration in a single iteration. If the hypothesis names a parameter value (or several candidate values to try), pick ONE and bake it in as what actually executes: as the parameter's own default, or hardcoded. Never leave a new parameter's default at the value that reproduces the original computation exactly (a weight of 1.0, a probability or epsilon of 0.0, a dropout rate of 0, etc.) -- that is precisely what produced the no-op this repair exists to fix.
 
 Execution contract: the normal runner invokes run_fm(splits) in an isolated subprocess and receives only validation metrics. Finalization alone invokes run_fm(splits, return_predictions=True), which must return aligned test_scores. Do not alter evaluate.py, change the split names, remove valid/test metric keys, or add code that exposes test scores during normal iteration. Preserve data.load() row order: never reorder, filter, or resort rows in a way that breaks submission row_id-to-(user_id, video_id) alignment; ml_modelling.explib.dataset.verify_row_order_matches_starter_kit() verifies this invariant. Preserve the baseline forward-pass structure, Adam optimizer update, and initialization unless the hypothesis explicitly changes one of them, so an accepted result is attributable to the stated hypothesis.""" + scaled_note + """
 

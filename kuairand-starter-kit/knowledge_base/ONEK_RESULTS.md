@@ -452,6 +452,19 @@ structural argument left untested is CatBoost's YetiRank with the `cat_features`
 bug fixed — everything else in Pure's KB has now had its fair shot on 1K and
 lost.
 
+**27K (Phase 20) is a confirmation, not a fifth data point in the same search.**
+It transferred the one surviving config one benchmark further, into the same
+order-of-magnitude cold-start regime (82.7% unseen vs 1K's 84.9% — comparable,
+not sharper; see the correction above), and it ran clean: sane scores, no
+divergence, overfitting arriving even faster than on 1K (epoch 1 vs epoch 2) in
+exactly the direction the regime diagnosis predicts. The right reading is not
+"27K also needs tuning" — every reason pointwise won on 1K applies just as
+strongly at 27K's comparably extreme cold-start share — it's that the same
+one-line diagnosis (item cold-start removes the signal every fancier lever
+depends on) now has evidence at three orders of magnitude of scale, not one.
+(27K itself is currently out of scope for further work — see "Agent pipeline
+integration" below.)
+
 ---
 
 ## Agent pipeline integration
@@ -481,27 +494,142 @@ search belongs on 1K, and 27K is reserved for confirming whatever survives it.
   `agent/attempt.py`: threaded a `bench` ("pure"/"1k"/"27k") parameter through
   the whole call chain, each defaulting to "pure" so nothing about the existing
   Pure loop changed. Per-bench timeout floors live in
-  `agent/executor.py::_BENCH_TIMEOUT_S` (300s / 1800s / 14400s).
+  `agent/executor.py::_BENCH_TIMEOUT_S` (300s / 2700s / 14400s).
 - `agent/coder.py`, `agent/debugger.py`: append a hard-constraint block to the
   system prompt when `bench != "pure"` — sparse Adam is not a tunable on these
   benchmarks, and no wide per-row feature matrix may be built (the ~22GB GBDT
   calculation this document's `HARDWARE_AWARENESS.md` companion describes).
-- `agent/planner.py`: injects `HARDWARE_AWARENESS.md`'s and this file's full
-  text into the Planner's prompt whenever `bench != "pure"`, plus
-  `knowledge_base.yaml`'s `scale_transfer` section (previously read by nothing
-  in the automated loop at all).
-- `scripts/run_agent_scaled.py`: the 1K-first, 27K-confirmation workflow this
-  phase's own "what this means" section below argues for. It runs the standard
-  loop against 1K, and only if a candidate is accepted, replicates it over 3
-  seeds (`agent/runner.run(..., seed=N)`, a new parameter letting the same code
-  be re-scored under different seeds without a new patch) before ever touching
-  27K. A replication-confirmed win is retargeted from `data_1k` to `data_27k`
-  (a literal import-line substitution — both modules share one contract) and
-  run once on 27K via a new `agent/runner.score_confirm`, which returns valid
-  AND test from a single training pass — the iterative loop's own
-  validation-only / test-only split doesn't fit a benchmark too expensive to
-  train twice just to keep them apart, so this one caller is allowed both, and
-  only for a terminal confirmation, never inside the search.
+- `agent/planner.py`: injects `knowledge_base/SCALE_DIRECTIVES.md` — a
+  hand-condensed, ~3KB summary of this file and `HARDWARE_AWARENESS.md` — into
+  the Planner's prompt whenever `bench != "pure"`, so a 1K-targeted run's
+  Planner sees the operational directives every iteration, not just a generic
+  knowledge base. (An earlier version of this injected both full docs verbatim
+  plus `knowledge_base.yaml`'s raw `scale_transfer` section, ~63KB combined,
+  every single call — see "Token-usage pass" below for why that changed.)
+- `scripts/maximize_1k.py`: the active entry point. Runs the standard
+  Planner/Coder/Debugger/Executor loop against 1K with the full 50-iteration /
+  6h budget (nothing held back for 27K), and if any candidate is accepted,
+  replicates it over 3 seeds (`agent/runner.run(..., seed=N)`, a new parameter
+  letting the same code be re-scored under different seeds without a new
+  patch) before reporting it as the final result — the same discipline that
+  already caught the two false single-seed leads below. **27K is scratched for
+  now** (see "known blocker" below), so the 27K-confirmation half of what an
+  earlier version of this workflow did was removed rather than left dangling;
+  the underlying plumbing it depended on (`data_27k.py`, `baseline_27k.py`,
+  `agent/runner.score_confirm`, which returns valid AND test from one training
+  pass for exactly this kind of terminal confirmation) is left in place,
+  verified, and unused, so resuming 27K later needs a data fix, not a rebuild.
+
+**Token-usage pass.** The Planner's per-iteration prompt for a scaled
+benchmark was ~63KB of fixed overhead alone (`HARDWARE_AWARENESS.md` +
+`ONEK_RESULTS.md` in full, ~47KB, plus `knowledge_base.yaml`'s raw
+`scale_transfer` section, ~15KB — mostly full `evidence` blocks of exp_ids
+with no per-iteration decision value) on top of a growing experiment-history
+dump that included every historical candidate's full `code_diff` verbatim.
+Measured on a real run (`runs/0f6a4083fba54b798c7bb6f87c0a73a9`): the Planner
+prompt was 90,660 chars at iteration 1 and 114,863 chars by iteration 8. Two
+changes fixed this:
+1. `knowledge_base/SCALE_DIRECTIVES.md` replaces the three raw sources above
+   with a single ~3KB hand-condensed summary — the directives that matter,
+   not the narrative or the audit trail (both still exist, at their own
+   filenames, for a human or a tool call that actually needs them).
+2. `agent/planner.py::_history_context` now drops `code_diff` (and
+   `role_models`, `bench`, `tokens_used`, `wall_time_s`) from the "5 most
+   recent iterations" it dumps in full, keeping only `hypothesis`,
+   `rationale`, `status`, and `metrics` — everything the "don't duplicate a
+   rejected hypothesis" hard constraint actually needs, none of the literal
+   patch text it doesn't.
+
+Re-measured against that same run's actual final state (same
+`knowledge_base.yaml`, same 8-iteration history): 30,669 chars at the
+iteration-1-equivalent point (was 90,660, a 66% cut) and 41,018 chars at the
+iteration-8-equivalent point (was 114,863, a 64% cut). Coder/Debugger prompts
+were not the target here — their size is dominated by the current candidate
+code itself, which has to be included in full for search/replace to work, not
+by anything condensable the way the Planner's fixed context was.
+
+**Acceptance band: widened for 1K, then reset, both times for evidence-based
+reasons.** `agent/executor.py::_ACCEPTANCE_BAND` is a per-bench dict.
+
+*First revision — widened.* Pure stayed at 0.0016 (its own 2×seed-sd noise
+floor); 1K was set to **0.032**, deliberately far past a statistically
+derived number (2×1K's own single-run sd of 0.0022 is ~0.0044) after a
+Pure-track incident (`best_pure_candidate.py`'s provenance note: an accepted
+candidate whose logged hypothesis didn't match its actual mechanism, on a
+thin 0.0016-band margin) made a much wider margin look like the safer default
+everywhere.
+
+*Second revision — reset back to 0.0016.* A dedicated follow-up run
+(`runs/78604c8ca77645d89d68211a7bf10ffd`, 10 iterations, all genuine
+mechanisms, zero no-ops) never came within 10x of 0.032 — its best delta was
++0.0034. That's not a search failure; it's a direct measurement that 0.032
+was calibrated to a magnitude this benchmark has never produced in either
+direction, across ~13 tested axes now. Worse, the one confirmed win this
+codebase has ever found on 1K (the sparse-Adagrad swap, `runs/
+0f6a4083fba54b798c7bb6f87c0a73a9` iteration 5) was itself only a **+0.0018**
+single-run delta — smaller than 0.032 would ever admit, and smaller than a
+"moderate" 0.005–0.007 compromise this document's own agent pipeline
+integration section once proposed would have admitted either. The hackathon's
+own scoring has no acceptance threshold at all (`score_dataset = score_agent
+− score_baseline`, continuous; its convergence rule uses epsilon=0.002, below
+even the confirmed win's own delta) — so a band stricter than what the
+benchmark can produce only costs the ability to ever keep a real, gradeable
+result. The band was reset to 0.0016, the exact value that already found 1K's
+one real result empirically. The actual defense against a false positive was
+never this screen — it's the mandatory 3-seed replication
+`scripts/maximize_1k.py` already runs before trusting any accept, unchanged
+through both revisions.
+
+**Pipeline hardening pass, prompted by reading a real run's diffs, not
+assumption.** After widening the band, a subsequent 1K run
+(`runs/30fce9afd6c54203bedcdc2bb5f43a5c`, 8 scored iterations, 3 pre-scoring
+errors) looked like 8 more negative results. Reading every logged `code_diff`
+directly showed it wasn't: **5 of the 8 scored iterations never tested their
+hypothesis at all.**
+
+| Cause | Count in that run | What the diff actually showed |
+|---|---|---|
+| Literal no-op patch | 3 (iterations 2, 4, 5) | The diff touched nothing but a `return_predictions: bool` type annotation -- the video-ID-dropout, content-backed-encoding, and empirical-Bayes-author hypotheses were never implemented |
+| Mechanism coded, but wired to its own identity default | 2 (iterations 7, 8) | `pos_weight=1.0` (mathematically identical to unweighted BCE) and `epsilon=0.0` (explicitly branches to a no-op) as the *default* -- the harness calls `run_fm(splits)` bare, so the default IS the only configuration ever tested |
+| Missing dependency | 3 errors before 1 real score | `ModuleNotFoundError: catboost` -- not installed, despite this exact document recommending the CatBoost YetiRank axis as the top untested direction |
+
+Only 3 of 8 scored iterations (the CatBoost run that finally completed, and
+two others) tested a genuinely different computation -- and all 3 lost. Four
+fixes, in the code, not just noted here:
+
+1. **`agent/coder.py` / `agent/debugger.py`**: a new hard constraint --
+   `run_fm(splits)` is called with no extra keyword arguments beyond an
+   optional seed, so whatever default a new parameter gets IS the only
+   configuration tested this iteration. Pick one concrete, non-identity value
+   and bake it in; never leave a new parameter at the value that reproduces
+   the original computation exactly.
+2. **`agent/executor.py`**: a new `no_op` status, detected by comparing a
+   scored candidate's valid metrics (GAUC/nDCG@5/primary) bit-for-bit against
+   the current best's -- independent stochastic training reproducing three
+   floats exactly is not a realistic coincidence, so an exact match reliably
+   means nothing changed. Routed through the *same* Debugger-repair path as a
+   runtime error (`agent/attempt.py` needed zero changes -- its existing
+   "anything but accepted/rejected goes back to the Debugger" logic already
+   covers it), giving the hypothesis a real second chance inside its own
+   retry budget instead of silently burning the iteration and a fresh
+   Planner call.
+3. **`catboost` installed** (`requirements.txt`) -- the top "genuinely
+   untested" recommendation in `SCALE_DIRECTIVES.md` is now actually
+   runnable rather than a guaranteed `ModuleNotFoundError`.
+4. **`scripts/maximize_1k.py`**: when no candidate is accepted, the report
+   now states the best *genuinely-tested* attempt's delta against the band
+   explicitly (excluding no-op/error entries from that comparison) instead
+   of a generic "nothing beat baseline" -- so a future "no accept" run is
+   legible as either "the real attempts lost by X" or "most of the budget
+   went to no-ops," not conflated as the same outcome.
+
+Fix 1 is the proactive half (fewer no-ops produced); fix 2 is the reactive
+half (the ones that still happen get a real repair chance instead of being
+silently miscounted as negative evidence); fixes 3-4 close the two other
+gaps the same run exposed. Two new tests lock in fix 2's behavior
+(`test_no_op_patch_is_flagged_distinctly_not_silently_rejected`,
+`test_no_op_result_routes_to_debugger_like_a_runtime_error`); full suite is
+45/45.
 
 **Verified, not just written.** `data_1k.py` + `baseline_1k.py` were run
 end-to-end against this machine's actual `KuaiRand-1K/data` (through
@@ -512,27 +640,15 @@ an independent confirmation the new encoder/model path reproduces the original
 finding, not a coincidence. `agent/executor.run_candidate` was exercised with a
 hand-written patch (bypassing the LLM) end-to-end: apply → subprocess execute →
 accept/reject → log with the new `bench` field, all correct. The full existing
-`tests/` suite (40 tests) still passes.
+`tests/` suite (45 tests, after the token-usage pass's two and the
+hardening pass's three) still passes.
 
-**Known blocker, found while verifying this, not fixed by it.** This machine's
+**Known blocker on 27K, why it's scratched for now.** This machine's
 `KuaiRand-27K.tar.gz` and its extracted `KuaiRand-27K/data/` are incomplete —
 only `user_features_27k.csv` and two `video_features_statistic` parts (~14.4GB)
 are present; every `log_standard_*`, `log_random_*`, and
-`video_features_basic_27k.csv` file this phase's own run actually needed is
-missing. `scripts/run_agent_scaled.py`'s stage 3 (the 27K confirmation) will
-fail with a clear `FileNotFoundError` from `data_27k.py` until the archive is
-re-fetched correctly — see `HARDWARE_AWARENESS.md`'s new rule 6. The 1K stage
-(stages 1-2) does not depend on this and is fully runnable now.
-
----
-
-**27K (Phase 20) is a confirmation, not a fifth data point in the same search.**
-It transferred the one surviving config one benchmark further, into the same
-order-of-magnitude cold-start regime (82.7% unseen vs 1K's 84.9% — comparable,
-not sharper; see the correction above), and it ran clean: sane scores, no
-divergence, overfitting arriving even faster than on 1K (epoch 1 vs epoch 2) in
-exactly the direction the regime diagnosis predicts. The right reading is not
-"27K also needs tuning" — every reason pointwise won on 1K applies just as
-strongly at 27K's comparably extreme cold-start share — it's that the same
-one-line diagnosis (item cold-start removes the signal every fancier lever
-depends on) now has evidence at three orders of magnitude of scale, not one.
+`video_features_basic_27k.csv` file a 27K run actually needs is missing. Any
+attempt to load `data_27k.py` fails with a clear `FileNotFoundError` until the
+archive is re-fetched correctly — see `HARDWARE_AWARENESS.md`'s rule 6. This is
+a data problem, not a pipeline problem: 1K (`scripts/maximize_1k.py`) does not
+depend on it and is fully runnable now.

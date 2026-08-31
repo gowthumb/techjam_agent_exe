@@ -33,6 +33,7 @@ import time
 
 import numpy as np
 
+from checkpoint import save as save_checkpoint
 from data_1k import FIELDS, encode, load
 from evaluate import evaluate
 
@@ -102,7 +103,7 @@ class FM:
 
 
 def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0,
-           verbose=True, return_predictions=False):
+           verbose=True, return_predictions=False, checkpoint_path=None):
     enc, dim = encode(splits)
     Xtr, ytr, _ = enc["train"]
     Xva, yva, uva = enc["valid"]
@@ -128,6 +129,8 @@ def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0,
                     print(f"  early stop at epoch {ep}")
                 break
     m.V, m.W, m.b = best_state
+    if checkpoint_path:
+        save_checkpoint(checkpoint_path, m.V, m.W, m.b)
     test_scores = m.predict(Xte)
     result = {"valid": evaluate(uva, yva, m.predict(Xva)),
               "test": evaluate(ute, yte, test_scores)}
@@ -142,11 +145,14 @@ if __name__ == "__main__":
     ap.add_argument("--lr", type=float, default=0.001)
     ap.add_argument("--epochs", type=int, default=40)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--checkpoint", default=None, help="Path to save trained V/W/b weights (.npz) via checkpoint.save().")
     a = ap.parse_args()
     print("loading KuaiRand-1K ...")
     splits = load(None)
     print(f"fields={FIELDS}")
-    res = run_fm(splits, k=a.k, lr=a.lr, epochs=a.epochs, seed=a.seed)
+    res = run_fm(splits, k=a.k, lr=a.lr, epochs=a.epochs, seed=a.seed, checkpoint_path=a.checkpoint)
+    if a.checkpoint:
+        print(f"saved checkpoint to {a.checkpoint}")
     print(f"\n=== fm (1K, seed={a.seed}) ===")
     for sp in ("valid", "test"):
         r = res[sp]

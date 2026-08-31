@@ -26,8 +26,8 @@ def log_iteration(
     missing = required.difference(entry)
     if missing:
         raise ValueError("Iteration entry is missing required keys: " + ", ".join(sorted(missing)))
-    if entry["status"] not in {"accepted", "rejected", "error", "abandoned"}:
-        raise ValueError("Iteration status must be accepted, rejected, error, or abandoned")
+    if entry["status"] not in {"accepted", "rejected", "error", "no_op", "abandoned"}:
+        raise ValueError("Iteration status must be accepted, rejected, error, no_op, or abandoned")
 
     directory = _run_directory(state, runs_dir)
     record = dict(entry)
@@ -48,4 +48,20 @@ def log_intervention(
     directory = _run_directory(state, runs_dir)
     with (directory / "interventions.jsonl").open("a", encoding="utf-8") as handle:
         handle.write(json.dumps({"reason": reason}, sort_keys=True, ensure_ascii=True) + "\n")
+    state.save(directory / "state.json")
+
+
+def log_auto_install(
+    state: RunState, module: str, ok: bool, message: str, runs_dir: Path | str = "runs"
+) -> None:
+    """Record an autonomous pip-install attempt (agent/dependencies.py) conspicuously.
+
+    Deliberately its own log/counter, not log_intervention's manual_interventions
+    -- an auto-install involved no human, and folding it into that counter would
+    make "how much hand-holding did this run need" a less honest number.
+    """
+    print("NOTICE: auto-install %s for missing module %r: %s" % ("OK" if ok else "FAILED", module, message), file=sys.stderr)
+    directory = _run_directory(state, runs_dir)
+    with (directory / "auto_installs.jsonl").open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps({"module": module, "ok": ok, "message": message}, sort_keys=True, ensure_ascii=True) + "\n")
     state.save(directory / "state.json")

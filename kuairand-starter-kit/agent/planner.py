@@ -21,19 +21,21 @@ _PLANNER_SECTIONS = (
     "dead_ends",
     "feature_engineering_menu",
     "priors",
-    # scale_transfer carries the 1K/27K cold-start regime diagnosis and the
-    # "don't re-test BPR/SSM/GBDT without new evidence" directive -- harmless
-    # context on Pure, required context on the scaled benchmarks (see the
-    # bench-conditional block appended below by _system_prompt). dataset_facts
-    # stays excluded, same as meta/calibration/kb_ablation: bulk per-benchmark
-    # numbers the scaled-bench context below already carries where it matters.
-    "scale_transfer",
+    # scale_transfer, dataset_facts, meta, calibration, kb_ablation all stay
+    # excluded: bulk per-benchmark evidence (full exp_id lists, raw tables)
+    # with no per-iteration decision value. The 1K/27K directives that DO
+    # matter every iteration live in SCALE_DIRECTIVES.md instead (see
+    # _scaled_bench_context) -- a hand-condensed summary, not this section's
+    # raw YAML, specifically because the raw section was ~15KB of mostly
+    # evidence blocks for ~1KB of actual directive.
 )
-# Operational runbooks the Planner must see verbatim when targeting a scaled
-# benchmark -- these are NOT part of knowledge_base.yaml, so they need their own
-# read here. Kept out of the Pure prompt: full text of both, every iteration,
-# would be pure token cost with no Pure-relevant content.
-_SCALED_BENCH_DOCS = ("HARDWARE_AWARENESS.md", "ONEK_RESULTS.md")
+# Condensed, purpose-written summary of HARDWARE_AWARENESS.md + ONEK_RESULTS.md
+# (~3KB) injected into the Planner's prompt when targeting a scaled benchmark.
+# Not the full docs: those two together are ~47KB, and unlike the Coder (which
+# needs the literal current code to patch), the Planner only ever needs the
+# directives, not the narrative -- injecting the full text every iteration was
+# pure token cost with no decision-quality benefit past the first read.
+_SCALED_BENCH_DOCS = ("SCALE_DIRECTIVES.md",)
 
 
 @dataclass(frozen=True)
@@ -92,6 +94,27 @@ def _score_delta(entry: Dict[str, Any]) -> str:
     return "primary=%s" % ("n/a" if primary is None else "%.6f" % primary)
 
 
+# Fields from a logged iteration the Planner actually needs to avoid
+# duplicating a rejected hypothesis and to reason about what's working.
+# code_diff (the literal patch text) is deliberately dropped: it's the single
+# largest field per entry and carries no information the hypothesis/rationale/
+# status/metrics don't already summarize for planning purposes -- the Coder
+# gets the current code directly, it doesn't need to be re-derived from history.
+_HISTORY_ENTRY_KEEP_KEYS = ("iteration_num", "hypothesis", "rationale", "status", "metrics")
+_MAX_ERROR_TRACE_CHARS = 300
+
+
+def _trim_history_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
+    trimmed = {key: entry.get(key) for key in _HISTORY_ENTRY_KEEP_KEYS if key in entry}
+    error_trace = entry.get("error_trace")
+    if error_trace:
+        trimmed["error_trace"] = (
+            error_trace if len(error_trace) <= _MAX_ERROR_TRACE_CHARS
+            else error_trace[:_MAX_ERROR_TRACE_CHARS] + "…"
+        )
+    return trimmed
+
+
 def _history_context(history: list[Dict[str, Any]]) -> str:
     older, recent = history[:-5], history[-5:]
     lines = ["Earlier condensed history:"]
@@ -99,8 +122,8 @@ def _history_context(history: list[Dict[str, Any]]) -> str:
         lines.append("- %s | %s | %s" % (entry.get("hypothesis", "unknown"), entry.get("status", "unknown"), _score_delta(entry)))
     if not older:
         lines.append("- none")
-    lines.append("Five most recent entries, full JSON:")
-    lines.append(json.dumps(recent, ensure_ascii=True, default=str))
+    lines.append("Five most recent entries (code diffs omitted -- see hypothesis/rationale/status/metrics only):")
+    lines.append(json.dumps([_trim_history_entry(entry) for entry in recent], ensure_ascii=True, default=str))
     return "\n".join(lines)
 
 
@@ -144,25 +167,19 @@ def _planner_knowledge_context(knowledge_base: str) -> str:
 
 
 def _scaled_bench_context(bench: str) -> str:
-    """Full text of the operational runbooks a scaled-benchmark hypothesis must respect."""
+    """Condensed operational directives a scaled-benchmark hypothesis must respect.
+
+    Injects SCALE_DIRECTIVES.md (~3KB), not the full HARDWARE_AWARENESS.md /
+    ONEK_RESULTS.md (~47KB combined) -- see that file's own header for why.
+    """
     if bench == "pure":
         return ""
-    parts = ["""
------ OPERATIONAL CONSTRAINTS: KuaiRand-%s -----
-This hypothesis targets KuaiRand-%s, not Pure. The two documents below are the
-measured record of what has and hasn't worked at this scale -- read them before
-proposing anything. In particular: sparse Adam is mandatory (not a tunable), no
-ranking loss (BPR/SSM) or GBDT variant has beaten the pointwise baseline on the
-one benchmark either was tried on (1K), and a lead that looks real on one seed
-has evaporated on 3-seed replication twice already in this exact workstream.
-Prefer a genuinely untested axis (see ONEK_RESULTS.md's "what this means"
-section) over re-proposing something already marked negative below -- that is
-exactly what the "Already Tested, No Gain" hard constraint means at this scale.
-""" % (bench.upper(), bench.upper())]
+    parts = ["----- OPERATIONAL CONSTRAINTS: KuaiRand-%s (condensed; full record in "
+             "knowledge_base/HARDWARE_AWARENESS.md and ONEK_RESULTS.md) -----" % bench.upper()]
     for name in _SCALED_BENCH_DOCS:
         doc_path = _ROOT / "knowledge_base" / name
         try:
-            parts.append("----- %s -----\n%s" % (name, doc_path.read_text(encoding="utf-8")))
+            parts.append(doc_path.read_text(encoding="utf-8"))
         except OSError:
             continue
     return "\n\n".join(parts)
@@ -192,8 +209,9 @@ def propose_hypothesis(
 ) -> PlannerResult:
     """Ask the Planner for one structured hypothesis using bounded run context.
 
-    ``bench`` (pure/1k/27k) gates whether HARDWARE_AWARENESS.md and
-    ONEK_RESULTS.md are injected in full -- see _scaled_bench_context.
+    ``bench`` (pure/1k/27k) gates whether SCALE_DIRECTIVES.md -- the condensed
+    summary of HARDWARE_AWARENESS.md and ONEK_RESULTS.md -- is injected. See
+    _scaled_bench_context.
     """
     path = Path(knowledge_base_path)
     if not path.is_absolute():

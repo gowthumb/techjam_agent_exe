@@ -157,7 +157,8 @@ def call_llm(
         request_started_at = time.monotonic()
         print(
             "[%s] LLM request starting: role=%s model=%s prompt_chars=%d"
-            % (_timestamp(), role, selected_model, len(system_prompt) + len(user_prompt))
+            % (_timestamp(), role, selected_model, len(system_prompt) + len(user_prompt)),
+            flush=True,
         )
         try:
             request = {
@@ -179,7 +180,8 @@ def call_llm(
             completion = client.chat.completions.create(**request)
             print(
                 "[%s] LLM response received: role=%s model=%s elapsed_s=%.2f"
-                % (_timestamp(), role, selected_model, time.monotonic() - request_started_at)
+                % (_timestamp(), role, selected_model, time.monotonic() - request_started_at),
+                flush=True,
             )
             break
         except RateLimitError as error:
@@ -189,14 +191,15 @@ def call_llm(
             _QUOTA_PAUSE_COUNT += 1
             print(
                 "[%s] LLM pause: role=%s model=%s reason=%s sleep_s=%.1f cycle=%d/%d"
-                % (_timestamp(), role, selected_model, type(error).__name__, delay_s, _QUOTA_PAUSE_COUNT, max_quota_pauses)
+                % (_timestamp(), role, selected_model, type(error).__name__, delay_s, _QUOTA_PAUSE_COUNT, max_quota_pauses),
+                flush=True,
             )
             time.sleep(delay_s)
         except Exception as error:
             _raise_provider_error(error)
 
     if not _MODEL_ANNOUNCED:
-        print("LLM model: " + selected_model)
+        print("LLM model: " + selected_model, flush=True)
         _MODEL_ANNOUNCED = True
     if not completion.choices or completion.choices[0].message.content is None:
         raise LLMError("LLM provider returned no message content.")
