@@ -4,6 +4,8 @@ TikTok TechJam 2026 — Track 2: Autonomous ML Research Agent for Recommender Sy
 
 An LLM-driven agent (Planner → Coder → Executor → Debugger loop) that autonomously proposes, implements, tests, and iterates on modeling hypotheses for the KuaiRand benchmark family, with no manual intervention required to reach a converged, improved-over-baseline result.
 
+> **Note:** this repository's default branch (`main`) contains only the initial baseline setup. All of this project's work — agent, results, run logs — lives on the `orchestrator` branch. Clone with the branch specified, as shown below.
+
 ## Approach
 
 - **Planner**: proposes a modeling hypothesis each iteration, grounded in a knowledge base of prior results (replication-disciplined: confirmed wins, controls, and known non-transfers are surfaced first).
@@ -67,7 +69,7 @@ No GPU was used at any stage — the FM baseline trains in ~40s/run on a single 
 ## Setup & Reproduction
 
 ```bash
-git clone https://github.com/gowthumb/techjam_agent_exe.git
+git clone -b orchestrator https://github.com/gowthumb/techjam_agent_exe.git
 cd techjam_agent_exe/kuairand-starter-kit
 pip install -r requirements.txt  # numpy-only, no torch/pandas/sklearn required
 ```
