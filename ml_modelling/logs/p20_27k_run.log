@@ -1,0 +1,21 @@
+loading 27k (this is the ~27min step, per the facts-pass-scaled estimate) ...
+  per-field vocab / share of rows unseen in train:
+    user_id      vocab=   26,904  unseen=0.4%
+    video_id     vocab=15,293,075  unseen=41.1%
+    author_id    vocab=4,948,795  unseen=7.5%
+    tab          vocab=       15  unseen=0.0%
+    dur_bucket   vocab=       10  unseen=0.0%
+  322,278,385 rows, dim=20268804, loaded in 2063s
+[20-27k-pointwise-k16-lr0.001-seed0] 27K's facts pass confirms an even more extreme item-cold-start regime than 1K (17.3% vs 15.1% test videos seen in train), where every within-user ranking loss (BPR, SSM) and every GBDT variant already lost to plain pointwise FM. This transfers 1K's confirmed winning config as-is -- zero exploration, per the plan's own directive to skip the architecture ladder at this scale and the KB's kuairand_27k.if_attempted note.
+  epoch  1 | loss 0.4516 | valid GAUC 0.6911 nDCG@5 0.6463 primary 0.6687 | 773.5s
+  epoch  2 | loss 0.4325 | valid GAUC 0.6895 nDCG@5 0.6357 primary 0.6626 | 754.7s
+  epoch  3 | loss 0.4226 | valid GAUC 0.6864 nDCG@5 0.6138 primary 0.6501 | 758.7s
+  epoch  4 | loss 0.4148 | valid GAUC 0.6833 nDCG@5 0.5888 primary 0.6361 | 754.9s
+  epoch  5 | loss 0.4086 | valid GAUC 0.6809 nDCG@5 0.5721 primary 0.6265 | 750.5s
+  early stop at epoch 5
+  train wall-clock: 4770s
+[20-27k-pointwise-k16-lr0.001-seed0] valid primary 0.6687 (no comparable baseline) -> unknown  [4770s]
+
+exp_id                              phase    valid    test  d_valid  outcome  s
+-------------------------------------------------------------------------------
+20-27k-pointwise-k16-lr0.001-seed0  20      0.6687  0.6557        -  unknown  4770

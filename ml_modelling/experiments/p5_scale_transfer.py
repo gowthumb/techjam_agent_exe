@@ -34,11 +34,17 @@ BASELINE_CFG = dict(loss='pointwise', k=16, lr=0.001, l2=1e-6, epochs=40, patien
 KB_CFG = dict(loss='bpr', k=6, lr=0.0002, l2=1e-6, epochs=60, patience=6)
 
 
-def prepare(bench, subsample=None):
+def prepare(bench, subsample=None, return_mapping=False):
     """Encode the five baseline fields via the integer fast path.
 
     Same five fields and same conventions as Pure, so the comparison is like for
     like; only the encoder implementation differs (see features.encode_int_fields).
+
+    return_mapping: also returns (cols, mapping, dur_edges) -- the frozen
+    train-fitted vocabulary/offsets and duration-bucket edges needed to encode a
+    DIFFERENT set of rows (e.g. the random-exposure log for Phase 18's unbiased
+    check) with this exact encoder, no refitting. Default False, so every
+    existing caller (Phase 5, Phase 10) is unaffected.
     """
     logs = B.load_logs(bench, minimal=True)
     masks = D.split_slices(logs)
@@ -51,13 +57,17 @@ def prepare(bench, subsample=None):
     hit = vids[order][pos] == logs['video_id']
     author = np.where(hit, auths[order][pos], -1)
 
-    edges = np.quantile(logs['duration_ms'][tr], np.linspace(0, 1, 11)[1:-1])
-    dur_bucket = np.searchsorted(edges, logs['duration_ms']).astype(np.int64)
+    dur_edges = np.quantile(logs['duration_ms'][tr], np.linspace(0, 1, 11)[1:-1])
+    dur_bucket = np.searchsorted(dur_edges, logs['duration_ms']).astype(np.int64)
 
     cols = {'user_id': logs['user_id'], 'video_id': logs['video_id'],
             'author_id': author, 'tab': logs['tab'].astype(np.int64),
             'dur_bucket': dur_bucket}
-    X, dim, unseen = F.encode_int_fields(cols, tr, order=list(F.BASELINE_FIELDS))
+    if return_mapping:
+        X, dim, unseen, mapping = F.encode_int_fields(
+            cols, tr, order=list(F.BASELINE_FIELDS), return_mapping=True)
+    else:
+        X, dim, unseen = F.encode_int_fields(cols, tr, order=list(F.BASELINE_FIELDS))
     print('  per-field vocab / share of rows unseen in train:')
     for k, v in unseen.items():
         print(f"    {k:12s} vocab={v['vocab']:>9,}  unseen={v['unseen_rate_all']:.1%}")
@@ -71,6 +81,8 @@ def prepare(bench, subsample=None):
         idx = np.sort(np.random.default_rng(0).choice(len(yt), n, replace=False))
         enc['train'] = (Xt[idx], yt[idx], ut[idx])
         print(f'  subsampled train to {n:,} of {len(yt):,} rows')
+    if return_mapping:
+        return logs, masks, enc, dim, cols, mapping, dur_edges
     return logs, masks, enc, dim
 
 

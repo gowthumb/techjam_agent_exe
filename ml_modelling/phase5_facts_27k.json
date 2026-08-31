@@ -1,0 +1,33 @@
+{
+ "benchmark": "27k",
+ "rows_total": 322278385,
+ "date_range": [
+  20220408,
+  20220508
+ ],
+ "users_total": 27285,
+ "videos_total": 32038693,
+ "splits": {
+  "train": {
+   "rows": 136296576,
+   "users": 26904
+  },
+  "valid": {
+   "rows": 71149570,
+   "users": 26729,
+   "users_seen_in_train": 0.9932,
+   "videos_seen_in_train": 0.2792
+  },
+  "test": {
+   "rows": 114832239,
+   "users": 27249,
+   "users_seen_in_train": 0.9862,
+   "videos_seen_in_train": 0.1734
+  }
+ },
+ "label_rate": {
+  "train": 0.2629,
+  "valid": 0.2611,
+  "test": 0.2572
+ }
+}

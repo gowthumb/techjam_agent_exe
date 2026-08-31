@@ -11,6 +11,7 @@ venv/
 
 # Local experiment artifacts
 ml_modelling/cache/
+ml_modelling/catboost_info/
 submission*.csv
 .ipynb_checkpoints/
 

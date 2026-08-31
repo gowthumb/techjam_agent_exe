@@ -123,7 +123,7 @@ def encode_splits(logs, masks, fields=None, dur_buckets=10, extra_cols=None):
 
 
 # ---------------------------------------------------------------- scale path
-def encode_int_fields(cols, train_mask, order=None):
+def encode_int_fields(cols, train_mask, order=None, return_mapping=False):
     """Vectorized encoding for integer-valued fields, for the 1K/27K scale.
 
     The Encoder above round-trips every value through Python strings, which is
@@ -136,9 +136,13 @@ def encode_int_fields(cols, train_mask, order=None):
 
     cols: {field_name: int array over ALL rows}
     -> (X int32 (N, n_fields), total_dim, per-field unseen-rate diagnostics)
+       plus a `mapping` (for apply_int_fields, e.g. scoring the random-exposure
+       log with this exact train-fitted vocabulary) when return_mapping=True.
+       Signature is unchanged when the flag is not passed, so no existing caller
+       (Phase 5 / 10 prepare()) is affected.
     """
     names = list(order or cols)
-    mats, dims, unseen = [], [], {}
+    mats, dims, unseen, vocabs = [], [], {}, []
     for name in names:
         col = np.asarray(cols[name])
         vocab = np.unique(col[train_mask])
@@ -148,8 +152,34 @@ def encode_int_fields(cols, train_mask, order=None):
         code = np.where(known, idx, len(vocab)).astype(np.int32)   # len(vocab) = UNK
         mats.append(code)
         dims.append(len(vocab) + 1)
+        vocabs.append(vocab)
         unseen[name] = {'vocab': int(len(vocab)),
                         'unseen_rate_all': round(float((~known).mean()), 4)}
     offsets = np.cumsum([0] + dims[:-1]).astype(np.int32)
     X = np.stack([m + o for m, o in zip(mats, offsets)], axis=1)
-    return X, int(sum(dims)), unseen
+    if not return_mapping:
+        return X, int(sum(dims)), unseen
+    mapping = [{'name': n, 'vocab': v, 'offset': int(o), 'dim': int(d)}
+               for n, v, o, d in zip(names, vocabs, offsets, dims)]
+    return X, int(sum(dims)), unseen, mapping
+
+
+def apply_int_fields(cols, mapping):
+    """Transform NEW rows with a FROZEN mapping from encode_int_fields(...,
+    return_mapping=True) -- no refitting. Unseen values fall to that field's UNK
+    slot, exactly like encode_int_fields does for its own eval splits.
+
+    This is the int-fast-path equivalent of Encoder.transform: it is what lets
+    the random-exposure log (Phase 18's unbiased-eval check) be scored with the
+    SAME vocabulary the standard-log encoder was fit on.
+    """
+    mats = []
+    for f in mapping:
+        col = np.asarray(cols[f['name']])
+        vocab = f['vocab']
+        idx = np.searchsorted(vocab, col)
+        idx[idx >= len(vocab)] = 0
+        known = vocab[idx] == col
+        code = np.where(known, idx, len(vocab)).astype(np.int32)
+        mats.append(code + f['offset'])
+    return np.stack(mats, axis=1)

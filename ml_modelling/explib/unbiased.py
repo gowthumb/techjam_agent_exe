@@ -24,13 +24,13 @@ Scoring is delegated to the starter kit's `evaluate.py` via `harness.score`,
 never reimplemented.
 """
 import numpy as np
-from . import dataset as D, harness as H
+from . import dataset as D, harness as H, benchmarks as B
 
 RAND_SPLITS = {'rand_valid': (20220422, 20220428),
                'rand_test':  (20220429, 20220508)}
 
 
-def load_random_encoded(encoder, extra_col_builder=None):
+def load_random_encoded(encoder, extra_col_builder=None, bench='pure'):
     """Encode every random-exposure row with a frozen train-fitted `encoder`.
 
     Returns {split: (X, y, users)} for rand_valid / rand_test -- the same shape
@@ -41,8 +41,14 @@ def load_random_encoded(encoder, extra_col_builder=None):
     random-log rows}. Needed when the encoder was fit with injected columns
     (Phase 14 features): the same columns must be recomputed for the random log
     and handed to the encoder before transform.
+
+    bench: defaults to 'pure' so every existing Pure-only caller is unaffected.
+    Pass bench='1k' to run the same bias-veto check on 1K's own random-exposure
+    log (log_random_4_22_to_5_08_1k.csv) -- routes through
+    benchmarks.load_random_logs, which delegates to this module's own Pure path
+    unchanged when bench='pure'.
     """
-    logs = D.load_logs(random_log=True)
+    logs = B.load_random_logs(bench)
     if extra_col_builder is not None:
         rcols = extra_col_builder(logs)
         encoder.extra_cols = {k: v for k, v in rcols.items() if k in encoder.fields}
@@ -74,19 +80,21 @@ def evaluate_all(predict_fn, enc, rand_enc):
     return out
 
 
-def calibration_rungs(rand_enc, seed=0):
+def calibration_rungs(rand_enc, seed=0, bench='pure'):
     """random-scoring and item-popularity rungs on the unbiased splits.
 
     The KB's `calibration` section judges every score against fixed rungs. The
     biased splits have them (baseline_scores.json); the unbiased splits need
     their own, because their label rate is a third of the biased one and the
     absolute numbers are not comparable across the two.
+
+    bench: defaults to 'pure'; pass '1k' for the 1K-specific rungs.
     """
-    logs = D.load_logs(random_log=True)
+    logs = B.load_random_logs(bench)
     d = logs['date']
     y_all = (logs[D.LABEL] != 0).astype(np.float64)
     # popularity: smoothed long_view rate per video, fit on STANDARD train only
-    std = D.load_logs()
+    std = B.load_logs(bench, minimal=(bench != 'pure'))
     sm = D.split_slices(std)['train']
     ys = (std[D.LABEL][sm] != 0).astype(np.float64)
     vid = std['video_id'][sm]

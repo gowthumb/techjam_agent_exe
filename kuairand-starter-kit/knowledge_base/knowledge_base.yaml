@@ -980,17 +980,169 @@ scale_transfer:
       machine; the minimal chunked integer path peaks at 0.4GB.
 
   kuairand_27k:
-    attempted: false
-    reason: >-
-      Not a waiting problem, a design problem. 322M rows x 6 minimal columns is
-      ~7GB of parsed arrays on a 23.7GB machine, and a single 40-epoch run is ~7.7
-      hours at the measured per-row cost — beyond one 6h benchmark budget for ONE
-      config, before any search. It needs out-of-core storage (memmap) plus
-      subsample-search-then-final-fit, which is a build rather than a longer run.
+    attempted: true
+    facts:
+      rows_total: 322278385
+      users_total: 27285
+      videos_total: 32038693
+      vs_pure: >-
+        224.3x rows, 1.0x users — same ~27K user population as Pure, not a new
+        sample: 224x more logged interactions per user, i.e. full histories.
+      split_rows: {train: 136296576, valid: 71149570, test: 114832239}
+      videos_seen_in_train: {valid: 0.2792, test: 0.1734}
+      label_rate: {train: 0.2629, valid: 0.2611, test: 0.2572}
+      note: >-
+        Confirms the if_attempted prediction below: the 1K regime (item
+        cold-start, flat label rate, no drift), slightly MORE extreme than 1K
+        (17.3% test videos seen in train here vs 1K's 15.1%). Reproduce:
+        `python experiments/p5_scale_transfer.py --bench 27k --stage facts`
+        (phase5_facts_27k.json).
+    result:
+      config: "pointwise FM, k=16, lr=1e-3, sparse=True — 1K's confirmed winner,
+        transferred as-is, zero exploration (single seed, NOT replicated — see
+        caution below)"
+      valid_primary: 0.6687
+      test_primary: 0.6557
+      best_epoch: 1
+      note: >-
+        Overfits even faster than 1K (whose baseline typically peaked epoch 2):
+        every epoch after 1 was strictly worse (0.6687 -> 0.6626 -> 0.6501 ->
+        0.6361 -> 0.6265 by epoch 5), consistent with an even more extreme
+        cold-start regime leaving less within-user signal to keep learning from.
+    caution: >-
+      SINGLE SEED, not replicated. 1K's own seed noise (sd 0.0022) was already
+      4x Pure's (sd 0.0005); 27K's noise is unmeasured. A 3-seed replication
+      would cost ~3x the training wall-clock (~4h just for training) which did
+      not fit the remaining 6h budget after the download+facts-pass cost already
+      spent. Treat 0.6687/0.6557 as one data point establishing that the config
+      runs and produces a sane, in-family result (not below the popularity
+      floor, no divergence) — not as a tuned or confidence-intervaled number.
+    engineering_notes:
+      - >-
+        27K was never downloaded before this session (9.9GB tarball, Zenodo
+        record 10439422 — Pure is 47MB, 1K is 1.1GB). Measured sustained
+        single-connection throughput ~1.3-1.7MB/s; actual download took ~1h40m.
+      - >-
+        27K ships log_standard as 2 files PER date window (_part1/_part2, ~5-7GB
+        each) instead of 1K/Pure's single file. `benchmarks.resolve_files` already
+        globs (`log_standard_*.csv`) rather than expecting an exact name, so this
+        needed zero code changes — confirmed by inspection before running anything.
+      - >-
+        `video_features_statistic_27k` is split into 3 parts totalling ~21.7GB —
+        deliberately never extracted (saved from a ~52GB free-disk budget). This
+        block is already excluded from every feature build on Pure and 1K (never
+        a winner, leakage caveat, and 1K's single 3.4GB file was already treated
+        as a size risk) and `benchmarks.py` never references it.
+      - >-
+        Load+encode took 2063s (~34min) for the 5-field int-fast-path over 322M
+        rows; peak process memory ~13.6GB against a 23.7GB machine — comfortable,
+        confirming FM's lean encoding (not GBDT's, which would need ~22GB for a
+        17-column matrix) was the right memory-safety call for this scale.
+      - >-
+        Total wall-clock for the whole 27K effort: ~1h40m download + ~20min
+        extract + 21min facts pass (1263s) + 1h54m load+train (2063s+4770s) =
+        ~4.25h. Whether the download counts against the plan's "50 iterations /
+        6h wall-clock per benchmark run" rule is not explicitly stated in
+        KNOWLEDGE_BASE_PLAN.md; reporting both readings: ~4.25h total including
+        download, ~2.55h compute-only from when the data was already in hand.
+        Either way, inside the 6h ceiling, and only 1 of 50 iterations used.
     if_attempted: >-
-      Run the facts pass first. 27K is sampled like 1K (all interactions for a user
-      sample), so expect the 1K regime — item cold-start — not the Pure one, and
-      expect the pointwise baseline to be the right starting point.
+      [Confirmed by the facts pass above.] 27K is sampled like 1K (all
+      interactions for a user sample), so expect the 1K regime — item cold-start
+      — not the Pure one, and expect the pointwise baseline to be the right
+      starting point. Do not spend further iterations on BPR/SSM/GBDT here without
+      new evidence: all three already lost to pointwise on 1K, a milder version
+      of this same regime, and the KB's own architecture-ladder logic says a
+      confirmed-negative prior travels across benchmarks in the same regime.
+    evidence:
+      exp_ids: [20-27k-pointwise-k16-lr0.001-seed0]
+      facts_files: [phase5_facts_pure.json, phase5_facts_1k.json, phase5_facts_27k.json]
+
+  onek_tuning_attempts:
+    what: >-
+      After confirming BPR loses on 1K (above), 1K's OWN pointwise baseline
+      (valid 0.6439 +/- 0.0022, test 0.6380 +/- 0.0021, 3 seeds) was tuned
+      directly rather than re-testing Pure's recipe: embedding noise, a smaller
+      learning rate with a longer budget, k=32 (filling the gap between the
+      already-tested k=16/k=64), and (user,author) causal affinity -- retried
+      because 1K's (user,author) pairs are 26.5% warm on test vs Pure's dead
+      2.6%, so the coverage objection that killed it on Pure does not apply here.
+    result: NONE_BEAT_BASELINE
+    detail:
+      noise_sigma_0.05: {valid: 0.6416, d_valid: -0.0023}
+      noise_sigma_0.1:  {valid: 0.6419, d_valid: -0.0020}
+      noise_sigma_0.2:  {valid: 0.6418, d_valid: -0.0021}
+      lr_0.0005_ep60:   {valid: 0.6439, d_valid: -0.0000, note: "single-run lead of +0.0008 fully evaporated on replication"}
+      lr_0.0002_ep60:   {valid: 0.6417, d_valid: -0.0022}
+      k32:              {valid: 0.6420, d_valid: -0.0019, note: "closes the capacity bracket: k=16 stays the 1K optimum"}
+      user_author_affinity: {valid: 0.6358, d_valid: -0.0081, note: "worse despite 10x the coverage Pure had; coverage alone was not sufficient"}
+    caution: >-
+      All 3-seed means, all within ~1se of the baseline. This mirrors
+      embedding_noise's own history on Pure: a lr-variant showed valid flat /
+      test +0.002 here too (lr_0.0005: d_test +0.0022, lr_0.0002: d_test
+      +0.0021), the exact valid-flat/test-up shape that turned out to be a
+      rand_valid-detectable bias artifact under embedding_noise. 1K DOES have
+      its own random-exposure log (log_random_4_22_to_5_08_1k.csv, 1K's data
+      dir) but explib/unbiased.py currently only loads Pure's
+      (D.load_logs(random_log=True)) -- extending it to 1K is the correct next
+      step before trusting either lr delta, not a smaller-lr recommendation.
+    evidence:
+      exp_ids: [10-1k-pointwise-noise0.05-seed0, 10-1k-pointwise-noise0.05-seed1,
+                10-1k-pointwise-noise0.05-seed2, 10-1k-pointwise-noise0.1-seed0,
+                10-1k-pointwise-noise0.1-seed1, 10-1k-pointwise-noise0.1-seed2,
+                10-1k-pointwise-noise0.2-seed0, 10-1k-pointwise-noise0.2-seed1,
+                10-1k-pointwise-noise0.2-seed2,
+                "10-1k-pointwise-lr0.0005-ep60-seed0", "10-1k-pointwise-lr0.0005-ep60-seed1",
+                "10-1k-pointwise-lr0.0005-ep60-seed2", "10-1k-pointwise-lr0.0002-ep60-seed0",
+                "10-1k-pointwise-lr0.0002-ep60-seed1", "10-1k-pointwise-lr0.0002-ep60-seed2",
+                10-1k-pointwise-k32-seed0, 10-1k-pointwise-k32-seed1, 10-1k-pointwise-k32-seed2,
+                10-1k-pointwise-aff-user_author-seed0]
+
+  onek_extended_axes:
+    what: >-
+      Phase 18/19: the Tier-1/2 axes never tested on 1K -- SSM loss (Pure's
+      confirmed BPR-peer), (user,tab)/(user,dur) causal affinity (smaller-
+      cardinality retries of the failed (user,author) test above), and GBDT
+      under a genuinely pairwise objective (rank:pairwise / rank:ndcg -- the
+      gap flagged as the most-cited open item on BOTH benchmarks, never run
+      on either until now). All tested against 1K's own baseline (valid
+      0.6439 +/- 0.0022, 3 seeds); the >1 baseline-SE gate (~0.0013) decides
+      which single-run leads get replicated.
+    result: NONE_BEAT_BASELINE
+    detail:
+      ssm_loss: {valid: 0.6290, d_valid: -0.0149, note: "confirms tier12_note's prediction -- SSM is a within-user normalising loss like BPR and inverts on 1K the same way, for the same item-cold-start reason"}
+      user_tab_affinity: {valid: 0.6422, d_valid: -0.0017, note: "does not clear the gate despite far higher per-(user,tab) coverage than (user,author) had"}
+      user_dur_affinity: {valid: 0.6362, d_valid: -0.0077}
+      gbdt_xgb_pairwise: {valid: 0.6402, d_valid: -0.0037, note: "rank:pairwise, base+causal-affinity features, single run, did not clear the gate so no replication run"}
+      gbdt_xgb_ndcg: {valid_mean: 0.6429, valid_sd: 0.0040, n_seeds: 3, d_valid_mean: -0.0010, note: "single-run lead of +0.0024 (seed0: 0.6463) fully evaporated on 3-seed replication -- the fifth 1K lead this workstream has killed this way"}
+      gbdt_catboost_yetirank: {status: NOT_COMPLETED, note: "killed after 90+ min stuck at ~1 of 16 cores with zero completed boosting rounds -- CatBoost's CPU YetiRank pair-generation does not parallelize the way tree-histogram building does, compounded by a script bug (cat_features was never passed to Pool(), so all ID columns were quantized as continuous instead of categorical). Genuinely untested, not a negative result; would need that fix plus PairLogit instead of YetiRank (or far fewer rounds) before it is worth retrying."}
+    caution: >-
+      user_dur_affinity's test score (0.6392) sits slightly above 1K's
+      baseline test mean (0.6380) despite valid being clearly negative
+      (-0.0077, not flat) -- noted for completeness, but this is not the
+      valid-flat/test-up shape the rand_valid bias veto exists to catch, and
+      valid alone already fails the gate. None of these five results reached
+      the unbiased-eval step: all either failed the single-run gate outright,
+      or (gbdt_xgb_ndcg) failed on replication before qualifying for it.
+    engineering_notes:
+      - >-
+        SSM and both affinity fields required zero new code: fm.py's
+        sparse=True path already covers ssm (_step_ssm routes through the
+        same apply_grad that dispatches to apply_grad_sparse), and
+        features.encode_int_fields/apply_int_fields already covers arbitrary
+        int-valued fields as a 6th column, per the (user,author) precedent
+        above.
+      - >-
+        GBDT-on-1K needed a new bench-aware feature builder
+        (experiments/p19_1k_gbdt.py) that excludes the `user` block (Pure's
+        own KB already shows 0 contribution -- structural, not benchmark-
+        specific) and the `vstat` block (3.4GB 1K source, never a winner even
+        on Pure).
+    evidence:
+      exp_ids: [18-1k-ssm-lr0.0003-t1-n8-k16-seed0, 18-1k-pointwise-aff-user_tab-seed0,
+                18-1k-pointwise-aff-user_dur-seed0, 19-1k-xgb_pairwise-base+aff,
+                19-1k-xgb_ndcg-base+aff, 19-1k-xgb_ndcg-base+aff-seed1,
+                19-1k-xgb_ndcg-base+aff-seed2]
 
   evidence:
     exp_ids: [5-1k-baseline-seed0, 5-1k-baseline-seed1, 5-1k-baseline-seed2,
