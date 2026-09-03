@@ -33,7 +33,7 @@ Additionally, a third independent run (`5cb9e936da024858815cd932df6ecfb7`, on th
 
 ### KuaiRand-1K (bonus benchmark)
 
-| Run | Best validation primary | Final test primary | Delta vs. baseline (0.6439 valid / 0.6405 test) | Iterations | Result |
+| Run | Best validation primary | Final test primary | Delta vs. baseline (0.6439 valid / 0.6380 test) | Iterations | Result |
 |---|---|---|---|---|---|
 | **`0f6a4083fba54b798c7bb6f87c0a73a9`** (independent run, `orchestrator_with_kb_1k` branch) | **0.6463** (3-seed mean 0.64628, seeds 0.64565/0.64553/0.64767) | 0.6399 (single seed, GAUC 0.6736 / nDCG@5 0.6062) | **+0.0024** valid (3-seed replicated), +0.0019 test (single-seed, not replicated) | 8 scored | **Confirmed improvement** |
 
